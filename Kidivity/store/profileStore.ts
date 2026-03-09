@@ -12,7 +12,7 @@ interface ProfileState {
 
 interface ProfileActions {
     fetchProfiles: () => Promise<void>;
-    addProfile: (input: CreateKidProfileInput) => Promise<{ error: string | null }>;
+    addProfile: (input: CreateKidProfileInput) => Promise<{ error: string | null, data?: KidProfile }>;
     updateProfile: (id: string, updates: UpdateKidProfileInput) => Promise<{ error: string | null }>;
     deleteProfile: (id: string) => Promise<{ error: string | null }>;
     setActiveProfile: (id: string) => void;
@@ -22,7 +22,7 @@ interface ProfileActions {
 type ProfileStore = ProfileState & ProfileActions;
 
 const AVATAR_COLORS = [
-    '#6C63FF', '#FF6B6B', '#00B894', '#FDCB6E', '#A29BFE',
+    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
     '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
 ];
 
@@ -89,8 +89,9 @@ export const useProfileStore = create<ProfileStore>()(
                         .single();
 
                     if (error) {
+                        console.error('[profile] addProfile error:', error.message);
                         set({ isLoading: false });
-                        return { error: error.message };
+                        return { error: 'Failed to create profile. Please try again.' };
                     }
 
                     const profile = data as KidProfile;
@@ -102,7 +103,7 @@ export const useProfileStore = create<ProfileStore>()(
                         isLoading: false,
                     });
 
-                    return { error: null };
+                    return { data: profile, error: null };
                 } catch {
                     set({ isLoading: false });
                     return { error: 'An unexpected error occurred' };
@@ -118,7 +119,10 @@ export const useProfileStore = create<ProfileStore>()(
                         .select()
                         .single();
 
-                    if (error) return { error: error.message };
+                    if (error) {
+                        console.error('[profile] updateProfile error:', error.message);
+                        return { error: 'Failed to update profile. Please try again.' };
+                    }
 
                     const updated = data as KidProfile;
                     const { profiles } = get();
@@ -139,7 +143,10 @@ export const useProfileStore = create<ProfileStore>()(
                         .delete()
                         .eq('id', id);
 
-                    if (error) return { error: error.message };
+                    if (error) {
+                        console.error('[profile] deleteProfile error:', error.message);
+                        return { error: 'Failed to delete profile. Please try again.' };
+                    }
 
                     const { profiles, activeProfileId } = get();
                     const remaining = profiles.filter(p => p.id !== id);

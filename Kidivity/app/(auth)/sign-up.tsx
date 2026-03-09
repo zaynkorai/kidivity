@@ -8,15 +8,26 @@ import {
     Platform,
     ScrollView,
     TouchableOpacity,
+    useWindowDimensions
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, CheckCircle, BookOpen, Star } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
+const ScreenColors = {
+    background: Colors.background,
+    formBg: Colors.surface,
+    purpleHeader: Colors.pastelPurple,
+    purpleText: Colors.textPrimary,
+    textMain: Colors.textPrimary,
+    textSecondary: Colors.textSecondary,
+};
 
 export default function SignUpScreen() {
+    const { height } = useWindowDimensions();
     const router = useRouter();
     const { signUp, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -50,7 +61,9 @@ export default function SignUpScreen() {
         if (result.error) {
             setError(result.error);
         } else {
-            setSuccess(true);
+            if (!useAuthStore.getState().session) {
+                setSuccess(true);
+            }
         }
     };
 
@@ -86,115 +99,129 @@ export default function SignUpScreen() {
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
+                    bounces={false}
                 >
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            onPress={() => router.back()}
-                            style={styles.backButton}
-                        >
-                            <ArrowLeft size={24} color={Colors.textPrimary} />
-                        </TouchableOpacity>
-                    </View>
+                    <View style={styles.themedContainer}>
+                        <ScreenBackground />
 
-                    {/* Title */}
-                    <View style={styles.titleBlock}>
-                        <Text style={styles.title}>Create Account</Text>
-                        <Text style={styles.subtitle}>
-                            Sign up to save activities and sync across devices.
-                        </Text>
-                    </View>
+                        {/* 1. Header Banner */}
+                        <View style={[styles.headerBlock, { height: height * 0.45 }]}>
+                            <TouchableOpacity
+                                onPress={() => router.back()}
+                                style={styles.backButton}
+                            >
+                                <ArrowLeft size={24} color={ScreenColors.purpleText} />
+                            </TouchableOpacity>
 
-                    {/* Form */}
-                    <View style={styles.form}>
-                        <Input
-                            label="Email Address"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            autoComplete="email"
-                            autoFocus
-                        />
-
-                        <Input
-                            label="Password"
-                            placeholder="At least 6 characters"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry
-                            autoCapitalize="none"
-                            containerStyle={{ marginTop: Spacing.lg }}
-                        />
-
-                        <Input
-                            label="Confirm Password"
-                            placeholder="Re-enter your password"
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            secureTextEntry
-                            autoCapitalize="none"
-                            containerStyle={{ marginTop: Spacing.lg }}
-                        />
-
-                        {/* Password Strength Indicators */}
-                        <View style={styles.checks}>
-                            <View style={styles.checkRow}>
-                                <View
-                                    style={[
-                                        styles.checkDot,
-                                        passwordChecks.length && styles.checkDotActive,
-                                    ]}
-                                />
-                                <Text
-                                    style={[
-                                        styles.checkText,
-                                        passwordChecks.length && styles.checkTextActive,
-                                    ]}
-                                >
-                                    At least 6 characters
-                                </Text>
+                            {/* Grouped harmonious illustration */}
+                            <View style={styles.illustrationGroup}>
+                                <Star size={16} color="#FFADAD" fill="#FFADAD" style={[styles.floatingIcon, { top: -10, left: -40 }]} />
+                                <Star size={20} color="#FDCB6E" fill="#FDCB6E" style={[styles.floatingIcon, { bottom: 10, right: -40 }]} />
+                                <BookOpen size={75} color={ScreenColors.purpleText} style={{ transform: [{ rotate: '-10deg' }] }} />
                             </View>
-                            <View style={styles.checkRow}>
-                                <View
-                                    style={[
-                                        styles.checkDot,
-                                        passwordChecks.match && styles.checkDotActive,
-                                    ]}
-                                />
-                                <Text
-                                    style={[
-                                        styles.checkText,
-                                        passwordChecks.match && styles.checkTextActive,
-                                    ]}
-                                >
-                                    Passwords match
-                                </Text>
-                            </View>
+
+                            <Text style={styles.headerTitle}>Unlock Your{'\n'}Child&apos;s Potential</Text>
                         </View>
 
-                        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                        {/* 2. Elevated Form Surface - Overlapping Header */}
+                        <View style={styles.formSurface}>
+                            <View style={styles.formCard}>
+                                <Text style={styles.title}>Create Account</Text>
+                                <Text style={styles.subtitle}>
+                                    Sign up to save activities and sync across devices.
+                                </Text>
 
-                        <Button
-                            title="Create Account"
-                            onPress={handleSignUp}
-                            loading={isLoading}
-                            disabled={!passwordChecks.length || !passwordChecks.match}
-                            size="lg"
-                            style={styles.submitButton}
-                            icon={<ArrowRight size={20} color={Colors.white} />}
-                        />
+                                <View style={styles.form}>
+                                    <Input
+                                        label="Email Address"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                        autoComplete="email"
+                                    />
 
-                        <TouchableOpacity
-                            onPress={() => router.back()}
-                            style={styles.switchLink}
-                        >
-                            <Text style={styles.switchLinkText}>
-                                Already have an account?{' '}
-                                <Text style={styles.switchLinkBold}>Sign In</Text>
-                            </Text>
-                        </TouchableOpacity>
+                                    <Input
+                                        label="Password"
+                                        placeholder="At least 6 characters"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry
+                                        autoCapitalize="none"
+                                        containerStyle={{ marginTop: Spacing.xl }}
+                                    />
+
+                                    <Input
+                                        label="Confirm Password"
+                                        placeholder="Re-enter your password"
+                                        value={confirmPassword}
+                                        onChangeText={setConfirmPassword}
+                                        secureTextEntry
+                                        autoCapitalize="none"
+                                        containerStyle={{ marginTop: Spacing.lg }}
+                                    />
+
+                                    {/* Upgraded Password Strength Indicators */}
+                                    <View style={styles.checks}>
+                                        <View style={styles.checkRow}>
+                                            <View
+                                                style={[
+                                                    styles.checkPill,
+                                                    passwordChecks.length && styles.checkPillActive,
+                                                ]}
+                                            />
+                                            <Text
+                                                style={[
+                                                    styles.checkText,
+                                                    passwordChecks.length && styles.checkTextActive,
+                                                ]}
+                                            >
+                                                At least 6 characters
+                                            </Text>
+                                        </View>
+                                        <View style={styles.checkRow}>
+                                            <View
+                                                style={[
+                                                    styles.checkPill,
+                                                    passwordChecks.match && styles.checkPillActive,
+                                                ]}
+                                            />
+                                            <Text
+                                                style={[
+                                                    styles.checkText,
+                                                    passwordChecks.match && styles.checkTextActive,
+                                                ]}
+                                            >
+                                                Passwords match
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+                                    <Button
+                                        title="Create Account"
+                                        onPress={handleSignUp}
+                                        loading={isLoading}
+                                        disabled={!passwordChecks.length || !passwordChecks.match}
+                                        size="lg"
+                                        style={styles.submitButton}
+                                        icon={<ArrowRight size={20} color={Colors.white} />}
+                                    />
+
+                                    <TouchableOpacity
+                                        onPress={() => router.back()}
+                                        style={styles.switchLink}
+                                    >
+                                        <Text style={styles.switchLinkText}>
+                                            Already have an account?{' '}
+                                            <Text style={styles.switchLinkBold}>Sign In</Text>
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -205,78 +232,110 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: ScreenColors.background,
     },
     flex: {
         flex: 1,
     },
     scrollContent: {
         flexGrow: 1,
-        paddingHorizontal: Spacing['2xl'],
+    },
+    themedContainer: {
+        backgroundColor: ScreenColors.background,
     },
 
-    // Header
-    header: {
-        paddingTop: Spacing.lg,
-        paddingBottom: Spacing.md,
+    // 1. Header Block (Purple)
+    headerBlock: {
+        width: '100%',
+        backgroundColor: ScreenColors.purpleHeader,
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderBottomLeftRadius: Radius.xl * 2,
+        borderBottomRightRadius: Radius.xl * 2,
     },
     backButton: {
+        position: 'absolute',
+        top: Platform.OS === 'ios' ? Spacing['xl'] : Spacing['3xl'],
+        left: Spacing['2xl'],
+        zIndex: 20,
         width: 44,
         height: 44,
-        borderRadius: Radius.md,
-        backgroundColor: Colors.surface,
-        borderWidth: 1,
-        borderColor: Colors.border,
+        borderRadius: Radius.full,
+        backgroundColor: Colors.white + '90',
         alignItems: 'center',
         justifyContent: 'center',
     },
+    illustrationGroup: {
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.xl,
+    },
+    floatingIcon: {
+        position: 'absolute',
+    },
+    headerTitle: {
+        fontSize: FontSize['4xl'],
+        fontWeight: FontWeight.extrabold,
+        color: ScreenColors.purpleText,
+        textAlign: 'center',
+        lineHeight: 44,
+        letterSpacing: -1,
+    },
 
-    // Title
-    titleBlock: {
-        marginBottom: Spacing['2xl'],
+    // 2. Overlapping Elevated Form
+    formSurface: {
+        paddingHorizontal: Spacing['2xl'],
+        marginTop: -60, // The overlap effect
+        paddingBottom: Spacing['5xl'],
+    },
+    formCard: {
+        backgroundColor: ScreenColors.formBg,
+        borderRadius: Radius.xl * 1.5,
+        padding: Spacing['3xl'],
+        ...Shadows.lg,
     },
     title: {
-        fontSize: FontSize['3xl'],
+        fontSize: FontSize['2xl'],
         fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginBottom: Spacing.sm,
+        color: ScreenColors.textMain,
+        marginBottom: Spacing.xs,
+        textAlign: 'center',
     },
     subtitle: {
-        fontSize: FontSize.md,
-        color: Colors.textSecondary,
-        lineHeight: 22,
+        fontSize: FontSize.sm,
+        color: ScreenColors.textSecondary,
+        textAlign: 'center',
+        marginBottom: Spacing['3xl'],
     },
-
-    // Form
     form: {
-        backgroundColor: Colors.surface,
-        borderRadius: Radius.xl,
-        padding: Spacing['2xl'],
-        ...Shadows.sm,
+        width: '100%',
     },
 
     // Password checks
     checks: {
-        marginTop: Spacing.lg,
+        marginTop: Spacing.xl,
         gap: Spacing.sm,
     },
     checkRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.sm,
+        gap: Spacing.md,
     },
-    checkDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: Colors.disabled,
+    checkPill: {
+        width: 16,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: Colors.disabled + '80', // Soft disabled color
     },
-    checkDotActive: {
+    checkPillActive: {
         backgroundColor: Colors.success,
     },
     checkText: {
         fontSize: FontSize.sm,
         color: Colors.textTertiary,
+        fontWeight: FontWeight.medium,
     },
     checkTextActive: {
         color: Colors.success,
@@ -293,23 +352,23 @@ const styles = StyleSheet.create({
     // Submit
     submitButton: {
         width: '100%',
-        marginTop: Spacing.xl,
-        borderRadius: Radius.lg,
-        paddingVertical: 16,
+        marginTop: Spacing['2xl'],
+        borderRadius: Radius.full,
+        paddingVertical: 18,
     },
 
     // Switch link
     switchLink: {
         alignItems: 'center',
-        marginTop: Spacing.lg,
+        marginTop: Spacing.xl,
     },
     switchLinkText: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: ScreenColors.textSecondary,
     },
     switchLinkBold: {
-        color: Colors.primary,
-        fontWeight: FontWeight.semibold,
+        color: ScreenColors.textMain,
+        fontWeight: FontWeight.extrabold,
     },
 
     // Success
@@ -325,13 +384,13 @@ const styles = StyleSheet.create({
     successTitle: {
         fontSize: FontSize['2xl'],
         fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
+        color: ScreenColors.textMain,
         textAlign: 'center',
         marginBottom: Spacing.md,
     },
     successSubtitle: {
         fontSize: FontSize.md,
-        color: Colors.textSecondary,
+        color: ScreenColors.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: Spacing['3xl'],

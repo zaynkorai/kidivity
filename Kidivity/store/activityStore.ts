@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
 
@@ -94,7 +95,13 @@ export const useActivityStore = create<ActivityStore>()(
                         return { data: null, error: 'Not authenticated' };
                     }
 
-                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+                    let apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+                    
+                    // Android resilience: localhost doesn't work on real devices
+                    if (Platform.OS !== 'web' && apiUrl.includes('localhost')) {
+                        apiUrl = apiUrl.replace('localhost', '172.16.162.13'); 
+                    }
+
                     const response = await fetch(`${apiUrl}/api/activities/generate`, {
                         method: 'POST',
                         headers: {

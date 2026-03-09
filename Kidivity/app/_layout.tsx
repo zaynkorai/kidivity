@@ -7,8 +7,20 @@ import { useProfileStore } from '@/store/profileStore';
 import { Colors } from '@/constants/theme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import 'react-native-reanimated';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_700Bold,
+  });
+
   const initialize = useAuthStore((s) => s.initialize);
   const session = useAuthStore((s) => s.session);
   const isInitialized = useAuthStore((s) => s.isInitialized);
@@ -52,14 +64,14 @@ export default function RootLayout() {
     } else if (isAuthenticated && !hasProfiles && !inOnboardingGroup) {
       // Signed in, no profiles, not on onboarding → send to onboarding
       router.replace('/(onboarding)/create-profile');
-    } else if (isAuthenticated && hasProfiles && inOnboardingGroup) {
-      // Has profiles but still on onboarding → send to main app
+    } else if (isAuthenticated && hasProfiles && inOnboardingGroup && segments[1] !== 'first-activity') {
+      // Has profiles but still on onboarding and not generating first activity → send to main app
       router.replace('/(tabs)');
     }
   }, [session, isInitialized, segments, profiles.length]);
 
-  // Show loading spinner until auth state is resolved
-  if (!isInitialized) {
+  // Show loading spinner until auth state is resolved or fonts load
+  if (!isInitialized || !fontsLoaded) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.primary} />

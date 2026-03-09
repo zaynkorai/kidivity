@@ -50,17 +50,17 @@ export default async function activityRoutes(fastify: FastifyInstance) {
 
         const sysInstruction = buildSystemInstruction(kidProfile);
         const promptText = buildPromptUser(kidProfile, input);
-        const imagePrompt = buildImagePrompt(kidProfile, input);
+        const buildImagePromptFn = (dynOp: string) => buildImagePrompt(kidProfile, input, dynOp);
         
         // ALL activities are now visual-first
         const isVisualCategory = true;
 
-        // 4. Generate content and image in parallel via ai.service
+        // 4. Generate content and then image sequentially via ai.service
         const { content, image_url } = await generateActivityContent({
             geminiKey,
             sysInstruction,
             promptText,
-            imagePrompt,
+            buildImagePrompt: buildImagePromptFn,
             isVisualCategory,
             logger: fastify.log
         });

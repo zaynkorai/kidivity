@@ -5,8 +5,9 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
+
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -22,6 +23,7 @@ import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
+import { Input } from '@/components/ui/Input';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
@@ -42,6 +44,10 @@ export default function GenerateScreen() {
     const [style, setStyle] = useState<ActivityStyle>('colorful');
     const [error, setError] = useState<string | null>(null);
     const [showPaywall, setShowPaywall] = useState(false);
+
+    React.useEffect(() => {
+        setTopic('');
+    }, [selectedCategory]);
 
     const suggestedTopics = React.useMemo(() => {
         if (!selectedCategory) return [];
@@ -192,15 +198,23 @@ export default function GenerateScreen() {
                 {/* Step 2: Topic */}
                 <Text style={styles.sectionTitle}>2. Pick a Topic</Text>
                 {selectedCategory ? (
-                    <View style={[styles.optionRow, { marginBottom: Spacing.md }]}>
-                        {suggestedTopics.map((t) => (
-                            <Chip
-                                key={t}
-                                label={t}
-                                selected={topic.toLowerCase() === t.toLowerCase()}
-                                onPress={() => setTopic(t)}
-                            />
-                        ))}
+                    <View>
+                        <View style={[styles.optionRow, { marginBottom: Spacing.md }]}>
+                            {suggestedTopics.map((t) => (
+                                <Chip
+                                    key={t}
+                                    label={t}
+                                    selected={topic.toLowerCase() === t.toLowerCase()}
+                                    onPress={() => setTopic(t)}
+                                />
+                            ))}
+                        </View>
+                        <Input
+                            placeholder="Or type your own topic (e.g. Space Pirates)"
+                            value={topic}
+                            onChangeText={setTopic}
+                            maxLength={60}
+                        />
                     </View>
                 ) : (
                     <Text style={styles.optionLabel}>Please choose a category first.</Text>

@@ -4,20 +4,29 @@ import { Platform } from 'react-native';
 // Playful, kid-friendly, but professional for parents.
 
 export const Colors = {
-  // Core brand
-  primary: '#6C63FF',       // Purple — main CTA, active elements
-  primaryLight: '#A29BFE',  // Light purple — backgrounds, chips
-  primaryDark: '#4834D4',   // Dark purple — pressed states
+  // Brand from Style Guide
+  purple: '#E7E1FF',
+  rad: '#FECAC3',
+  blue: '#8AE3FF',
+  yellow: '#FFE3C1',
+  orange: '#FF8A00',
+  green: '#A2DDC2',
+
+  // Core semantic mapping (incorporating new style guide)
+  primary: '#FF8A00',       // Orange — main CTA, active elements (good contrast)
+  primaryLight: '#E7E1FF',  // Purple — backgrounds, chips
+  primaryDark: '#FF8A00',   // Orange — pressed states
+  primaryPurple: '#9B72DA', // Purple CTA color
 
   // Accent
-  accent: '#FF6B6B',        // Coral red — like/save, warnings
-  accentLight: '#FFADAD',   // Light coral — badges
-  success: '#2ED573',       // Green — success states
-  warning: '#FECA57',       // Yellow — caution
+  accent: '#FECAC3',        // Rad 
+  accentLight: '#FFE3C1',   // Yellow
+  success: '#A2DDC2',       // Green 
+  warning: '#FFE3C1',       // Yellow 
 
   // Neutrals
   white: '#FFFFFF',
-  background: '#F8F9FE',    // Warm off-white
+  background: '#FFFFFF',    // Crisp white for playful watermarks
   surface: '#FFFFFF',       // Cards, modals
   border: '#E8E8F0',        // Subtle borders
   textPrimary: '#1E1E2E',   // Near-black
@@ -26,12 +35,20 @@ export const Colors = {
   disabled: '#D1D5DB',
 
   // Category colors (for activity cards)
-  categoryPuzzles: '#6C63FF',
-  categoryTracing: '#FF6B6B',
-  categoryScience: '#00B894',
-  categoryArt: '#FDCB6E',
-  categoryMath: '#0984e3',
-  categoryReading: '#e84393',
+  categoryPuzzles: '#E7E1FF', // purple
+  categoryTracing: '#FECAC3', // rad
+  categoryScience: '#A2DDC2', // green
+  categoryArt: '#FFE3C1',     // yellow
+  categoryMath: '#8AE3FF',    // blue
+  categoryReading: '#FF8A00', // orange
+
+  // Soft Pastels for Card Backgrounds
+  pastelPurple: '#F3EFFF',
+  pastelPink: '#FFF0F5',
+  pastelPeach: '#FFF3E0',
+  pastelYellow: '#FFFBE6',
+  pastelMint: '#E8F5E9',
+  pastelBlue: '#E3F2FD',
 
   // Dark mode
   dark: {
@@ -46,18 +63,18 @@ export const Colors = {
   light: {
     text: '#1E1E2E',
     background: '#F8F9FE',
-    tint: '#6C63FF',
+    tint: '#FF8A00',
     icon: '#6B7280',
     tabIconDefault: '#9CA3AF',
-    tabIconSelected: '#6C63FF',
+    tabIconSelected: '#FF8A00',
   },
   darkTheme: {
     text: '#F0F0F5',
     background: '#0F0F1A',
-    tint: '#A29BFE',
+    tint: '#E7E1FF',
     icon: '#9CA3AF',
     tabIconDefault: '#6B7280',
-    tabIconSelected: '#A29BFE',
+    tabIconSelected: '#E7E1FF',
   },
 } as const;
 
@@ -76,25 +93,26 @@ export const Spacing = {
 
 // ─── Border Radius ───────────────────────────────────────────────
 export const Radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  '2xl': 40,
   full: 9999,
 } as const;
 
 // ─── Typography ──────────────────────────────────────────────────
 export const Fonts = Platform.select({
   ios: {
-    sans: 'System',
+    sans: 'Poppins_400Regular',
     serif: 'Georgia',
-    rounded: 'SF Pro Rounded',
+    rounded: 'Poppins_500Medium',
     mono: 'Menlo',
   },
   default: {
-    sans: 'System',
+    sans: 'Poppins_400Regular',
     serif: 'serif',
-    rounded: 'System',
+    rounded: 'Poppins_500Medium',
     mono: 'monospace',
   },
 })!;
@@ -122,23 +140,23 @@ export const FontWeight = {
 export const Shadows = {
   sm: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
     elevation: 1,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
   },
 } as const;

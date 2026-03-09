@@ -5,7 +5,7 @@ interface GenerateActivityParams {
     geminiKey: string;
     sysInstruction: string;
     promptText: string;
-    imagePrompt?: string;
+    buildImagePrompt?: (dynamicPrompt: string) => string;
     isVisualCategory: boolean;
     logger: FastifyBaseLogger;
 }
@@ -22,15 +22,16 @@ const activityResponseSchema: Schema = {
     title: { type: Type.STRING },
     instructions: { type: Type.STRING },
     content: { type: Type.STRING },
+    imagePrompt: { type: Type.STRING, description: "A detailed prompt for generating an image that perfectly matches the activity content." },
   },
-  required: ["title", "instructions", "content"],
+  required: ["title", "instructions", "content", "imagePrompt"],
 };
 
 export async function generateActivityContent({
     geminiKey,
     sysInstruction,
     promptText,
-    imagePrompt,
+    buildImagePrompt,
     isVisualCategory,
     logger
 }: GenerateActivityParams): Promise<GenerateResult> {
@@ -38,68 +39,67 @@ export async function generateActivityContent({
     // Create an instance leveraging the provided API key
     const ai = new GoogleGenAI({ apiKey: geminiKey });
 
-    // 1. Define Text Generation Promise
-    const textPromise = ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: promptText,
-        config: {
-            systemInstruction: sysInstruction,
-            responseMimeType: "application/json",
-            responseSchema: activityResponseSchema,
-        },
-    }).then(res => {
+    // 1. Generate Text First
+    let markdown = '';
+    let dynamicImagePrompt = '';
+    
+    try {
+        const res = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: promptText,
+            config: {
+                systemInstruction: sysInstruction,
+                responseMimeType: "application/json",
+                responseSchema: activityResponseSchema,
+            },
+        });
+        
         const text = res.text;
         if (!text) throw new Error("No text returned from Gemini");
-        try {
-            // Strip markdown block formatting if Gemini included it despite application/json mimetype
-            let cleanText = text.trim();
-            if (cleanText.startsWith('```')) {
-                cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-            }
-            const parsed = JSON.parse(cleanText);
-            return `# ${parsed.title}\n\n${parsed.instructions}\n\n${parsed.content}`;
-        } catch (e) {
-            logger.error({ err: e, text }, 'Failed to parse Gemini generated JSON');
-            return text;
+        
+        // Strip markdown block formatting if Gemini included it despite application/json mimetype
+        let cleanText = text.trim();
+        if (cleanText.startsWith('```')) {
+            cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
         }
-    }).catch(err => {
+        let parsed: any;
+        try {
+            parsed = JSON.parse(cleanText);
+        } catch (parseErr) {
+            logger.error({ err: parseErr, cleanText }, 'Gemini returned invalid JSON');
+            throw new Error('AI returned an unexpected format. Please try again.');
+        }
+
+        markdown = `# ${parsed.title}\n\n${parsed.instructions}\n\n${parsed.content}`;
+        dynamicImagePrompt = parsed.imagePrompt;
+    } catch (err: any) {
         logger.error(err, 'Gemini text error');
-        throw new Error(`Gemini text error: ${err.message}`);
-    });
+        throw new Error(err.message || 'Unknown error generating activity');
+    }
 
-    // 2. Define Image Generation Promise (Optional)
-    let imagePromise = Promise.resolve<string | null>(null);
+    // 2. Generate Image (Sequential)
+    let image_url: string | null = null;
 
-    if (isVisualCategory && imagePrompt) {
-        imagePromise = ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: {
-                parts: [{ text: imagePrompt }],
-            }
-        }).then(res => {
+    if (isVisualCategory && buildImagePrompt && dynamicImagePrompt) {
+        try {
+            const finalImagePrompt = buildImagePrompt(dynamicImagePrompt);
+            const res = await ai.models.generateContent({
+                model: 'gemini-2.5-flash-image',
+                contents: {
+                    parts: [{ text: finalImagePrompt }],
+                }
+            });
             for (const part of res.candidates?.[0]?.content?.parts || []) {
                 if (part.inlineData) {
-                    return `data:image/png;base64,${part.inlineData.data}`;
+                    image_url = `data:image/png;base64,${part.inlineData.data}`;
+                    break;
                 }
             }
-            return null;
-        }).catch((err: any) => {
+        } catch (err: any) {
             logger.error(err, 'Error calling image generation API');
-            return null;
-        });
-    }
-
-    // 3. Execute in parallel
-    try {
-        const [content, image_url] = await Promise.all([textPromise, imagePromise]);
-        
-        if (!content) {
-            throw new Error('Failed to parse Gemini text response');
+            // We don't throw here to still return the content even if image fails
         }
-
-        return { content, image_url };
-    } catch (err: any) {
-        logger.error(err, 'Error during activity generation');
-        throw new Error('Failed to generate activity content');
     }
+
+    return { content: markdown, image_url };
 }

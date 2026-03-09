@@ -5,9 +5,10 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
+
     Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight } from 'lucide-react-native';

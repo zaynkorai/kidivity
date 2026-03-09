@@ -21,10 +21,10 @@ When working on the Kidivity application, you MUST follow these strictly defined
 
 ## 3. Core Theme Definition
 Adhere strictly to the defined constants in `Kidivity/constants/theme.ts`:
-- **Core Brand:** Primary Purple (`#6C63FF`), Light Purple (`#A29BFE`), Dark Purple (`#4834D4`)
-- **Accents:** Coral Red (`#FF6B6B`), Success Green (`#2ED573`), Warning Yellow (`#FECA57`)
-- **Neutrals:** Background (`#F8F9FE`), Surface (`#FFFFFF`), Text Primary (`#1E1E2E`)
-- **Category Colors:** Logic (`#6C63FF`), Tracing (`#FF6B6B`), Educational (`#00B894`), Screen-Free (`#FDCB6E`)
+- **Core Brand:** Purple (`#E7E1FF`), Rad (`#FECAC3`), Blue (`#8AE3FF`), Yellow (`#FFE3C1`), Orange (`#FF8A00`), Green (`#A2DDC2`)
+- **Semantic Mapping:** Orange is `primary` and `primaryDark`, Purple is `primaryLight`
+- **Category Colors:** Math (`#8AE3FF`), Reading (`#FF8A00`), Science (`#A2DDC2`), Art (`#FFE3C1`), Tracing (`#FECAC3`), Puzzles (`#E7E1FF`)
+- **Typography:** ALWAYS use the Poppins font family (`Poppins_400Regular`, `Poppins_500Medium`, `Poppins_700Bold`), do not use System fonts.
 - **Dark Mode:** Supports a dedicated dark theme (`#0F0F1A` background, `#1A1A2E` surface). Ensure all UI components handle light/dark transitions gracefully.
 
 ## 4. No AI Slop

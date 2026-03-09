@@ -50,7 +50,7 @@ export function Button({
             {loading ? (
                 <ActivityIndicator
                     size="small"
-                    color={variant === 'primary' ? Colors.white : Colors.primary}
+                    color={variant === 'primary' ? Colors.white : Colors.primaryPurple}
                 />
             ) : (
                 <>
@@ -78,12 +78,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        borderRadius: Radius.md,
+        borderRadius: Radius.full,
     },
 
     // Variants
     primary: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.primaryPurple,
         ...Shadows.md,
     },
     secondary: {
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     outline: {
         backgroundColor: 'transparent',
         borderWidth: 1.5,
-        borderColor: Colors.primary,
+        borderColor: Colors.primaryPurple,
     },
     ghost: {
         backgroundColor: 'transparent',
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
 
     // Text
     text: {
-        fontWeight: FontWeight.semibold,
+        fontWeight: FontWeight.bold,
     },
     text_primary: {
         color: Colors.white,
@@ -128,10 +128,10 @@ const styles = StyleSheet.create({
         color: Colors.primaryDark,
     },
     text_outline: {
-        color: Colors.primary,
+        color: Colors.primaryPurple,
     },
     text_ghost: {
-        color: Colors.primary,
+        color: Colors.primaryPurple,
     },
 
     textSize_sm: {

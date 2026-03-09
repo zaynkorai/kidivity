@@ -77,12 +77,12 @@ function buildPrintHtml(activity: {
       text-align: center;
       padding-bottom: 16px;
       margin-bottom: 20px;
-      border-bottom: 2px solid ${isBW ? '#333' : '#6C63FF'};
+      border-bottom: 2px solid ${isBW ? '#333' : '#FF8A00'};
     }
     .header h1 {
       font-size: 24px;
       margin-bottom: 4px;
-      ${isBW ? '' : 'color: #6C63FF;'}
+      ${isBW ? '' : 'color: #FF8A00;'}
     }
     .header .meta {
       font-size: 12px;
@@ -95,7 +95,7 @@ function buildPrintHtml(activity: {
       font-size: 12px;
       font-weight: 600;
       margin-bottom: 8px;
-      ${isBW ? 'border: 1px solid #333;' : `background: ${(category?.color ?? '#6C63FF')}20; color: ${category?.color ?? '#6C63FF'};`}
+      ${isBW ? 'border: 1px solid #333;' : `background: ${(category?.color ?? '#FF8A00')}20; color: ${category?.color ?? '#FF8A00'};`}
     }
     h1 { font-size: 22px; margin: 16px 0 8px; }
     h2 { font-size: 18px; margin: 14px 0 6px; ${isBW ? '' : 'color: #4834D4;'} }

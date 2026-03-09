@@ -130,10 +130,12 @@ CRITICAL QUALITY STANDARD: Every activity generated MUST be a highly polished, p
 Style: ${style}
 Difficulty: ${input.difficulty}
 
-${categoryPrompt}`;
+${categoryPrompt}
+
+Also provide an "imagePrompt" in your JSON response. This imagePrompt must be a highly descriptive, detailed prompt that perfectly describes what the accompanying illustration should display, tailored EXACTLY to the specific content you just generated. Mention the exact items, quantities, or characters in the activity.`;
 }
 
-export function buildImagePrompt(profile: any, input: GenerateBody): string {
+export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPrompt: string): string {
     const topInterests = (profile.interests || []).slice(0, 3).join(', ');
     const isTracing = input.category === 'tracing';
     const isPuzzles = input.category === 'puzzles';
@@ -198,6 +200,9 @@ Topic: ${input.topic}
 
 ${styleEnforcement}
 IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". ${interestNote} DO NOT add random characters, animals, or elements that don't make sense for the topic.
+
+Dynamic Content to Visualize:
+${dynamicPrompt}
 
 Specific Instructions:
 ${layoutInstruction}

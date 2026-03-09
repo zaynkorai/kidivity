@@ -4,167 +4,96 @@ import {
     Text,
     StyleSheet,
     SafeAreaView,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     TouchableOpacity,
+    Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Map, Mail, ArrowRight, Wand2, Puzzle, PenTool, BookOpen, Palette } from 'lucide-react-native';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
-import { useAuthStore } from '@/store/authStore';
+
+import { useWindowDimensions } from 'react-native';
+// Refined colors based on standard design philosophy from the screenshots
+const ScreenColors = {
+    background: '#FDFBF7', // Very pale cream background matching screenshot
+    authBg: '#FFF9E6',     // Pale beige for the sign in screen
+    textMain: '#1A1A1A',
+    textSecondary: '#7A7A7A',
+};
 
 export default function WelcomeScreen() {
+    const { height } = useWindowDimensions();
     const router = useRouter();
-    const { signIn, isLoading } = useAuthStore();
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [error, setError] = React.useState('');
-    const [showSignIn, setShowSignIn] = React.useState(false);
 
-    const handleSignIn = async () => {
-        setError('');
-        if (!email.trim() || !password.trim()) {
-            setError('Please enter both email and password.');
-            return;
-        }
-        const result = await signIn(email.trim(), password.trim());
-        if (result.error) {
-            setError(result.error);
-        }
-        // Auth state change will trigger redirect via root layout
+    const handleGoogleAuth = () => {
+        // Implement real OAuth later
+    };
+
+    const handleAppleAuth = () => {
+        // Implement real OAuth later
+    };
+
+    const handleEmailAuth = () => {
+        router.push('/(auth)/sign-in');
     };
 
     return (
         <SafeAreaView style={styles.safe}>
-            <KeyboardAvoidingView
-                style={styles.flex}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* Hero Section */}
-                    <View style={styles.hero}>
-                        {/* Decorative Circles */}
-                        <View style={styles.decorCircle1} />
-                        <View style={styles.decorCircle2} />
-                        <View style={styles.decorCircle3} />
+            <View style={[styles.slideContainer, { backgroundColor: ScreenColors.authBg }]}>
+                {/* Top Floating Space Elements Container */}
+                <View style={[styles.floatingContainer, { height: height * 0.45 }]}>
+                    {/* Decorative Icons positioned absolutely to match the Sign In screenshot */}
+                    <Globe size={64} color="#FDCB6E" style={[styles.floatingIcon, { top: '10%', left: '42%' }]} />
+                    <Star size={24} color="#FDCB6E" fill="#FDCB6E" style={[styles.floatingIcon, { top: '45%', right: '15%' }]} />
+                    <Star size={24} color="#FFADAD" fill="#FFADAD" style={[styles.floatingIcon, { top: '12%', right: '18%' }]} />
 
-                        {/* Logo */}
-                        <View style={styles.logoContainer}>
-                            <View style={styles.logoIcon}>
-                                <Wand2 size={32} color={Colors.white} />
-                            </View>
-                            <Text style={styles.logoText}>Kidivity</Text>
+                    <Atom size={50} color="#F7AFAF" style={[styles.floatingIcon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
+                    <Rocket size={56} color="#FF8A00" style={[styles.floatingIcon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
+
+                    <Ruler size={60} color="#E17A5D" style={[styles.floatingIcon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
+                    <PenTool size={26} color="#E17A5D" style={[styles.floatingIcon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
+
+                    {/* Tiny decorative elements (squiggles simulated with tiny text) */}
+                    <Text style={[styles.floatingIcon, styles.squiggleText, { top: '14%', left: '24%' }]}>~</Text>
+                    <Text style={[styles.floatingIcon, styles.squiggleText, { top: '20%', right: '20%' }]}>~</Text>
+                    <Text style={[styles.floatingIcon, styles.squiggleText, { top: '75%', right: '24%' }]}>~</Text>
+                </View>
+
+                {/* Bottom Auth Section */}
+                <View style={styles.authBottomContainer}>
+                    <Text style={styles.authTitle}>Welcome</Text>
+                    <Text style={styles.authSubtitle}>
+                        You&apos;re just one click away from{'\n'}finding the expertise and knowledge
+                    </Text>
+
+                    <TouchableOpacity style={styles.oauthButton} onPress={handleEmailAuth}>
+                        <View style={styles.oauthIconContainer}>
+                            <Text style={styles.oauthTypeletter}>G</Text>
                         </View>
+                        <Text style={styles.oauthButtonLabel}>Continue with Google</Text>
+                    </TouchableOpacity>
 
-                        {/* Tagline */}
-                        <Text style={styles.tagline}>
-                            AI-Powered Activities{'\n'}Your Kids Will Love
-                        </Text>
-                        <Text style={styles.subtitle}>
-                            Create personalized, educational activities{'\n'}
-                            tailored to each child{"'"}s interests and level.
-                        </Text>
-
-                        {/* Feature Highlights */}
-                        <View style={styles.features}>
-                            {[
-                                { icon: Puzzle, label: 'Logic Puzzles' },
-                                { icon: PenTool, label: 'Tracing Sheets' },
-                                { icon: BookOpen, label: 'Educational' },
-                                { icon: Palette, label: 'Screen-Free' },
-                            ].map((f) => {
-                                const Icon = f.icon;
-                                return (
-                                    <View key={f.label} style={styles.featurePill}>
-                                        <Icon size={16} color={Colors.primary} style={styles.featureEmoji} />
-                                        <Text style={styles.featureLabel}>{f.label}</Text>
-                                    </View>
-                                );
-                            })}
+                    <TouchableOpacity style={styles.oauthButton} onPress={handleAppleAuth}>
+                        <View style={styles.oauthIconContainer}>
+                            <Text style={[styles.oauthTypeletter, { color: '#000' }]}></Text>
                         </View>
-                    </View>
+                        <Text style={styles.oauthButtonLabel}>Continue with Apple</Text>
+                    </TouchableOpacity>
 
-                    {/* Sign In Form or CTA Buttons */}
-                    <View style={styles.bottom}>
-                        {showSignIn ? (
-                            <View style={styles.signInForm}>
-                                <Text style={styles.signInTitle}>Welcome Back</Text>
+                    <TouchableOpacity style={styles.emailButton} onPress={handleEmailAuth}>
+                        <Text style={styles.emailButtonLabel}>Continue with Email</Text>
+                    </TouchableOpacity>
 
-                                <Input
-                                    label="Email"
-                                    placeholder="you@example.com"
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                    autoComplete="email"
-                                />
+                    <TouchableOpacity style={styles.signUpLink} onPress={() => router.push('/(auth)/onboarding-welcome')}>
+                        <Text style={styles.signUpText}>Don&apos;t have an account? <Text style={styles.signUpBold}>Sign Up</Text></Text>
+                    </TouchableOpacity>
+                </View>
 
-                                <Input
-                                    label="Password"
-                                    placeholder="Enter your password"
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    secureTextEntry
-                                    autoCapitalize="none"
-                                    containerStyle={{ marginTop: Spacing.md }}
-                                />
-
-                                {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-                                <Button
-                                    title="Sign In"
-                                    onPress={handleSignIn}
-                                    loading={isLoading}
-                                    size="lg"
-                                    style={styles.signInButton}
-                                    icon={<ArrowRight size={20} color={Colors.white} />}
-                                />
-
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setShowSignIn(false);
-                                        setError('');
-                                    }}
-                                    style={styles.switchLink}
-                                >
-                                    <Text style={styles.switchLinkText}>
-                                        Don{"'"}t have an account?{' '}
-                                        <Text style={styles.switchLinkBold}>Sign Up</Text>
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <View style={styles.ctaContainer}>
-                                <Button
-                                    title="Get Started"
-                                    onPress={() => router.push('/(auth)/sign-up')}
-                                    size="lg"
-                                    style={styles.ctaPrimary}
-                                    icon={<Wand2 size={20} color={Colors.white} />}
-                                />
-
-                                <TouchableOpacity
-                                    onPress={() => setShowSignIn(true)}
-                                    style={styles.secondaryCta}
-                                >
-                                    <Mail size={18} color={Colors.primary} />
-                                    <Text style={styles.secondaryCtaText}>
-                                        I already have an account
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                {/* Bottom Bush / Cloud Decoration */}
+                <View style={styles.bottomDecoration}>
+                    <Cloud size={140} color="#F39C12" fill="#F39C12" style={styles.bushIcon} />
+                    <Cloud size={120} color="#E67E22" fill="#E67E22" style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
+                </View>
+            </View>
         </SafeAreaView>
     );
 }
@@ -172,182 +101,112 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: ScreenColors.background,
     },
-    flex: {
-        flex: 1,
-    },
-    scrollContent: {
-        flexGrow: 1,
-    },
-
-    // Hero
-    hero: {
+    slideContainer: {
         flex: 1,
         alignItems: 'center',
+    },
+
+    /* ─── Sign In Slide Specifics ─── */
+    floatingContainer: {
+        width: '100%',
+        position: 'relative',
+        marginTop: Platform.OS === 'ios' ? Spacing['3xl'] : Spacing['5xl'],
+    },
+    floatingIcon: {
+        position: 'absolute',
+    },
+    squiggleText: {
+        fontSize: 32,
+        color: '#FFADAD',
+        fontWeight: 'bold',
+        transform: [{ rotate: '45deg' }]
+    },
+
+    authBottomContainer: {
+        width: '100%',
+        paddingHorizontal: Spacing['3xl'],
+        alignItems: 'center',
+        marginTop: Spacing.xl,
+        zIndex: 10,
+    },
+    authTitle: {
+        fontSize: 36,
+        fontWeight: FontWeight.extrabold,
+        color: ScreenColors.textMain,
+        marginBottom: Spacing.sm,
+    },
+    authSubtitle: {
+        fontSize: 14,
+        fontWeight: FontWeight.medium,
+        color: ScreenColors.textSecondary,
+        textAlign: 'center',
+        marginBottom: Spacing['3xl'],
+        lineHeight: 22,
+    },
+    oauthButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: Colors.white,
+        paddingVertical: 18,
         paddingHorizontal: Spacing['2xl'],
-        paddingTop: Spacing['5xl'],
-        paddingBottom: Spacing['3xl'],
-        overflow: 'hidden',
+        borderRadius: Radius.full,
+        width: '100%',
+        marginBottom: Spacing.lg,
+        ...Shadows.md,
+        shadowOpacity: 0.04, // Very soft shadow
     },
-    decorCircle1: {
+    oauthIconContainer: {
+        marginRight: Spacing.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    oauthTypeletter: {
+        fontSize: 20,
+        fontWeight: FontWeight.extrabold,
+        color: '#4285F4', // Google blue mockup
+    },
+    oauthButtonLabel: {
+        fontSize: FontSize.md,
+        fontWeight: FontWeight.bold,
+        color: ScreenColors.textMain,
+    },
+
+    bottomDecoration: {
         position: 'absolute',
-        top: -60,
-        right: -40,
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        backgroundColor: Colors.primary + '12',
+        bottom: -40,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        width: '100%',
+        opacity: 0.9,
     },
-    decorCircle2: {
-        position: 'absolute',
-        top: 120,
-        left: -80,
-        width: 180,
-        height: 180,
-        borderRadius: 90,
-        backgroundColor: Colors.accent + '10',
+    bushIcon: {
+        // Overlaying clouds to look like a bush
     },
-    decorCircle3: {
+
+    emailButton: {
+        paddingVertical: Spacing.md,
+        marginTop: Spacing.sm,
+    },
+    emailButtonLabel: {
+        fontSize: FontSize.md,
+        fontWeight: FontWeight.bold,
+        color: ScreenColors.textSecondary,
+    },
+    signUpLink: {
         position: 'absolute',
         bottom: 40,
-        right: -20,
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: Colors.success + '10',
+        zIndex: 20,
     },
-
-    // Logo
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.md,
-        marginBottom: Spacing['3xl'],
+    signUpText: {
+        fontSize: FontSize.sm,
+        color: ScreenColors.textSecondary,
     },
-    logoIcon: {
-        width: 56,
-        height: 56,
-        borderRadius: Radius.lg,
-        backgroundColor: Colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        ...Shadows.lg,
-    },
-    logoText: {
-        fontSize: FontSize['4xl'],
+    signUpBold: {
+        color: ScreenColors.textMain,
         fontWeight: FontWeight.extrabold,
-        color: Colors.textPrimary,
-        letterSpacing: -1,
-    },
-
-    // Tagline
-    tagline: {
-        fontSize: FontSize['3xl'],
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        textAlign: 'center',
-        lineHeight: 38,
-        marginBottom: Spacing.md,
-    },
-    subtitle: {
-        fontSize: FontSize.md,
-        color: Colors.textSecondary,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: Spacing['2xl'],
-    },
-
-    // Features
-    features: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-    },
-    featurePill: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        backgroundColor: Colors.surface,
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        borderRadius: Radius.full,
-        borderWidth: 1,
-        borderColor: Colors.border,
-    },
-    featureEmoji: {
-        marginRight: 2,
-    },
-    featureLabel: {
-        fontSize: FontSize.sm,
-        fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
-    },
-
-    // Bottom CTA
-    bottom: {
-        paddingHorizontal: Spacing['2xl'],
-        paddingBottom: Spacing['3xl'],
-    },
-    ctaContainer: {
-        gap: Spacing.lg,
-    },
-    ctaPrimary: {
-        width: '100%',
-        borderRadius: Radius.xl,
-        paddingVertical: 18,
-    },
-    secondaryCta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-        paddingVertical: Spacing.md,
-    },
-    secondaryCtaText: {
-        fontSize: FontSize.md,
-        fontWeight: FontWeight.medium,
-        color: Colors.primary,
-    },
-
-    // Sign In Form
-    signInForm: {
-        backgroundColor: Colors.surface,
-        borderRadius: Radius.xl,
-        padding: Spacing['2xl'],
-        ...Shadows.md,
-    },
-    signInTitle: {
-        fontSize: FontSize.xl,
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginBottom: Spacing.xl,
-        textAlign: 'center',
-    },
-    errorText: {
-        fontSize: FontSize.sm,
-        color: Colors.accent,
-        textAlign: 'center',
-        marginTop: Spacing.md,
-    },
-    signInButton: {
-        width: '100%',
-        marginTop: Spacing.xl,
-        borderRadius: Radius.lg,
-        paddingVertical: 16,
-    },
-    switchLink: {
-        alignItems: 'center',
-        marginTop: Spacing.lg,
-    },
-    switchLinkText: {
-        fontSize: FontSize.sm,
-        color: Colors.textSecondary,
-    },
-    switchLinkBold: {
-        color: Colors.primary,
-        fontWeight: FontWeight.semibold,
-    },
+    }
 });

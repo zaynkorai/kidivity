@@ -6,6 +6,7 @@ interface CardProps {
     children: React.ReactNode;
     variant?: 'elevated' | 'outlined' | 'filled';
     padding?: keyof typeof Spacing;
+    color?: string;
     style?: ViewStyle;
 }
 
@@ -13,14 +14,17 @@ export function Card({
     children,
     variant = 'elevated',
     padding = 'lg',
+    color,
     style,
 }: CardProps) {
+    const customBackground = color ? { backgroundColor: color } : {};
     return (
         <View
             style={[
                 styles.base,
                 styles[variant],
                 { padding: Spacing[padding] },
+                customBackground,
                 style,
             ]}
         >
@@ -31,7 +35,7 @@ export function Card({
 
 const styles = StyleSheet.create({
     base: {
-        borderRadius: Radius.lg,
+        borderRadius: Radius.xl,
         overflow: 'hidden',
     },
     elevated: {

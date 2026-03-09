@@ -23,7 +23,7 @@ import type { GradeLevel } from '@/constants/grades';
 import type { Interest } from '@/constants/interests';
 
 const AVATAR_COLORS = [
-    '#6C63FF', '#FF6B6B', '#00B894', '#FDCB6E', '#A29BFE',
+    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
     '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
 ];
 
@@ -69,8 +69,8 @@ export default function EditProfileScreen() {
             return;
         }
         const ageNum = parseInt(age, 10);
-        if (isNaN(ageNum) || ageNum < 1 || ageNum > 18) {
-            setError('Please enter a valid age (1-18)');
+        if (isNaN(ageNum) || ageNum < 1 || ageNum > 12) {
+            setError('Please enter a valid age (1-12)');
             return;
         }
         if (!gradeLevel) {

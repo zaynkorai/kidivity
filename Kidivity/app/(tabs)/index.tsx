@@ -5,13 +5,14 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
+
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, ChevronRight, Palette, Wand2 } from 'lucide-react-native';
+import { Plus, ChevronRight, Palette, Wand2, Star, Award, CheckCircle, Sun, Sunset, Moon, TrendingUp } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -21,9 +22,16 @@ import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning! ☀️';
-  if (hour < 18) return 'Good afternoon! 👋';
-  return 'Good evening! 🌙';
+  if (hour < 12) return 'Good morning!';
+  if (hour < 18) return 'Good afternoon!';
+  return 'Good evening!';
+}
+
+function getGreetingIcon() {
+  const hour = new Date().getHours();
+  if (hour < 12) return <Sun size={28} color={Colors.categoryReading} />;
+  if (hour < 18) return <Sunset size={28} color={Colors.categoryMath} />;
+  return <Moon size={28} color={Colors.primaryLight} />;
 }
 
 export default function HomeScreen() {
@@ -61,7 +69,10 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <View style={styles.greetingRow}>
+              {getGreetingIcon()}
+              <Text style={styles.greeting}>{getGreeting()}</Text>
+            </View>
             <Text style={styles.subtitle}>
               {activeProfile
                 ? `Activities for ${activeProfile.name}`
@@ -121,7 +132,22 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Quick Generate CTA */}
+        {/* Parent Insight */}
+        {activeProfile && (
+          <View style={styles.insightCard}>
+            <View style={styles.insightIconWrap}>
+              <TrendingUp size={20} color={Colors.white} />
+            </View>
+            <View style={styles.insightTextWrap}>
+              <Text style={styles.insightTitle}>Parent Insight</Text>
+              <Text style={styles.insightText}>
+                {activeProfile.name} is building consistent learning habits. They are on a {Math.floor((activeProfile.activity_count || 0) / 3) + 1}-day streak!
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Hero Generate CTA */}
         <TouchableOpacity
           style={styles.generateCta}
           activeOpacity={0.9}
@@ -131,39 +157,76 @@ export default function HomeScreen() {
           }}
         >
           <View style={styles.generateCtaContent}>
-            <Wand2 size={28} color={Colors.white} />
+            <View style={styles.generateIconContainer}>
+              <Wand2 size={32} color={Colors.categoryMath} />
+            </View>
             <View style={styles.generateCtaText}>
-              <Text style={styles.generateCtaTitle}>Generate Activity</Text>
+              <Text style={styles.generateCtaTitle}>Unlock Today's Quest</Text>
               <Text style={styles.generateCtaSubtitle}>
-                AI-powered fun for your kids
+                A personalized challenge awaits {activeProfile ? activeProfile.name : 'your child'}!
               </Text>
             </View>
           </View>
-          <ChevronRight size={24} color="rgba(255,255,255,0.7)" />
         </TouchableOpacity>
 
+        {/* Player Stats Dashboard */}
+        {activeProfile && (
+          <View style={styles.statsSection}>
+            <Text style={styles.sectionTitle}>Daily Goals</Text>
+            <View style={styles.statsRow}>
+              <View style={[styles.statCard, { backgroundColor: Colors.categoryMath + '15', borderColor: Colors.categoryMath + '30' }]}>
+                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryMath + '20' }]}>
+                  <Award size={20} color={Colors.categoryMath} />
+                </View>
+                <Text style={styles.statValue}>Lvl {Math.floor((activeProfile.activity_count || 0) / 3) + 1}</Text>
+                <Text style={styles.statLabel}>Explorer Rank</Text>
+              </View>
+              <View style={[styles.statCard, { backgroundColor: Colors.categoryArt + '15', borderColor: Colors.categoryArt + '30' }]}>
+                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryArt + '20' }]}>
+                  <Star size={20} color={'#F59E0B'} />
+                </View>
+                <Text style={styles.statValue}>{(activeProfile.activity_count || 0) * 10}</Text>
+                <Text style={styles.statLabel}>Total XP</Text>
+              </View>
+              <View style={[styles.statCard, { backgroundColor: Colors.categoryScience + '15', borderColor: Colors.categoryScience + '30' }]}>
+                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryScience + '20' }]}>
+                  <CheckCircle size={20} color={Colors.categoryScience} />
+                </View>
+                <Text style={styles.statValue}>{activeProfile.activity_count || 0}</Text>
+                <Text style={styles.statLabel}>Quests Done</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Category Quick Access */}
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <View style={styles.categoryGrid}>
+        <Text style={styles.sectionTitle}>Explore Categories</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryScroll}
+          style={{ marginBottom: Spacing['2xl'] }}
+        >
           {ACTIVITY_CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
               <TouchableOpacity
                 key={cat.id}
-                style={[styles.categoryCard]}
+                style={[styles.categoryPill, { borderColor: cat.color + '30', backgroundColor: cat.color + '10' }]}
                 activeOpacity={0.8}
                 onPress={() => router.push('/(tabs)/generate')}
               >
-                <Icon size={28} color={cat.color} style={{ marginBottom: Spacing.sm }} />
-                <Text style={styles.categoryLabel}>{cat.label}</Text>
-                <Text style={styles.categoryDesc}>{cat.description}</Text>
+                <View style={[styles.categoryPillIcon, { backgroundColor: cat.color }]}>
+                  <Icon size={16} color={Colors.white} />
+                </View>
+                <Text style={styles.categoryPillLabel}>{cat.label}</Text>
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* Recent Activities */}
-        <Text style={styles.sectionTitle}>Recent Activities</Text>
+        <Text style={styles.sectionTitle}>Recent Quests</Text>
         {recentActivities.length === 0 ? (
           <Card variant="outlined" style={styles.emptyState}>
             <Palette size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
@@ -261,8 +324,13 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: Spacing.xl,
   },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   greeting: {
-    fontSize: FontSize['2xl'],
+    fontSize: FontSize['3xl'],
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
@@ -337,14 +405,47 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 
+  // Insight
+  insightCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
+    alignItems: 'center',
+  },
+  insightIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  insightTextWrap: {
+    flex: 1,
+  },
+  insightTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: Colors.primaryDark,
+    marginBottom: 2,
+  },
+  insightText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+
   // Generate CTA
   generateCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.xl,
-    padding: Spacing.xl,
+    backgroundColor: Colors.categoryMath,
+    borderRadius: Radius['2xl'],
+    padding: Spacing['2xl'],
     marginBottom: Spacing['2xl'],
     ...Shadows.lg,
   },
@@ -353,15 +454,62 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.lg,
   },
-  generateCtaText: {},
+  generateIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.md,
+  },
+  generateCtaText: {
+    flex: 1,
+  },
   generateCtaTitle: {
-    fontSize: FontSize.lg,
+    fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
-    color: Colors.white,
+    color: Colors.textPrimary,
   },
   generateCtaSubtitle: {
     fontSize: FontSize.sm,
-    color: 'rgba(255,255,255,0.75)',
+    color: Colors.textSecondary,
+    marginTop: 4,
+    flexShrink: 1,
+  },
+
+  // Stats Row
+  statsSection: {
+    marginBottom: Spacing['2xl'],
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  statCard: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  statIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+  },
+  statValue: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: FontWeight.medium,
     marginTop: 2,
   },
 
@@ -373,34 +521,31 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
 
-  // Categories
-  categoryGrid: {
+  // Categories Scroll
+  categoryScroll: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.xl, // For nice scroll bleeding
+  },
+  categoryPill: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
-    marginBottom: Spacing['2xl'],
-  },
-  categoryCard: {
-    width: '47%',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
+    gap: Spacing.sm,
   },
-  categoryEmoji: {
-    fontSize: 28,
-    marginBottom: Spacing.sm,
+  categoryPillIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoryLabel: {
-    fontSize: FontSize.md,
+  categoryPillLabel: {
+    fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
     color: Colors.textPrimary,
-  },
-  categoryDesc: {
-    fontSize: FontSize.xs,
-    color: Colors.textSecondary,
-    marginTop: 2,
   },
 
   // Empty State

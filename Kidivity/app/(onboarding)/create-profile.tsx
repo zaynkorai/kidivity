@@ -10,6 +10,7 @@ import {
     Platform,
 } from 'react-native';
 import { Wand2, ArrowRight, Check } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,7 +23,7 @@ import type { GradeLevel } from '@/constants/grades';
 import type { Interest } from '@/constants/interests';
 
 const AVATAR_COLORS = [
-    '#6C63FF', '#FF6B6B', '#00B894', '#FDCB6E', '#A29BFE',
+    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
     '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
 ];
 
@@ -30,6 +31,7 @@ const AVATAR_COLORS = [
 const STEP_COUNT = 3;
 
 export default function OnboardingCreateProfileScreen() {
+    const router = useRouter();
     const addProfile = useProfileStore((s) => s.addProfile);
 
     const [step, setStep] = useState(0);
@@ -55,7 +57,7 @@ export default function OnboardingCreateProfileScreen() {
                 return name.trim().length > 0;
             case 1: {
                 const ageNum = parseInt(age, 10);
-                return !isNaN(ageNum) && ageNum >= 1 && ageNum <= 18 && gradeLevel !== null;
+                return !isNaN(ageNum) && ageNum >= 1 && ageNum <= 12 && gradeLevel !== null;
             }
             case 2:
                 return interests.length > 0;
@@ -90,7 +92,7 @@ export default function OnboardingCreateProfileScreen() {
         setError(null);
         setIsSubmitting(true);
 
-        const { error: submitError } = await addProfile({
+        const { error: submitError, data: newProfile } = await addProfile({
             name: name.trim(),
             age: ageNum,
             grade_level: gradeLevel,
@@ -102,15 +104,19 @@ export default function OnboardingCreateProfileScreen() {
 
         if (submitError) {
             setError(submitError);
+        } else if (newProfile) {
+            // Transition directly to first activity generation screen
+            router.push({
+                pathname: '/(onboarding)/first-activity',
+                params: { name: newProfile.name, profileId: newProfile.id }
+            });
         }
-        // Navigation to (tabs) is handled by the root layout guard
-        // when profiles array becomes non-empty
     };
 
     const stepTitles = [
-        { title: 'Who is this for?', subtitle: 'Tell us about your child' },
-        { title: 'Age & Grade', subtitle: 'Help us pick the right level' },
-        { title: 'What do they love?', subtitle: 'Pick at least one interest' },
+        { title: 'Who is this for?', subtitle: 'Let\'s personalize their learning journey' },
+        { title: 'Calibrating Engine...', subtitle: 'We use age and grade to dial in math complexity and vocabulary' },
+        { title: 'Curating Interests', subtitle: 'Select topics to make their quests wildly engaging' },
     ];
 
     return (
@@ -198,6 +204,7 @@ export default function OnboardingCreateProfileScreen() {
                                 value={age}
                                 onChangeText={setAge}
                                 keyboardType="number-pad"
+                                returnKeyType="done"
                                 maxLength={2}
                                 autoFocus
                             />
@@ -240,7 +247,7 @@ export default function OnboardingCreateProfileScreen() {
                     )}
 
                     {/* Error */}
-                    {error && <Text style={styles.error}>⚠️ {error}</Text>}
+                    {error && <Text style={styles.error}>{error}</Text>}
 
                     {/* Navigation Buttons */}
                     <View style={styles.navButtons}>
@@ -537,5 +544,28 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.medium,
         paddingHorizontal: Spacing.sm,
         paddingVertical: 3,
+    },
+    // Building Overlay
+    buildingOverlay: {
+        backgroundColor: Colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        elevation: 10,
+    },
+    buildingContent: {
+        alignItems: 'center',
+        padding: Spacing['2xl'],
+    },
+    buildingTitle: {
+        fontSize: FontSize['2xl'],
+        fontWeight: FontWeight.bold,
+        color: Colors.textPrimary,
+        marginBottom: Spacing.sm,
+    },
+    buildingSubtitle: {
+        fontSize: FontSize.md,
+        color: Colors.textSecondary,
+        textAlign: 'center',
     },
 });

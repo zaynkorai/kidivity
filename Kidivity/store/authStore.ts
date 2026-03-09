@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthStore>()(
                         err instanceof Error ? err.message : 'An unexpected error occurred';
                     console.error('[auth] signUp exception:', message);
                     set({ isLoading: false });
-                    return { error: message };
+                    return { error: 'An unexpected error occurred. Please try again.' };
                 }
             },
 
@@ -149,7 +149,7 @@ export const useAuthStore = create<AuthStore>()(
                         err instanceof Error ? err.message : 'An unexpected error occurred';
                     console.error('[auth] signIn exception:', message);
                     set({ isLoading: false });
-                    return { error: message };
+                    return { error: 'An unexpected error occurred. Please try again.' };
                 }
             },
 

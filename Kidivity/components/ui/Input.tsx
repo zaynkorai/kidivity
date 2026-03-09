@@ -55,17 +55,18 @@ const styles = StyleSheet.create({
         marginLeft: Spacing.xs,
     },
     input: {
-        backgroundColor: Colors.surface,
-        borderWidth: 1.5,
-        borderColor: Colors.border,
-        borderRadius: Radius.md,
-        paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.md,
+        backgroundColor: '#F8F9FE', // Very soft off-white background
+        borderWidth: 2,
+        borderColor: 'transparent',
+        borderRadius: 9999, // Perfect pill
+        paddingHorizontal: Spacing['xl'],
+        paddingVertical: 18,
         fontSize: FontSize.md,
         color: Colors.textPrimary,
     },
     inputFocused: {
         borderColor: Colors.primary,
+        backgroundColor: Colors.white,
     },
     inputError: {
         borderColor: Colors.accent,

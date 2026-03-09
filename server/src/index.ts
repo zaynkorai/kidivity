@@ -34,8 +34,10 @@ async function main() {
     // ── Global error handler ─────────────────────────────
     fastify.setErrorHandler((error: Error & { statusCode?: number }, _request, reply) => {
         fastify.log.error(error);
-        reply.code(error.statusCode ?? 500).send({
-            error: error.message || 'Internal server error',
+        const statusCode = error.statusCode ?? 500;
+        const isClientError = statusCode >= 400 && statusCode < 500;
+        reply.code(statusCode).send({
+            error: isClientError ? error.message : 'An unexpected error occurred. Please try again later.',
         });
     });
 
