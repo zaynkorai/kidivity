@@ -12,26 +12,37 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Wand2, AlertTriangle, Palette, Printer, XCircle } from 'lucide-react-native';
+import {
+    Wand2,
+    AlertTriangle,
+    Palette,
+    Printer,
+    XCircle,
+    Zap,
+} from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Input } from '@/components/ui/Input';
+import { PaywallModal } from '@/components/ui/PaywallModal';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
-import type { ActivityDifficulty, ActivityStyle } from '@/types/activity';
+import type {
+    ActivityDifficulty,
+    ActivityStyle,
+} from '@/types/activity';
 
 const FUN_MESSAGES = [
-    '🎨 Mixing creative juices...',
-    '🧠 Thinking really hard...',
-    '✨ Sprinkling magic dust...',
-    '🚀 Launching imagination...',
-    '🌟 Crafting something special...',
-    '🎯 Tailoring it just right...',
-    '🎪 Setting up the fun...',
-    '📚 Gathering cool ideas...',
+    'Mixing creative juices...',
+    'Thinking really hard...',
+    'Sprinkling magic dust...',
+    'Launching imagination...',
+    'Crafting something special...',
+    'Tailoring it just right...',
+    'Setting up the fun...',
+    'Gathering cool ideas...',
 ];
 
 function GeneratingOverlay({ visible }: { visible: boolean }) {
@@ -42,7 +53,6 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
     useEffect(() => {
         if (!visible) return;
 
-        // Bounce animation
         const bounceAnim = Animated.loop(
             Animated.sequence([
                 Animated.timing(bounce, { toValue: -20, duration: 400, easing: Easing.out(Easing.quad), useNativeDriver: true }),
@@ -50,7 +60,6 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
             ])
         );
 
-        // Pulse animation
         const pulseAnim = Animated.loop(
             Animated.sequence([
                 Animated.timing(pulse, { toValue: 1.15, duration: 800, useNativeDriver: true }),
@@ -61,7 +70,6 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
         bounceAnim.start();
         pulseAnim.start();
 
-        // Rotate fun messages
         const interval = setInterval(() => {
             setMessageIndex((prev) => (prev + 1) % FUN_MESSAGES.length);
         }, 2500);
@@ -81,11 +89,11 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
                 <View style={loadingStyles.card}>
                     <Animated.View
                         style={[
-                            loadingStyles.emoji,
+                            loadingStyles.iconWrap,
                             { transform: [{ translateY: bounce }, { scale: pulse }] },
                         ]}
                     >
-                        <Wand2 size={64} color={Colors.primary} />
+                        <Wand2 size={48} color={Colors.primary} />
                     </Animated.View>
                     <Text style={loadingStyles.title}>Creating Activity</Text>
                     <Text style={loadingStyles.message}>{FUN_MESSAGES[messageIndex]}</Text>
@@ -114,13 +122,14 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
 export default function GenerateScreen() {
     const router = useRouter();
     const activeProfile = useProfileStore((s) => s.getActiveProfile());
-    const { generateActivity, isGenerating } = useActivityStore();
+    const { generateActivity, isGenerating, rateLimitState, clearRateLimit } = useActivityStore();
 
     const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | null>(null);
     const [topic, setTopic] = useState('');
     const [difficulty, setDifficulty] = useState<ActivityDifficulty>('medium');
     const [style, setStyle] = useState<ActivityStyle>('colorful');
     const [error, setError] = useState<string | null>(null);
+    const [showPaywall, setShowPaywall] = useState(false);
 
     const handleGenerate = async () => {
         if (!activeProfile || !selectedCategory || !topic.trim()) return;
@@ -136,7 +145,10 @@ export default function GenerateScreen() {
             style,
         });
 
-        if (err) {
+        if (err === 'rate_limit') {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            setShowPaywall(true);
+        } else if (err) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             setError(err);
         } else if (data) {
@@ -150,6 +162,16 @@ export default function GenerateScreen() {
     return (
         <SafeAreaView style={styles.safe}>
             <GeneratingOverlay visible={isGenerating} />
+            <PaywallModal
+                visible={showPaywall}
+                used={rateLimitState.used}
+                limit={rateLimitState.limit}
+                onClose={() => {
+                    setShowPaywall(false);
+                    clearRateLimit();
+                }}
+            />
+
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
@@ -173,6 +195,20 @@ export default function GenerateScreen() {
                             </Text>
                         </View>
                     </Card>
+                )}
+
+                {/* Rate limit banner */}
+                {rateLimitState.hit && (
+                    <TouchableOpacity
+                        style={styles.rateBanner}
+                        onPress={() => setShowPaywall(true)}
+                        activeOpacity={0.85}
+                    >
+                        <Zap size={16} color={Colors.surface} fill={Colors.surface} />
+                        <Text style={styles.rateBannerText}>
+                            {rateLimitState.used}/{rateLimitState.limit} daily limit reached — Upgrade
+                        </Text>
+                    </TouchableOpacity>
                 )}
 
                 {/* Step 1: Category */}
@@ -218,7 +254,6 @@ export default function GenerateScreen() {
                     onChangeText={setTopic}
                 />
 
-                {/* Quick topic chips from kid's interests */}
                 {activeProfile && activeProfile.interests.length > 0 && (
                     <ScrollView
                         horizontal
@@ -236,7 +271,7 @@ export default function GenerateScreen() {
                     </ScrollView>
                 )}
 
-                {/* Step 3: Options */}
+                {/* Step 3: Style & Difficulty */}
                 <Text style={styles.sectionTitle}>3. Options</Text>
 
                 <Text style={styles.optionLabel}>Difficulty</Text>
@@ -271,7 +306,7 @@ export default function GenerateScreen() {
                 <Button
                     title={isGenerating ? 'Generating...' : 'Generate Activity'}
                     onPress={handleGenerate}
-                    disabled={!isReady || isGenerating}
+                    disabled={!isReady || isGenerating || rateLimitState.hit}
                     loading={isGenerating}
                     size="lg"
                     style={styles.generateBtn}
@@ -289,21 +324,14 @@ export default function GenerateScreen() {
 
                 <View style={{ height: Spacing['5xl'] }} />
             </ScrollView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
 const styles = StyleSheet.create({
-    safe: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    container: {
-        flex: 1,
-    },
-    content: {
-        padding: Spacing.xl,
-    },
+    safe: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1 },
+    content: { padding: Spacing.xl },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -320,20 +348,23 @@ const styles = StyleSheet.create({
         color: Colors.textSecondary,
         marginBottom: Spacing.xl,
     },
-    kidName: {
-        fontWeight: FontWeight.semibold,
-        color: Colors.primary,
+    kidName: { fontWeight: FontWeight.semibold, color: Colors.primary },
+    warningCard: { marginBottom: Spacing.xl, borderColor: Colors.warning },
+    warningText: { fontSize: FontSize.sm, color: Colors.textSecondary },
+    rateBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        backgroundColor: Colors.primary,
+        borderRadius: Radius.md,
+        padding: Spacing.md,
+        marginBottom: Spacing.lg,
     },
-
-    warningCard: {
-        marginBottom: Spacing.xl,
-        borderColor: Colors.warning,
-    },
-    warningText: {
+    rateBannerText: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        fontWeight: FontWeight.semibold,
+        color: Colors.surface,
     },
-
     sectionTitle: {
         fontSize: FontSize.lg,
         fontWeight: FontWeight.bold,
@@ -341,12 +372,7 @@ const styles = StyleSheet.create({
         marginTop: Spacing.xl,
         marginBottom: Spacing.md,
     },
-
-    categoryGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.md,
-    },
+    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
     categoryCard: {
         width: '47%',
         alignItems: 'center',
@@ -361,12 +387,7 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
-
-    interestChips: {
-        gap: Spacing.sm,
-        marginTop: Spacing.md,
-    },
-
+    interestChips: { gap: Spacing.sm, marginTop: Spacing.md },
     optionLabel: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
@@ -374,23 +395,10 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.sm,
         marginTop: Spacing.md,
     },
-    optionRow: {
-        flexDirection: 'row',
-        gap: Spacing.sm,
-    },
-
-    generateBtn: {
-        marginTop: Spacing['2xl'],
-    },
-
-    errorCard: {
-        marginTop: Spacing.lg,
-        borderColor: Colors.accent,
-    },
-    errorText: {
-        fontSize: FontSize.sm,
-        color: Colors.accent,
-    },
+    optionRow: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+    generateBtn: { marginTop: Spacing['2xl'] },
+    errorCard: { marginTop: Spacing.lg, borderColor: Colors.accent },
+    errorText: { fontSize: FontSize.sm, color: Colors.accent },
 });
 
 const loadingStyles = StyleSheet.create({
@@ -408,10 +416,7 @@ const loadingStyles = StyleSheet.create({
         width: '80%',
         maxWidth: 300,
     },
-    emoji: {
-        fontSize: 64,
-        marginBottom: Spacing.lg,
-    },
+    iconWrap: { marginBottom: Spacing.lg },
     title: {
         fontSize: FontSize.xl,
         fontWeight: FontWeight.bold,
@@ -425,10 +430,7 @@ const loadingStyles = StyleSheet.create({
         marginBottom: Spacing.xl,
         minHeight: 20,
     },
-    dots: {
-        flexDirection: 'row',
-        gap: Spacing.sm,
-    },
+    dots: { flexDirection: 'row', gap: Spacing.sm },
     dot: {
         width: 10,
         height: 10,

@@ -23,12 +23,15 @@ import {
     Zap,
     Palette,
     Search,
+    ImageIcon,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
+
+const VISUAL_CATEGORIES = new Set(['tracing', 'screen-free', 'logic', 'educational']);
 
 /** Simple markdown-ish renderer: handles #, ##, ###, **, *, -, numbered lists */
 function MarkdownContent({ content }: { content: string }) {
@@ -268,9 +271,54 @@ export default function ActivityDetailScreen() {
                     </Text>
                 )}
 
+                {/* Visual Hero — shown for tracing/screen-free categories */}
+                {VISUAL_CATEGORIES.has(activity.category) && (
+                    <View style={styles.visualHero}>
+                        {activity.image_url ? (
+                            <View style={styles.tracingContainer}>
+                                <Image
+                                    source={{ uri: activity.image_url }}
+                                    style={styles.heroImage}
+                                    contentFit="contain"
+                                    transition={300}
+                                />
+                                {activity.category === 'tracing' && (
+                                    <View style={styles.tracingOverlay}>
+                                        <Text style={styles.tracingText}>
+                                            {activity.topic.toUpperCase().split('').join('   ')}
+                                        </Text>
+                                        <Text style={styles.tracingText}>
+                                            {activity.topic.toLowerCase().split('').join('   ')}
+                                        </Text>
+                                        <Text style={styles.tracingTextWord}>
+                                            {activity.topic.toUpperCase()}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <View style={styles.heroPlaceholder}>
+                                <ImageIcon size={48} color={category?.color ?? Colors.primary} />
+                                <Text style={[styles.heroPlaceholderText, { color: category?.color ?? Colors.primary }]}>
+                                    Visual Activity
+                                </Text>
+                                <Text style={styles.heroPlaceholderSub}>
+                                    Image generation may take a moment
+                                </Text>
+                            </View>
+                        )}
+                        <View style={[styles.visualBadge, { backgroundColor: (category?.color ?? Colors.primary) + '20' }]}>
+                            <ImageIcon size={12} color={category?.color ?? Colors.primary} />
+                            <Text style={[styles.visualBadgeText, { color: category?.color ?? Colors.primary }]}>
+                                Visual Activity
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
                 {/* Content */}
                 <Card variant="elevated" style={styles.contentCard}>
-                    {activity.image_url && (
+                    {!VISUAL_CATEGORIES.has(activity.category) && activity.image_url && (
                         <Image
                             source={{ uri: activity.image_url }}
                             style={styles.generatedImage}
@@ -401,7 +449,90 @@ const styles = StyleSheet.create({
         aspectRatio: 1,
         borderRadius: Radius.sm,
         marginBottom: Spacing.xl,
+        backgroundColor: Colors.background,
+    },
+    // Visual hero
+    visualHero: {
+        borderRadius: Radius.lg,
+        overflow: 'hidden',
+        marginBottom: Spacing.xl,
         backgroundColor: Colors.surface,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    tracingContainer: {
+        position: 'relative',
+        width: '100%',
+        aspectRatio: 1, // Changed to square to give more room for the overlay
+    },
+    heroImage: {
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+    },
+    tracingOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        padding: Spacing.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+    },
+    tracingText: {
+        fontFamily: 'Courier',
+        fontSize: FontSize['3xl'],
+        color: Colors.textSecondary,
+        letterSpacing: 2,
+        opacity: 0.4,
+        marginBottom: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        borderStyle: 'dashed',
+        width: '90%',
+        textAlign: 'center',
+    },
+    tracingTextWord: {
+        fontFamily: 'Courier',
+        fontSize: FontSize['4xl'],
+        color: Colors.textSecondary,
+        letterSpacing: 8,
+        opacity: 0.4,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        borderStyle: 'dashed',
+        width: '90%',
+        textAlign: 'center',
+        marginTop: Spacing.sm,
+    },
+    heroPlaceholder: {
+        height: 200,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: Spacing.sm,
+        backgroundColor: Colors.background,
+    },
+    heroPlaceholderText: {
+        fontSize: FontSize.lg,
+        fontWeight: FontWeight.semibold,
+    },
+    heroPlaceholderSub: {
+        fontSize: FontSize.xs,
+        color: Colors.textSecondary,
+    },
+    visualBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        padding: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+    },
+    visualBadgeText: {
+        fontSize: FontSize.xs,
+        fontWeight: FontWeight.semibold,
     },
     contentCard: {
         marginBottom: Spacing.xl,

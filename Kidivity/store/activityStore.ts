@@ -4,11 +4,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
 
+interface RateLimitState {
+    hit: boolean;
+    used: number;
+    limit: number;
+    resetAt: string | null;
+}
+
 interface ActivityState {
     recentActivities: Activity[];
     savedActivities: Activity[];
     isGenerating: boolean;
     isLoading: boolean;
+    rateLimitState: RateLimitState;
 }
 
 interface ActivityActions {
@@ -17,20 +25,22 @@ interface ActivityActions {
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
+    clearRateLimit: () => void;
 }
 
 type ActivityStore = ActivityState & ActivityActions;
 
+const DEFAULT_RATE_LIMIT: RateLimitState = { hit: false, used: 0, limit: 10, resetAt: null };
+
 export const useActivityStore = create<ActivityStore>()(
     persist(
         (set, get) => ({
-            // State
             recentActivities: [],
             savedActivities: [],
             isGenerating: false,
             isLoading: false,
+            rateLimitState: DEFAULT_RATE_LIMIT,
 
-            // Actions
             fetchRecent: async () => {
                 set({ isLoading: true });
                 try {
@@ -96,14 +106,25 @@ export const useActivityStore = create<ActivityStore>()(
 
                     const data = await response.json();
 
+                    if (response.status === 429) {
+                        set({
+                            isGenerating: false,
+                            rateLimitState: {
+                                hit: true,
+                                used: data.used ?? 10,
+                                limit: data.limit ?? 10,
+                                resetAt: data.reset_at ?? null,
+                            },
+                        });
+                        return { data: null, error: 'rate_limit' };
+                    }
+
                     if (!response.ok) {
                         set({ isGenerating: false });
                         return { data: null, error: data.error || 'Failed to generate activity' };
                     }
 
                     const activity = data as Activity;
-
-                    // Add to recent activities
                     const { recentActivities } = get();
                     set({
                         recentActivities: [activity, ...recentActivities].slice(0, 10),
@@ -124,7 +145,6 @@ export const useActivityStore = create<ActivityStore>()(
 
                 const newSavedState = !activity.is_saved;
 
-                // Optimistic update
                 set({
                     recentActivities: recentActivities.map(a =>
                         a.id === id ? { ...a, is_saved: newSavedState } : a
@@ -134,7 +154,6 @@ export const useActivityStore = create<ActivityStore>()(
                         : savedActivities.filter(a => a.id !== id),
                 });
 
-                // Sync to Supabase
                 await supabase
                     .from('activities')
                     .update({ is_saved: newSavedState })
@@ -147,17 +166,24 @@ export const useActivityStore = create<ActivityStore>()(
                     recentActivities: recentActivities.filter(a => a.id !== id),
                     savedActivities: savedActivities.filter(a => a.id !== id),
                 });
-
                 await supabase.from('activities').delete().eq('id', id);
             },
+
+            clearRateLimit: () => set({ rateLimitState: DEFAULT_RATE_LIMIT }),
         }),
         {
             name: 'kidivity-activities',
             storage: createJSONStorage(() => AsyncStorage),
-            partialize: (state) => ({
-                recentActivities: state.recentActivities,
-                savedActivities: state.savedActivities,
-            }),
+            partialize: (state) => {
+                // Remove base64 image_urls from persisted state to prevent AsyncStorage quota errors
+                const stripHeavyData = (activities: Activity[]) =>
+                    activities.map(({ image_url, ...rest }) => rest as Activity);
+
+                return {
+                    recentActivities: stripHeavyData(state.recentActivities),
+                    savedActivities: stripHeavyData(state.savedActivities),
+                };
+            },
         }
     )
 );
