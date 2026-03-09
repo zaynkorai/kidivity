@@ -84,16 +84,24 @@ export const useActivityStore = create<ActivityStore>()(
                         return { data: null, error: 'Not authenticated' };
                     }
 
-                    const response = await supabase.functions.invoke('generate-activity', {
-                        body: input,
+                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+                    const response = await fetch(`${apiUrl}/api/activities/generate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify(input),
                     });
 
-                    if (response.error) {
+                    const data = await response.json();
+
+                    if (!response.ok) {
                         set({ isGenerating: false });
-                        return { data: null, error: response.error.message };
+                        return { data: null, error: data.error || 'Failed to generate activity' };
                     }
 
-                    const activity = response.data as Activity;
+                    const activity = data as Activity;
 
                     // Add to recent activities
                     const { recentActivities } = get();

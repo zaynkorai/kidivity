@@ -15,10 +15,12 @@ Kidivity helps parents and homeschoolers generate fun, customizable, and printab
 - **State:** Zustand + AsyncStorage
 - **Backend:** Supabase (Auth, PostgreSQL, Edge Functions, Storage)
 - **AI:** Google Gemini API (text) + Image Generation API
+- npx supabase secrets set GEMINI_API_KEY="your_actual_gemini_api_key_here"
 
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - [pnpm](https://pnpm.io/)
 - [Expo Go](https://expo.dev/go) app on your phone (for testing)
@@ -31,8 +33,11 @@ Kidivity helps parents and homeschoolers generate fun, customizable, and printab
 git clone https://github.com/your-username/kidivity.git
 cd kidivity/Kidivity
 
+
 # Install dependencies
 pnpm install
+
+npx supabase secrets set GEMINI_API_KEY="your_actual_gemini_api_key_here"
 
 # Start Expo dev server
 pnpm start
@@ -72,14 +77,14 @@ kidivity/
 
 ## Documentation
 
-| Doc | Description |
-|---|---|
-| [PRD](docs/project_requirements.md) | Product requirements, user stories, MVP scope |
-| [Screen Flow](docs/screen_flow.md) | Navigation map & screen-by-screen specs |
-| [Data Model](docs/data_model.md) | Supabase schema, RLS policies, Zustand stores |
-| [API Design](docs/api_design.md) | Edge Function contracts & Gemini prompts |
-| [Architecture](docs/architecture.md) | System diagrams & directory structure |
-| [Implementation Plan](docs/implementation_plan.md) | Phased roadmap with deliverables |
+| Doc                                             | Description                                   |
+| ----------------------------------------------- | --------------------------------------------- |
+| [PRD](docs/project_requirements.md)                | Product requirements, user stories, MVP scope |
+| [Screen Flow](docs/screen_flow.md)                 | Navigation map & screen-by-screen specs       |
+| [Data Model](docs/data_model.md)                   | Supabase schema, RLS policies, Zustand stores |
+| [API Design](docs/api_design.md)                   | Edge Function contracts & Gemini prompts      |
+| [Architecture](docs/architecture.md)               | System diagrams & directory structure         |
+| [Implementation Plan](docs/implementation_plan.md) | Phased roadmap with deliverables              |
 
 ## License
 

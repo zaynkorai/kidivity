@@ -132,10 +132,10 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ### 3.1 Edge Function
 
-- [ ] `supabase/functions/generate-activity/index.ts`
-- [ ] Gemini API integration with prompt templates (per `api_design.md`)
-- [ ] Input validation with Zod
-- [ ] Error handling and rate limiting
+- [x] `supabase/functions/generate-activity/index.ts`
+- [x] Gemini API integration with prompt templates (per `api_design.md`)
+- [x] Input validation with Zod
+- [x] Error handling and rate limiting
 
 ### 3.2 Generator Screen
 
