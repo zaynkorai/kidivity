@@ -75,10 +75,6 @@ export default async function activityRoutes(fastify: FastifyInstance) {
                 topic: input.topic,
                 difficulty: input.difficulty,
                 style: input.style,
-                format: input.format,
-                time_available: input.time_available,
-                energy_level: input.energy_level,
-                environment: input.environment,
                 content,
                 image_url,
             })

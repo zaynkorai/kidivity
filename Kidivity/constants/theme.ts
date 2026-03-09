@@ -26,10 +26,12 @@ export const Colors = {
   disabled: '#D1D5DB',
 
   // Category colors (for activity cards)
-  categoryLogic: '#6C63FF',
+  categoryPuzzles: '#6C63FF',
   categoryTracing: '#FF6B6B',
-  categoryEducational: '#00B894',
-  categoryScreenFree: '#FDCB6E',
+  categoryScience: '#00B894',
+  categoryArt: '#FDCB6E',
+  categoryMath: '#0984e3',
+  categoryReading: '#e84393',
 
   // Dark mode
   dark: {

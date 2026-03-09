@@ -50,7 +50,18 @@ export async function generateActivityContent({
     }).then(res => {
         const text = res.text;
         if (!text) throw new Error("No text returned from Gemini");
-        return text;
+        try {
+            // Strip markdown block formatting if Gemini included it despite application/json mimetype
+            let cleanText = text.trim();
+            if (cleanText.startsWith('```')) {
+                cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+            }
+            const parsed = JSON.parse(cleanText);
+            return `# ${parsed.title}\n\n${parsed.instructions}\n\n${parsed.content}`;
+        } catch (e) {
+            logger.error({ err: e, text }, 'Failed to parse Gemini generated JSON');
+            return text;
+        }
     }).catch(err => {
         logger.error(err, 'Gemini text error');
         throw new Error(`Gemini text error: ${err.message}`);

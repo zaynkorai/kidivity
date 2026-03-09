@@ -24,19 +24,33 @@ import {
     Palette,
     Search,
     ImageIcon,
+    Tag,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
+import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 
-const VISUAL_CATEGORIES = new Set(['tracing', 'screen-free', 'logic', 'educational']);
+const VISUAL_CATEGORIES = new Set(['tracing', 'drawings', 'logic', 'educational', 'math', 'coloring', 'story']);
 
 /** Simple markdown-ish renderer: handles #, ##, ###, **, *, -, numbered lists */
 function MarkdownContent({ content }: { content: string }) {
     const elements = useMemo(() => {
-        const lines = content.split('\n');
+        // Fallback: If the content is accidentally stored as pure JSON string due to API failure 
+        // to parse markdown block, try to parse it and format it gracefully.
+        let safeContent = content;
+        try {
+            if (safeContent.trim().startsWith('{')) {
+                const parsed = JSON.parse(safeContent);
+                if (parsed.title && parsed.content) {
+                    safeContent = `# ${parsed.title}\n\n${parsed.instructions || ''}\n\n${parsed.content}`;
+                }
+            }
+        } catch (e) { /* ignore and render normal content */ }
+
+        const lines = safeContent.split('\n');
         const result: React.ReactElement[] = [];
 
         lines.forEach((line, idx) => {
@@ -130,7 +144,7 @@ function renderInline(text: string): React.ReactNode {
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { recentActivities, savedActivities, toggleSaved } = useActivityStore();
+    const { recentActivities, savedActivities, toggleSaved, generateActivity, isGenerating } = useActivityStore();
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
@@ -187,9 +201,28 @@ export default function ActivityDetailScreen() {
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Regenerate',
-                    onPress: () => {
-                        router.back();
-                        // The generate screen still has the same settings, user can just tap generate again
+                    onPress: async () => {
+                        if (!activity) return;
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+                        const { data, error: err } = await generateActivity({
+                            kid_profile_id: activity.kid_profile_id,
+                            category: activity.category,
+                            topic: activity.topic,
+                            difficulty: activity.difficulty || 'medium',
+                            style: activity.style || 'colorful',
+                        });
+
+                        if (err === 'rate_limit') {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                            Alert.alert('Limit Reached', 'You have hit your daily generation limit.');
+                        } else if (err) {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                            Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate activity');
+                        } else if (data) {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            router.push(`/activity/${data.id}`);
+                        }
                     },
                 },
             ]
@@ -198,6 +231,7 @@ export default function ActivityDetailScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
+            <GeneratingOverlay visible={isGenerating} />
             {/* Top bar */}
             <View style={styles.topBar}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -240,11 +274,14 @@ export default function ActivityDetailScreen() {
                     </View>
                 </View>
 
-                {/* Title */}
-                <Text style={styles.title}>{activity.topic}</Text>
-
                 {/* Meta chips */}
                 <View style={styles.chipRow}>
+                    <View style={styles.metaChip}>
+                        <Tag size={14} color={Colors.textSecondary} />
+                        <Text style={styles.metaChipText}>
+                            {activity.topic}
+                        </Text>
+                    </View>
                     <View style={styles.metaChip}>
                         <Zap size={14} color={Colors.textSecondary} />
                         <Text style={styles.metaChipText}>
@@ -282,19 +319,6 @@ export default function ActivityDetailScreen() {
                                     contentFit="contain"
                                     transition={300}
                                 />
-                                {activity.category === 'tracing' && (
-                                    <View style={styles.tracingOverlay}>
-                                        <Text style={styles.tracingText}>
-                                            {activity.topic.toUpperCase().split('').join('   ')}
-                                        </Text>
-                                        <Text style={styles.tracingText}>
-                                            {activity.topic.toLowerCase().split('').join('   ')}
-                                        </Text>
-                                        <Text style={styles.tracingTextWord}>
-                                            {activity.topic.toUpperCase()}
-                                        </Text>
-                                    </View>
-                                )}
                             </View>
                         ) : (
                             <View style={styles.heroPlaceholder}>
@@ -411,12 +435,6 @@ const styles = StyleSheet.create({
     badgeText: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.semibold,
-    },
-    title: {
-        fontSize: FontSize['3xl'],
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginBottom: Spacing.md,
     },
     chipRow: {
         flexDirection: 'row',
@@ -545,11 +563,11 @@ const styles = StyleSheet.create({
 
 const mdStyles = StyleSheet.create({
     h1: {
-        fontSize: FontSize['2xl'],
+        fontSize: FontSize['3xl'],
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
-        marginTop: Spacing.lg,
-        marginBottom: Spacing.sm,
+        marginTop: Spacing.sm,
+        marginBottom: Spacing.md,
     },
     h2: {
         fontSize: FontSize.xl,

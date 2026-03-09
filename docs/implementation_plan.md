@@ -208,18 +208,8 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 ## Phase 6: Core Value & Monetization
 
 ### 6.1 "Parent Convenience" Generator UI ✅ COMPLETE
-- [X] **Time Available Selector:** 5 min / 20 min / 1hr+ options
-- [X] **Parent Energy Level Toggle:** Exhausted / Moderate / High Energy
-- [X] **Environment Selector:** Indoor / Kitchen / On the Go
 - [X] Updated `(tabs)/generate.tsx` — Step 4 "Parent Setup" panel before Generate
 - [X] Updated backend prompt builder (`activities.ts`) to strictly enforce all constraints
-
-### 6.2 Activity Formats ✅ COMPLETE
-- [X] **Format A — Printable:** Worksheet layout with structured sections
-- [X] **Low-Ink Mode Toggle:** Line-art only, forces B&W style when enabled
-- [X] **Format B — Parent-Led:** Recipe-style card, scannable instructions
-- [X] **Format C — Screen-Free Play:** Open-ended creative prompt format
-- [X] Format selector in `generate.tsx` with per-format Gemini prompt templates
 
 ### 6.3 Premium Visual-First Activities ✅ COMPLETE
 - [X] Hyper-personalized Banana API image prompt — injects kid's top interests
@@ -238,7 +228,7 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] `PaywallModal.tsx` — premium upsell bottom sheet
 
 ### 6.6 Database Migration ✅ COMPLETE
-- [X] `supabase/migrations/004_add_phase6_activity_columns.sql` — adds `format`, `time_available`, `energy_level`, `environment` columns with defaults and CHECK constraints
+- [ ] Database migration deleted
 
 ---
 

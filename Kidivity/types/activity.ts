@@ -2,10 +2,6 @@ import type { ActivityCategory } from '@/constants/categories';
 
 export type ActivityDifficulty = 'easy' | 'medium' | 'hard';
 export type ActivityStyle = 'bw' | 'colorful';
-export type TimeAvailable = '5min' | '20min' | '1hr+';
-export type EnergyLevel = 'exhausted' | 'moderate' | 'high';
-export type Environment = 'indoor' | 'kitchen' | 'on-the-go';
-export type ActivityFormat = 'printable' | 'parent-led' | 'screen-free-play';
 
 export interface Activity {
     id: string;
@@ -15,10 +11,6 @@ export interface Activity {
     topic: string;
     difficulty: ActivityDifficulty;
     style: ActivityStyle;
-    format: ActivityFormat;
-    time_available: TimeAvailable;
-    energy_level: EnergyLevel;
-    environment: Environment;
     content: string;
     image_url: string | null;
     is_saved: boolean;
@@ -33,10 +25,6 @@ export interface GenerateActivityInput {
     topic: string;
     difficulty: ActivityDifficulty;
     style: ActivityStyle;
-    format?: ActivityFormat;
-    time_available?: TimeAvailable;
-    energy_level?: EnergyLevel;
-    environment?: Environment;
     simpleTracingPaths?: boolean;
     coloringBookMode?: boolean;
 }

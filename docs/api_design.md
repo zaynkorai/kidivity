@@ -2,13 +2,13 @@
 
 ## Overview
 
-All API calls go through **Supabase Edge Functions** to keep API keys server-side. The mobile app communicates with Supabase directly for CRUD operations (via the Supabase JS client with RLS) and calls Edge Functions for AI-powered generation.
+The Kidivity project transitioned from **Supabase Edge Functions** to a custom **Fastify backend**. The mobile app and frontend applications communicate directly with Supabase for CRUD operations (via the Supabase JS client with RLS) and call the Fastify server for AI-powered generation.
 
 ---
 
-## Edge Functions
+## Fastify Backend
 
-### `POST /functions/v1/generate-activity`
+### `POST /api/activities/generate`
 
 **Purpose:** Generates an AI-powered activity for a kid.
 
@@ -19,10 +19,13 @@ All API calls go through **Supabase Edge Functions** to keep API keys server-sid
 ```typescript
 interface GenerateActivityRequest {
   kid_profile_id: string;      // UUID of the kid
-  category: 'logic' | 'tracing' | 'educational' | 'screen-free';
+  category: 'logic' | 'tracing' | 'educational' | 'screen-free' | 'math' | 'coloring' | 'story';
   topic: string;               // e.g. "Dinosaurs"
   difficulty: 'easy' | 'medium' | 'hard';
   style: 'bw' | 'colorful';
+
+  simpleTracingPaths?: boolean;
+  coloringBookMode?: boolean;
 }
 ```
 
@@ -45,76 +48,61 @@ interface GenerateActivityResponse {
 
 | Status | Body | When |
 |---|---|---|
-| 400 | `{ error: "Invalid category" }` | Validation failure |
+| 400 | `{ error: "Invalid request data", details: [...] }` | Zod validation failure |
 | 401 | `{ error: "Unauthorized" }` | Missing or invalid JWT |
 | 403 | `{ error: "Profile not found" }` | Kid profile doesn't belong to user |
-| 429 | `{ error: "Rate limit exceeded" }` | Too many generations (>20/hour) |
-| 500 | `{ error: "Generation failed" }` | AI API error |
+| 429 | `{ error: "Daily generation limit reached", used, limit, reset_at }` | Daily limit exceeded (50/day/user) |
+| 500 | `{ error: "Failed to generate activity content" }` | AI API error or failure saving to DB |
 
-#### Implementation (Edge Function)
+#### Implementation (Fastify Route)
 
 ```typescript
-// supabase/functions/generate-activity/index.ts
+// server/src/routes/activities.ts
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { FastifyInstance } from 'fastify';
+import { getUserClient, getAdminClient } from '../lib/supabase.js';
+import { checkQuota } from '../utils/quotas.js';
+import { generateSchema } from '../schemas/activity.schema.js';
+import { buildSystemInstruction, buildPromptUser, buildImagePrompt } from '../services/prompt.service.js';
+import { generateActivityContent } from '../services/ai.service.js';
 
-serve(async (req) => {
-  // 1. Authenticate
-  const authHeader = req.headers.get('Authorization')
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader! } } }
-  )
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+export default async function activityRoutes(fastify: FastifyInstance) {
+    fastify.post('/api/activities/generate', async (request, reply) => {
+        // 1. Validate payload with Zod
+        const parsed = generateSchema.safeParse(request.body);
+        if (!parsed.success) return reply.code(400).send({ error: 'Invalid request data', details: parsed.error.errors });
 
-  // 2. Parse & validate request
-  const body = await req.json()
-  // ... validate with Zod schema ...
+        const input = parsed.data;
 
-  // 3. Fetch kid profile (verifies ownership via RLS)
-  const { data: kidProfile } = await supabase
-    .from('kid_profiles')
-    .select('*')
-    .eq('id', body.kid_profile_id)
-    .single()
-  if (!kidProfile) return new Response(JSON.stringify({ error: 'Profile not found' }), { status: 403 })
+        // 2. Check per-user daily quota via Admin Client
+        const quota = await checkQuota(getAdminClient(), request.userId);
+        if (!quota.allowed) return reply.code(429).send({ error: 'Daily generation limit reached', ...quota });
 
-  // 4. Build Gemini prompt
-  const prompt = buildPrompt(kidProfile, body)
+        // 3. Fetch kid profile (RLS ensures ownership)
+        const supabase = getUserClient(request.accessToken);
+        const { data: kidProfile } = await supabase.from('kid_profiles').eq('id', input.kid_profile_id).single();
 
-  // 5. Call Gemini API
-  const geminiResponse = await callGemini(prompt)
+        // 4. Generate content and image in parallel via ai.service using Gemini APIs
+        const { content, image_url } = await generateActivityContent({
+            sysInstruction: buildSystemInstruction(kidProfile),
+            promptText: buildPromptUser(kidProfile, input),
+            imagePrompt: buildImagePrompt(kidProfile, input),
+            isVisualCategory: true,
+            // ...
+        });
 
-  // 6. Optionally generate image
-  let imageUrl = null
-  if (needsImage(body.category)) {
-    imageUrl = await generateAndStoreImage(body, supabase)
-  }
+        // 5. Save to database & return
+        const { data: activity } = await supabase.from('activities').insert({
+            user_id: request.userId,
+            kid_profile_id: input.kid_profile_id,
+            /* ... mapped input data ... */
+            content,
+            image_url,
+        }).select().single();
 
-  // 7. Store activity in database
-  const { data: activity } = await supabase
-    .from('activities')
-    .insert({
-      user_id: user.id,
-      kid_profile_id: body.kid_profile_id,
-      category: body.category,
-      topic: body.topic,
-      difficulty: body.difficulty,
-      style: body.style,
-      content: geminiResponse,
-      image_url: imageUrl,
-    })
-    .select()
-    .single()
-
-  // 8. Return result
-  return new Response(JSON.stringify(activity), {
-    headers: { 'Content-Type': 'application/json' },
-  })
-})
+        return activity;
+    });
+}
 ```
 
 ---
@@ -161,11 +149,37 @@ Include: 3-5 fun facts, a short reading passage, and a mini quiz (3 questions).
 Make it engaging and spark curiosity.
 ```
 
-**Screen-Free:**
+**Drawings:**
 ```
-Create a {difficulty} screen-free activity about "{topic}" for a {age}-year-old ({grade_level}).
-Include: materials needed (common household items only), step-by-step instructions,
-and learning outcomes. Should take 15-30 minutes.
+Create a {difficulty} hands-on drawing and art project about "{topic}" for a {age}-year-old ({grade_level}).
+Include: materials needed (art supplies), step-by-step drawing instructions,
+and fine motor skill outcomes. Should take 15-30 minutes.
+```
+
+**Math:**
+```
+Create a {difficulty} math and counting activity about "{topic}" for a {age}-year-old ({grade_level}).
+Focus on counting, simple addition, or number logic appropriate for their age.
+Include: 3-4 simple word problems or counting exercises and an answer key.
+```
+
+**Coloring:**
+```
+Create a short, engaging description for a {difficulty} coloring page about "{topic}" for a {age}-year-old ({grade_level}).
+Include: A fun 2-3 sentence imaginative description of the coloring page and a creative prompt.
+```
+
+**Science:**
+```
+Create a {difficulty} science discovery activity about "{topic}" for a {age}-year-old ({grade_level}).
+Include: How it works (simple explanation), a mini experiment without special equipment, and amazing science facts.
+```
+
+**Story:**
+```
+Create a {difficulty} short story and reading exercise about "{topic}" for a {age}-year-old ({grade_level}).
+The text length and vocabulary must be strictly tailored to this level.
+Include: a 2-3 paragraph short story and 2 reading comprehension questions.
 ```
 
 ---
@@ -235,8 +249,8 @@ await supabase.from('activities').delete().eq('id', activityId)
 
 | Action | Limit | Window |
 |---|---|---|
-| Activity generation | 20 requests | Per hour |
+| Activity generation | 50 activities | Per user (daily) |
 | Profile creation | 10 profiles | Per user (total) |
 | API calls (general) | 100 requests | Per minute |
 
-Enforced in Edge Functions using a simple counter in a `rate_limits` table or Supabase's built-in rate limiting.
+Enforced in the Fastify backend: Activity generation rate limits are implemented via a `checkQuota` helper utilizing the Supabase admin client to count today's generations directly from the DB. General endpoint limits use standard Fastify plugins.

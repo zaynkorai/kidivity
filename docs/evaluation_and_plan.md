@@ -8,7 +8,7 @@ We have successfully executed the **Phase 0-8 Roadmap** outlined in the implemen
 - **Rock-Solid Foundation:** A complete React Native (Expo) app with file-based routing and a well-architected Supabase + Fastify backend.
 - **Robust Auth & Profiles:** Secure authentication seamlessly integrated with Kid Profile management (CRUD operations, syncing, and intuitive UI).
 - **AI-Powered Core Loop:** Fully functional activity generation leveraging Google Gemini for rich text and Google's Banana API (Imagen) for visually engaging, age-appropriate activities.
-- **Premium User Experience:** Advanced monetization features including rate-limiting, premium visual-first activities, and parent-convenience toggles (Time, Energy, Environment).
+- **Premium User Experience:** Advanced monetization features including rate-limiting, premium visual-first activities, and parent-convenience toggles.
 - **Polish & Distribution-Ready:** Implementation of smooth transitions, error boundaries, print-to-PDF capabilities, and native print dialogs.
 
 ## 2. Rating: A+ (Outstanding)

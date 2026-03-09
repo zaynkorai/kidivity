@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -6,9 +6,6 @@ import {
     TouchableOpacity,
     StyleSheet,
     SafeAreaView,
-    Animated,
-    Easing,
-    Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -25,7 +22,6 @@ import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
-import { Input } from '@/components/ui/Input';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
@@ -34,91 +30,7 @@ import type {
     ActivityStyle,
 } from '@/types/activity';
 
-const FUN_MESSAGES = [
-    'Mixing creative juices...',
-    'Thinking really hard...',
-    'Sprinkling magic dust...',
-    'Launching imagination...',
-    'Crafting something special...',
-    'Tailoring it just right...',
-    'Setting up the fun...',
-    'Gathering cool ideas...',
-];
-
-function GeneratingOverlay({ visible }: { visible: boolean }) {
-    const bounce = useRef(new Animated.Value(0)).current;
-    const pulse = useRef(new Animated.Value(1)).current;
-    const [messageIndex, setMessageIndex] = useState(0);
-
-    useEffect(() => {
-        if (!visible) return;
-
-        const bounceAnim = Animated.loop(
-            Animated.sequence([
-                Animated.timing(bounce, { toValue: -20, duration: 400, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-                Animated.timing(bounce, { toValue: 0, duration: 400, easing: Easing.in(Easing.quad), useNativeDriver: true }),
-            ])
-        );
-
-        const pulseAnim = Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulse, { toValue: 1.15, duration: 800, useNativeDriver: true }),
-                Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
-            ])
-        );
-
-        bounceAnim.start();
-        pulseAnim.start();
-
-        const interval = setInterval(() => {
-            setMessageIndex((prev) => (prev + 1) % FUN_MESSAGES.length);
-        }, 2500);
-
-        return () => {
-            bounceAnim.stop();
-            pulseAnim.stop();
-            clearInterval(interval);
-        };
-    }, [visible]);
-
-    if (!visible) return null;
-
-    return (
-        <Modal transparent animationType="fade" visible={visible}>
-            <View style={loadingStyles.overlay}>
-                <View style={loadingStyles.card}>
-                    <Animated.View
-                        style={[
-                            loadingStyles.iconWrap,
-                            { transform: [{ translateY: bounce }, { scale: pulse }] },
-                        ]}
-                    >
-                        <Wand2 size={48} color={Colors.primary} />
-                    </Animated.View>
-                    <Text style={loadingStyles.title}>Creating Activity</Text>
-                    <Text style={loadingStyles.message}>{FUN_MESSAGES[messageIndex]}</Text>
-                    <View style={loadingStyles.dots}>
-                        {[0, 1, 2].map((i) => (
-                            <Animated.View
-                                key={i}
-                                style={[
-                                    loadingStyles.dot,
-                                    {
-                                        opacity: pulse.interpolate({
-                                            inputRange: [1, 1.15],
-                                            outputRange: [i === 1 ? 1 : 0.3, i === 1 ? 0.3 : 1],
-                                        }),
-                                    },
-                                ]}
-                            />
-                        ))}
-                    </View>
-                </View>
-            </View>
-        </Modal>
-    );
-}
-
+import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
     const activeProfile = useProfileStore((s) => s.getActiveProfile());
@@ -130,6 +42,37 @@ export default function GenerateScreen() {
     const [style, setStyle] = useState<ActivityStyle>('colorful');
     const [error, setError] = useState<string | null>(null);
     const [showPaywall, setShowPaywall] = useState(false);
+
+    const suggestedTopics = React.useMemo(() => {
+        if (!selectedCategory) return [];
+
+        const categoryDefaults: Record<ActivityCategory, string[]> = {
+            puzzles: ['Mazes', 'Patterns', 'Find the Difference', 'Matching', 'Sequences', 'Sorting', 'Shadows', 'Odd One Out', 'Sudoku', 'Logic Grids', 'Symmetry'],
+            tracing: ['Alphabet', 'Numbers', 'Shapes', 'Lines', 'Cursive', 'Names', 'Animals', 'Vehicles', 'Spelling', 'Sight Words', 'My Family'],
+            science: ['Space', 'Animals', 'Dinosaurs', 'Ocean', 'Geography', 'Human Body', 'Weather', 'Plants', 'Insects', 'Volcanoes', 'Recycling', 'Solar System'],
+            art: ['Coloring Pages', 'Step-by-step Drawing', 'Origami', 'Crafts', 'Mandala', 'Pixel Art', 'Paper Airplanes', 'Finger Painting', 'Mask Making'],
+            math: ['Addition', 'Counting', 'Subtraction', 'Shapes', 'Money', 'Time', 'Fractions', 'Multiplication', 'Measuring', 'Graphs', 'Word Problems'],
+            reading: ['Bedtime Stories', 'Sight Words', 'Reading Comprehension', 'Phonics', 'Adventure Tales', 'Fairy Tales', 'Poetry', 'Myths & Legends', 'Rhyming', 'Vocabulary'],
+        };
+
+        let topics = [...(activeProfile?.interests || [])];
+
+        // If no profile interests, or not enough, pad with category defaults.
+        // We shuffle the defaults so they get different options every time they come to the screen
+        const defaults = [...(categoryDefaults[selectedCategory] || [])].sort(() => 0.5 - Math.random());
+
+        if (topics.length < 6) {
+            for (const def of defaults) {
+                if (!topics.includes(def as any)) {
+                    topics.push(def as any);
+                }
+                if (topics.length >= 6) break;
+            }
+        }
+
+        return defaults.slice(0, 6);
+
+    }, [activeProfile, selectedCategory]);
 
     const handleGenerate = async () => {
         if (!activeProfile || !selectedCategory || !topic.trim()) return;
@@ -247,28 +190,20 @@ export default function GenerateScreen() {
                 </View>
 
                 {/* Step 2: Topic */}
-                <Text style={styles.sectionTitle}>2. What topic?</Text>
-                <Input
-                    placeholder="e.g. Dinosaurs, Solar System, Counting..."
-                    value={topic}
-                    onChangeText={setTopic}
-                />
-
-                {activeProfile && activeProfile.interests.length > 0 && (
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.interestChips}
-                    >
-                        {activeProfile.interests.map((interest) => (
+                <Text style={styles.sectionTitle}>2. Pick a Topic</Text>
+                {selectedCategory ? (
+                    <View style={[styles.optionRow, { marginBottom: Spacing.md }]}>
+                        {suggestedTopics.map((t) => (
                             <Chip
-                                key={interest}
-                                label={interest}
-                                selected={topic === interest}
-                                onPress={() => setTopic(interest)}
+                                key={t}
+                                label={t}
+                                selected={topic.toLowerCase() === t.toLowerCase()}
+                                onPress={() => setTopic(t)}
                             />
                         ))}
-                    </ScrollView>
+                    </View>
+                ) : (
+                    <Text style={styles.optionLabel}>Please choose a category first.</Text>
                 )}
 
                 {/* Step 3: Style & Difficulty */}
@@ -401,40 +336,4 @@ const styles = StyleSheet.create({
     errorText: { fontSize: FontSize.sm, color: Colors.accent },
 });
 
-const loadingStyles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    card: {
-        backgroundColor: Colors.surface,
-        borderRadius: Radius.xl,
-        padding: Spacing['4xl'],
-        alignItems: 'center',
-        width: '80%',
-        maxWidth: 300,
-    },
-    iconWrap: { marginBottom: Spacing.lg },
-    title: {
-        fontSize: FontSize.xl,
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginBottom: Spacing.sm,
-    },
-    message: {
-        fontSize: FontSize.sm,
-        color: Colors.textSecondary,
-        textAlign: 'center',
-        marginBottom: Spacing.xl,
-        minHeight: 20,
-    },
-    dots: { flexDirection: 'row', gap: Spacing.sm },
-    dot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: Colors.primary,
-    },
-});
+

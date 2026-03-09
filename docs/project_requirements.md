@@ -38,18 +38,22 @@
 
 ### 3.2 Activity Generation
 **User Stories:**
-- As a parent, I can select a category (Logic, Tracing, Educational, Screen-Free) and generate an activity
-- As a parent, I can choose between B&W (print-ready) or Colorful output
-- As a parent, I can regenerate if I don't like the result
+- As a parent, I can select a category (Logic, Tracing, Educational, Screen-Free) and specify a topic
+- As a parent, I can choose the difficulty level (Easy, Medium, Hard)
+- As a parent, I can choose between B&W (print-ready) or Colorful visual styles
+- As a parent, I can regenerate an activity if I don't like the result
 - As a parent, I can save/bookmark activities I like
 
 **Categories Explained:**
-| Category | What It Produces | Example |
+| **Category** | **What It Produces** | **Example** |
 |---|---|---|
 | **Logic** | Puzzles, patterns, matching | "Find the pattern: 🌟⭐🌟⭐__" |
 | **Tracing** | Letter/shape tracing sheets | Dotted uppercase A with arrows |
 | **Educational** | Facts, quizzes, reading prompts | "3 fun facts about dinosaurs + quiz" |
-| **Screen-Free** | Craft/physical activity instructions | "Build a solar system with playdough" |
+| **Drawings** | Step-by-step drawing & art | "Draw a rocket ship step-by-step" |
+| **Math** | Counting, addition & math games | "Count the 5 apples and add 2 more" |
+| **Coloring** | Beautiful color-in artwork | High-contrast B&W coloring page |
+| **Story** | Short tales & reading skills | "A short story about a brave little toaster" |
 
 ### 3.3 Activity Display & Printing
 **User Stories:**
@@ -82,18 +86,19 @@
 |---|---|---|
 | **Mobile App** | React Native + Expo 54 | Cross-platform iOS & Android |
 | **Routing** | Expo Router (file-based) | Clean navigation with deep links |
+| **Icons** | `lucide-react-native` | Clean, customizable vector icons (no emojis) |
 | **State Management** | Zustand + AsyncStorage | Simple, fast, persistent local state |
-| **Backend / DB** | Supabase (PostgreSQL + Auth + Edge Functions) | Managed backend, no server to maintain |
-| **AI — Text** | Google Gemini API (via Edge Function) | Advanced text generation for activities |
-| **AI — Images** | Image Generation API (via Edge Function) | Visual content for worksheets |
+| **Backend / DB** | Node.js (Fastify) + Supabase (PostgreSQL) | Custom API layer with managed DB/Auth |
+| **AI — Text** | Google Gemini API (via Fastify Server) | Advanced text generation for activities |
+| **AI — Images** | Google Gemini Image API (via Fastify Server) | Visual content for worksheets, age-tailored visual complexity |
 | **Printing** | `expo-print` + `expo-sharing` | Native print dialog + PDF sharing |
 
 ---
 
 ## 6. Design Principles
 
-1. **Playful but professional** — Parents use it, but kids see it. Bright colors, rounded shapes, friendly typography.
-2. **Print-first for activities** — Generated content must look great on paper (proper margins, contrast, sizing).
+1. **Playful but professional** — Parents use it, but kids see it. Bright colors, rounded shapes, friendly typography. We use vector icons (`lucide-react-native`) instead of emojis for a cohesive, premium look.
+2. **Print-first for activities** — Generated content must look great on paper (proper margins, contrast, sizing). Visuals adapt in complexity based on the child's age/grade level.
 3. **3-tap rule** — Any core action (generate activity) should take ≤ 3 taps from the home screen.
 4. **Offline-resilient** — Saved activities work without internet. Generation requires connectivity.
 
