@@ -88,10 +88,24 @@ export const useAuthStore = create<AuthStore>()(
                 set({ isLoading: true });
                 try {
                     const { data, error } = await supabase.auth.signUp({ email, password });
+
                     if (error) {
+                        console.warn('[auth] signUp error:', error.message);
                         set({ isLoading: false });
                         return { error: error.message };
                     }
+
+                    // Supabase v2 returns a user with empty identities (no error)
+                    // when the email is already registered. Detect this edge case.
+                    if (
+                        data.user &&
+                        data.user.identities &&
+                        data.user.identities.length === 0
+                    ) {
+                        set({ isLoading: false });
+                        return { error: 'An account with this email may already exist. Try signing in instead.' };
+                    }
+
                     set({
                         user: data.user,
                         session: data.session,
@@ -102,9 +116,12 @@ export const useAuthStore = create<AuthStore>()(
                         ensureUserRow(data.user);
                     }
                     return { error: null };
-                } catch (err) {
+                } catch (err: unknown) {
+                    const message =
+                        err instanceof Error ? err.message : 'An unexpected error occurred';
+                    console.error('[auth] signUp exception:', message);
                     set({ isLoading: false });
-                    return { error: 'An unexpected error occurred' };
+                    return { error: message };
                 }
             },
 
@@ -113,6 +130,7 @@ export const useAuthStore = create<AuthStore>()(
                 try {
                     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                     if (error) {
+                        console.warn('[auth] signIn error:', error.message);
                         set({ isLoading: false });
                         return { error: error.message };
                     }
@@ -126,9 +144,12 @@ export const useAuthStore = create<AuthStore>()(
                         ensureUserRow(data.user);
                     }
                     return { error: null };
-                } catch (err) {
+                } catch (err: unknown) {
+                    const message =
+                        err instanceof Error ? err.message : 'An unexpected error occurred';
+                    console.error('[auth] signIn exception:', message);
                     set({ isLoading: false });
-                    return { error: 'An unexpected error occurred' };
+                    return { error: message };
                 }
             },
 
