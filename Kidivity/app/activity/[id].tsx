@@ -22,6 +22,7 @@ import {
     Clock,
     Zap,
     Palette,
+    Search,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -140,7 +141,7 @@ export default function ActivityDetailScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.centered}>
-                    <Text style={styles.emptyEmoji}>🔍</Text>
+                    <Search size={48} color={Colors.textSecondary} style={styles.emptyEmoji} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
                     <Button
                         title="Go Back"
@@ -192,8 +193,6 @@ export default function ActivityDetailScreen() {
         );
     };
 
-    const difficultyEmoji = activity.difficulty === 'easy' ? '🟢' : activity.difficulty === 'medium' ? '🟡' : '🔴';
-
     return (
         <SafeAreaView style={styles.safe}>
             {/* Top bar */}
@@ -218,10 +217,23 @@ export default function ActivityDetailScreen() {
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Category badge + meta */}
                 <View style={styles.metaRow}>
-                    <View style={[styles.badge, { backgroundColor: (category?.color ?? Colors.primary) + '15' }]}>
-                        <Text style={[styles.badgeText, { color: category?.color ?? Colors.primary }]}>
-                            {category?.emoji} {category?.label}
-                        </Text>
+                    <View style={[styles.badge, {
+                        backgroundColor: (category?.color ?? Colors.primary) + '15',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                    }]}>
+                        {(() => {
+                            const Icon = category?.icon;
+                            return (
+                                <>
+                                    {Icon && <Icon size={14} color={category?.color ?? Colors.primary} />}
+                                    <Text style={[styles.badgeText, { color: category?.color ?? Colors.primary }]}>
+                                        {category?.label}
+                                    </Text>
+                                </>
+                            );
+                        })()}
                     </View>
                 </View>
 
@@ -233,13 +245,13 @@ export default function ActivityDetailScreen() {
                     <View style={styles.metaChip}>
                         <Zap size={14} color={Colors.textSecondary} />
                         <Text style={styles.metaChipText}>
-                            {difficultyEmoji} {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
+                            {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
                         </Text>
                     </View>
                     <View style={styles.metaChip}>
                         <Palette size={14} color={Colors.textSecondary} />
                         <Text style={styles.metaChipText}>
-                            {activity.style === 'colorful' ? '🎨 Colorful' : '🖨️ B&W'}
+                            {activity.style === 'colorful' ? 'Colorful' : 'B&W'}
                         </Text>
                     </View>
                     <View style={styles.metaChip}>
@@ -307,7 +319,6 @@ const styles = StyleSheet.create({
         padding: Spacing['4xl'],
     },
     emptyEmoji: {
-        fontSize: 48,
         marginBottom: Spacing.md,
     },
     emptyTitle: {

@@ -13,7 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
-import { ArrowLeft, Printer, FileDown } from 'lucide-react-native';
+import { ArrowLeft, Printer, FileDown, Search } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
@@ -126,7 +126,7 @@ function buildPrintHtml(activity: {
 </head>
 <body>
   <div class="header">
-    <div class="badge">${category?.emoji ?? ''} ${category?.label ?? activity.category}</div>
+    <div class="badge">${category?.label ?? activity.category}</div>
     <h1>${activity.topic}</h1>
     <div class="meta">
       ${activity.kid_name ? `For ${activity.kid_name} · ` : ''}
@@ -159,7 +159,7 @@ export default function PrintPreviewScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.centered}>
-                    <Text style={{ fontSize: 48 }}>🔍</Text>
+                    <Search size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
                     <Button
                         title="Go Back"
@@ -223,7 +223,7 @@ export default function PrintPreviewScreen() {
                     <View style={styles.previewHeader}>
                         <View style={[styles.badge, { backgroundColor: (category?.color ?? Colors.primary) + '15' }]}>
                             <Text style={[styles.badgeText, { color: category?.color ?? Colors.primary }]}>
-                                {category?.emoji} {category?.label}
+                                {category?.label}
                             </Text>
                         </View>
                         <Text style={styles.previewTitle}>{activity.topic}</Text>

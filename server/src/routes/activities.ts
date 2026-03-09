@@ -117,14 +117,13 @@ export default async function activityRoutes(fastify: FastifyInstance) {
             const geminiData = await geminiResponse.json();
             content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-            // Image generation via Google Banana API (Imagen 3 / Banana Nano)
+            // Image generation via Google Banana API ( Banana Nano)
             // Note: Since Banana Nano might be a hypothetical or specific vertex endpoint, 
-            // we simulate the Google Image generation API (Imagen endpoint format) 
             // fallback to returning a placeholder if it fails, ensuring the app still runs.
             try {
                 const bananaPrompt = `A ${input.style === 'bw' ? 'black and white sketch' : 'colorful illustration'} for a children's activity about ${input.topic}. Kid friendly, cute, clean lines.`;
                 const bananaResponse = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${geminiKey}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/nano-banana:predict?key=${geminiKey}`,
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +143,7 @@ export default async function activityRoutes(fastify: FastifyInstance) {
                 } else {
                     const errText = await bananaResponse.text();
                     fastify.log.warn('Google Banana Image API failed or is not available, using placeholder: %s', errText);
-                    // Fallback visual representation if the Imagen API throws due to API Key restrictions
+                    // Fallback visual representation if the Nano Banana API throws due to API Key restrictions
                     image_url = `https://placehold.co/600x400/${input.style === 'bw' ? 'EEE/333' : 'FFB3BA/333'}?text=Visual+Activity+Generated`;
                 }
             } catch (err: any) {

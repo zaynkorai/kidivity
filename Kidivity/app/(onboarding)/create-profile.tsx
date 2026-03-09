@@ -9,7 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
-import { Sparkles, ArrowRight, Check } from 'lucide-react-native';
+import { Wand2, ArrowRight, Check } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -140,7 +140,7 @@ export default function OnboardingCreateProfileScreen() {
                     {/* Step Header */}
                     <View style={styles.stepHeader}>
                         <View style={styles.stepBadge}>
-                            <Sparkles size={20} color={Colors.white} />
+                            <Wand2 size={20} color={Colors.white} />
                         </View>
                         <Text style={styles.stepTitle}>{stepTitles[step].title}</Text>
                         <Text style={styles.stepSubtitle}>{stepTitles[step].subtitle}</Text>
@@ -259,7 +259,7 @@ export default function OnboardingCreateProfileScreen() {
                             style={step === 0 ? styles.nextBtnFull : styles.nextBtn}
                             icon={
                                 step === STEP_COUNT - 1 ? (
-                                    <Sparkles size={20} color={Colors.white} />
+                                    <Wand2 size={20} color={Colors.white} />
                                 ) : (
                                     <ArrowRight size={20} color={Colors.white} />
                                 )

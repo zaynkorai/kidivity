@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Sparkles, Mail, ArrowRight } from 'lucide-react-native';
+import { Map, Mail, ArrowRight, Wand2, Puzzle, PenTool, BookOpen, Palette } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
@@ -58,7 +58,7 @@ export default function WelcomeScreen() {
                         {/* Logo */}
                         <View style={styles.logoContainer}>
                             <View style={styles.logoIcon}>
-                                <Sparkles size={32} color={Colors.white} />
+                                <Wand2 size={32} color={Colors.white} />
                             </View>
                             <Text style={styles.logoText}>Kidivity</Text>
                         </View>
@@ -75,16 +75,19 @@ export default function WelcomeScreen() {
                         {/* Feature Highlights */}
                         <View style={styles.features}>
                             {[
-                                { emoji: '🧩', label: 'Logic Puzzles' },
-                                { emoji: '✏️', label: 'Tracing Sheets' },
-                                { emoji: '📚', label: 'Educational' },
-                                { emoji: '🌿', label: 'Screen-Free' },
-                            ].map((f) => (
-                                <View key={f.label} style={styles.featurePill}>
-                                    <Text style={styles.featureEmoji}>{f.emoji}</Text>
-                                    <Text style={styles.featureLabel}>{f.label}</Text>
-                                </View>
-                            ))}
+                                { icon: Puzzle, label: 'Logic Puzzles' },
+                                { icon: PenTool, label: 'Tracing Sheets' },
+                                { icon: BookOpen, label: 'Educational' },
+                                { icon: Palette, label: 'Screen-Free' },
+                            ].map((f) => {
+                                const Icon = f.icon;
+                                return (
+                                    <View key={f.label} style={styles.featurePill}>
+                                        <Icon size={16} color={Colors.primary} style={styles.featureEmoji} />
+                                        <Text style={styles.featureLabel}>{f.label}</Text>
+                                    </View>
+                                );
+                            })}
                         </View>
                     </View>
 
@@ -145,7 +148,7 @@ export default function WelcomeScreen() {
                                     onPress={() => router.push('/(auth)/sign-up')}
                                     size="lg"
                                     style={styles.ctaPrimary}
-                                    icon={<Sparkles size={20} color={Colors.white} />}
+                                    icon={<Wand2 size={20} color={Colors.white} />}
                                 />
 
                                 <TouchableOpacity
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.border,
     },
     featureEmoji: {
-        fontSize: 16,
+        marginRight: 2,
     },
     featureLabel: {
         fontSize: FontSize.sm,

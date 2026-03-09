@@ -10,6 +10,7 @@ import {
     Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -176,7 +177,12 @@ export default function CreateProfileScreen() {
                     </View>
 
                     {/* Error */}
-                    {error && <Text style={styles.error}>⚠️ {error}</Text>}
+                    {error && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: Spacing.lg }}>
+                            <AlertTriangle size={16} color={Colors.accent} />
+                            <Text style={[styles.error, { marginTop: 0, marginLeft: Spacing.xs }]}>{error}</Text>
+                        </View>
+                    )}
 
                     {/* Submit */}
                     <Button

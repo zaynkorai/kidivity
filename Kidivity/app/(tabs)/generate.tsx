@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Sparkles } from 'lucide-react-native';
+import { Wand2, AlertTriangle, Palette, Printer, XCircle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
@@ -79,14 +79,14 @@ function GeneratingOverlay({ visible }: { visible: boolean }) {
         <Modal transparent animationType="fade" visible={visible}>
             <View style={loadingStyles.overlay}>
                 <View style={loadingStyles.card}>
-                    <Animated.Text
+                    <Animated.View
                         style={[
                             loadingStyles.emoji,
                             { transform: [{ translateY: bounce }, { scale: pulse }] },
                         ]}
                     >
-                        ✨
-                    </Animated.Text>
+                        <Wand2 size={64} color={Colors.primary} />
+                    </Animated.View>
                     <Text style={loadingStyles.title}>Creating Activity</Text>
                     <Text style={loadingStyles.message}>{FUN_MESSAGES[messageIndex]}</Text>
                     <View style={loadingStyles.dots}>
@@ -153,7 +153,7 @@ export default function GenerateScreen() {
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <Sparkles size={24} color={Colors.primary} />
+                    <Wand2 size={24} color={Colors.primary} />
                     <Text style={styles.title}>Create Activity</Text>
                 </View>
 
@@ -166,42 +166,48 @@ export default function GenerateScreen() {
 
                 {!activeProfile && (
                     <Card variant="outlined" style={styles.warningCard}>
-                        <Text style={styles.warningText}>
-                            ⚠️ Please add a kid profile first from the Home tab.
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+                            <AlertTriangle size={16} color={Colors.warning} />
+                            <Text style={styles.warningText}>
+                                Please add a kid profile first from the Home tab.
+                            </Text>
+                        </View>
                     </Card>
                 )}
 
                 {/* Step 1: Category */}
                 <Text style={styles.sectionTitle}>1. Choose Category</Text>
                 <View style={styles.categoryGrid}>
-                    {ACTIVITY_CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                            key={cat.id}
-                            onPress={() => {
-                                setSelectedCategory(cat.id);
-                                Haptics.selectionAsync();
-                            }}
-                            activeOpacity={0.8}
-                            style={[
-                                styles.categoryCard,
-                                selectedCategory === cat.id && {
-                                    borderColor: cat.color,
-                                    backgroundColor: cat.color + '10',
-                                },
-                            ]}
-                        >
-                            <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
-                            <Text
+                    {ACTIVITY_CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        return (
+                            <TouchableOpacity
+                                key={cat.id}
+                                onPress={() => {
+                                    setSelectedCategory(cat.id);
+                                    Haptics.selectionAsync();
+                                }}
+                                activeOpacity={0.8}
                                 style={[
-                                    styles.categoryLabel,
-                                    selectedCategory === cat.id && { color: cat.color },
+                                    styles.categoryCard,
+                                    selectedCategory === cat.id && {
+                                        borderColor: cat.color,
+                                        backgroundColor: cat.color + '10',
+                                    },
                                 ]}
                             >
-                                {cat.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                                <Icon size={32} color={selectedCategory === cat.id ? cat.color : Colors.textPrimary} style={{ marginBottom: Spacing.sm }} />
+                                <Text
+                                    style={[
+                                        styles.categoryLabel,
+                                        selectedCategory === cat.id && { color: cat.color },
+                                    ]}
+                                >
+                                    {cat.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
                 {/* Step 2: Topic */}
@@ -248,12 +254,14 @@ export default function GenerateScreen() {
                 <Text style={styles.optionLabel}>Style</Text>
                 <View style={styles.optionRow}>
                     <Chip
-                        label="🎨 Colorful"
+                        label="Colorful"
+                        icon={Palette}
                         selected={style === 'colorful'}
                         onPress={() => setStyle('colorful')}
                     />
                     <Chip
-                        label="🖨️ Print (B&W)"
+                        label="Print (B&W)"
+                        icon={Printer}
                         selected={style === 'bw'}
                         onPress={() => setStyle('bw')}
                     />
@@ -261,7 +269,7 @@ export default function GenerateScreen() {
 
                 {/* Generate Button */}
                 <Button
-                    title={isGenerating ? 'Generating...' : 'Generate Activity ✨'}
+                    title={isGenerating ? 'Generating...' : 'Generate Activity'}
                     onPress={handleGenerate}
                     disabled={!isReady || isGenerating}
                     loading={isGenerating}
@@ -272,7 +280,10 @@ export default function GenerateScreen() {
                 {/* Error */}
                 {error && (
                     <Card variant="outlined" style={styles.errorCard}>
-                        <Text style={styles.errorText}>❌ {error}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+                            <XCircle size={16} color={Colors.accent} />
+                            <Text style={styles.errorText}>{error}</Text>
+                        </View>
                     </Card>
                 )}
 
@@ -344,10 +355,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
-    },
-    categoryEmoji: {
-        fontSize: 32,
-        marginBottom: Spacing.sm,
     },
     categoryLabel: {
         fontSize: FontSize.md,

@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
+import { AlertCircle } from 'lucide-react-native';
 import { Button } from './ui/Button';
 
 interface Props {
@@ -39,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return (
                 <View style={styles.container}>
-                    <Text style={styles.emoji}>😵</Text>
+                    <AlertCircle size={64} color={Colors.textPrimary} style={styles.icon} />
                     <Text style={styles.title}>
                         {this.props.fallbackTitle ?? 'Oops! Something went wrong'}
                     </Text>
@@ -76,8 +77,7 @@ const styles = StyleSheet.create({
         padding: Spacing['4xl'],
         backgroundColor: Colors.background,
     },
-    emoji: {
-        fontSize: 64,
+    icon: {
         marginBottom: Spacing.lg,
     },
     title: {

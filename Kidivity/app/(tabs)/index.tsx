@@ -11,7 +11,7 @@ import {
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
+import { Plus, ChevronRight, Palette, Wand2 } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -131,7 +131,7 @@ export default function HomeScreen() {
           }}
         >
           <View style={styles.generateCtaContent}>
-            <Sparkles size={28} color={Colors.white} />
+            <Wand2 size={28} color={Colors.white} />
             <View style={styles.generateCtaText}>
               <Text style={styles.generateCtaTitle}>Generate Activity</Text>
               <Text style={styles.generateCtaSubtitle}>
@@ -145,25 +145,28 @@ export default function HomeScreen() {
         {/* Category Quick Access */}
         <Text style={styles.sectionTitle}>Categories</Text>
         <View style={styles.categoryGrid}>
-          {ACTIVITY_CATEGORIES.map((cat) => (
-            <TouchableOpacity
-              key={cat.id}
-              style={[styles.categoryCard]}
-              activeOpacity={0.8}
-              onPress={() => router.push('/(tabs)/generate')}
-            >
-              <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
-              <Text style={styles.categoryLabel}>{cat.label}</Text>
-              <Text style={styles.categoryDesc}>{cat.description}</Text>
-            </TouchableOpacity>
-          ))}
+          {ACTIVITY_CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.categoryCard]}
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/generate')}
+              >
+                <Icon size={28} color={cat.color} style={{ marginBottom: Spacing.sm }} />
+                <Text style={styles.categoryLabel}>{cat.label}</Text>
+                <Text style={styles.categoryDesc}>{cat.description}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Recent Activities */}
         <Text style={styles.sectionTitle}>Recent Activities</Text>
         {recentActivities.length === 0 ? (
           <Card variant="outlined" style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🎨</Text>
+            <Palette size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
             <Text style={styles.emptyTitle}>No activities yet</Text>
             <Text style={styles.emptySubtitle}>
               Generate your first activity to see it here!
@@ -192,13 +195,22 @@ export default function HomeScreen() {
                         backgroundColor:
                           (ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)
                             ?.color ?? Colors.primaryLight) + '20',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
                       },
                     ]}
                   >
-                    <Text style={styles.activityBadgeText}>
-                      {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.emoji}{' '}
-                      {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.label}
-                    </Text>
+                    {(() => {
+                      const cat = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
+                      const Icon = cat?.icon;
+                      return (
+                        <>
+                          {Icon && <Icon size={14} color={cat?.color} />}
+                          <Text style={styles.activityBadgeText}>{cat?.label}</Text>
+                        </>
+                      );
+                    })()}
                   </View>
                   <Text style={styles.activityDate}>
                     {new Date(activity.created_at).toLocaleDateString()}
@@ -395,10 +407,6 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     paddingVertical: Spacing['4xl'],
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
   },
   emptyTitle: {
     fontSize: FontSize.lg,

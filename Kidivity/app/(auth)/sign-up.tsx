@@ -61,7 +61,7 @@ export default function SignUpScreen() {
                     <View style={styles.successIcon}>
                         <CheckCircle size={64} color={Colors.success} />
                     </View>
-                    <Text style={styles.successTitle}>Account Created! 🎉</Text>
+                    <Text style={styles.successTitle}>Account Created!</Text>
                     <Text style={styles.successSubtitle}>
                         Check your email to verify your account, then sign in to get started.
                     </Text>

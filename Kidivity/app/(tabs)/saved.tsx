@@ -11,7 +11,7 @@ import {
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Bookmark, BookmarkCheck, Trash2, Filter, X } from 'lucide-react-native';
+import { Bookmark, BookmarkCheck, Trash2, Filter, X, Search } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Card } from '@/components/ui/Card';
@@ -84,12 +84,23 @@ export default function SavedScreen() {
                         <View
                             style={[
                                 styles.badge,
-                                { backgroundColor: (category?.color ?? Colors.primary) + '20' },
+                                {
+                                    backgroundColor: (category?.color ?? Colors.primary) + '20',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                },
                             ]}
                         >
-                            <Text style={styles.badgeText}>
-                                {category?.emoji} {category?.label}
-                            </Text>
+                            {(() => {
+                                const Icon = category?.icon;
+                                return (
+                                    <>
+                                        {Icon && <Icon size={14} color={category?.color} />}
+                                        <Text style={styles.badgeText}>{category?.label}</Text>
+                                    </>
+                                );
+                            })()}
                         </View>
 
                         <View style={styles.actions}>
@@ -159,7 +170,8 @@ export default function SavedScreen() {
                         {ACTIVITY_CATEGORIES.map((cat) => (
                             <Chip
                                 key={cat.id}
-                                label={`${cat.emoji} ${cat.label}`}
+                                label={cat.label}
+                                icon={cat.icon}
                                 selected={filterCategory === cat.id}
                                 onPress={() =>
                                     setFilterCategory(filterCategory === cat.id ? null : cat.id)
@@ -219,7 +231,7 @@ export default function SavedScreen() {
 
             {filteredActivities.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyEmoji}>📚</Text>
+                    <Search size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
                     <Text style={styles.emptyTitle}>
                         {hasActiveFilters ? 'No matches' : 'No saved activities'}
                     </Text>
@@ -392,10 +404,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: Spacing['4xl'],
-    },
-    emptyEmoji: {
-        fontSize: 48,
-        marginBottom: Spacing.md,
     },
     emptyTitle: {
         fontSize: FontSize.lg,

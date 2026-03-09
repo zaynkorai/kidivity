@@ -11,7 +11,7 @@ import {
     Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Check, Trash2 } from 'lucide-react-native';
+import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -126,7 +126,7 @@ export default function EditProfileScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.notFound}>
-                    <Text style={styles.notFoundEmoji}>🤔</Text>
+                    <Search size={48} color={Colors.textSecondary} style={styles.notFoundEmoji} />
                     <Text style={styles.notFoundText}>Profile not found</Text>
                     <Button title="Go Back" onPress={() => router.back()} variant="outline" />
                 </View>
@@ -229,7 +229,12 @@ export default function EditProfileScreen() {
                     </View>
 
                     {/* Error */}
-                    {error && <Text style={styles.error}>⚠️ {error}</Text>}
+                    {error && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: Spacing.lg }}>
+                            <AlertTriangle size={16} color={Colors.accent} />
+                            <Text style={[styles.error, { marginTop: 0, marginLeft: Spacing.xs }]}>{error}</Text>
+                        </View>
+                    )}
 
                     {/* Submit */}
                     <Button
@@ -361,7 +366,7 @@ const styles = StyleSheet.create({
         gap: Spacing.md,
     },
     notFoundEmoji: {
-        fontSize: 48,
+        marginBottom: Spacing.md,
     },
     notFoundText: {
         fontSize: FontSize.lg,
