@@ -10,6 +10,8 @@ export const generateSchema = z.object({
     time_available: z.enum(['5min', '20min', '1hr+']).default('20min'),
     energy_level: z.enum(['exhausted', 'moderate', 'high']).default('moderate'),
     environment: z.enum(['indoor', 'kitchen', 'on-the-go']).default('indoor'),
+    simpleTracingPaths: z.boolean().default(true),
+    coloringBookMode: z.boolean().default(true),
 });
 
 export type GenerateBody = z.infer<typeof generateSchema>;

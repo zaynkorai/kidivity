@@ -37,4 +37,6 @@ export interface GenerateActivityInput {
     time_available?: TimeAvailable;
     energy_level?: EnergyLevel;
     environment?: Environment;
+    simpleTracingPaths?: boolean;
+    coloringBookMode?: boolean;
 }

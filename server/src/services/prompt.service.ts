@@ -75,23 +75,36 @@ export function buildImagePrompt(profile: any, input: GenerateBody): string {
 
     let layoutInstruction = "1. LAYOUT: Create a SINGLE, LARGE, DETAILED scene filling the entire canvas. Do NOT draw a border or frame. Do NOT draw a piece of paper.";
     if (isLogic) {
-            layoutInstruction = "1. LAYOUT: Create a visual logic puzzle (like a maze, spot the difference, matching, or visual grid). Ensure it is clear and solvable visually. Do NOT draw a border around the image.";
+        layoutInstruction = "1. LAYOUT: Create a visual logic puzzle (like a maze, spot the difference, matching, or visual grid). Ensure it is clear and solvable visually. Do NOT draw a border around the image.";
     } else if (isEdu) {
-            layoutInstruction = "1. LAYOUT: Create a highly detailed, educational illustration or diagram related to the topic. Do NOT draw a border around the image.";
+        layoutInstruction = "1. LAYOUT: Create a highly detailed, educational illustration or diagram related to the topic. Do NOT draw a border around the image.";
     }
 
     const tracingInstruction = isTracing
-        ? `1. LAYOUT: Create a SINGLE, LARGE, DETAILED scene filling the TOP 70% of the canvas. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) so that text can be added later. Do NOT draw a piece of paper.
-5. If Tracing: we DO NOT need you to draw letters. Just provide an illustration related to the topic.`
+        ? (input.simpleTracingPaths 
+            ? `1. LAYOUT: Create a SINGLE, LARGE, DETAILED scene filling the TOP 70% of the canvas. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) so that text can be added later. Do NOT draw a piece of paper.\n5. If Tracing: provide multiple rows of tracing practice. CRITICAL: Use SIMPLE SINGLE-STROKE DOTTED LINES for the path. Do NOT use outlines, double lines, or 'road' shapes. Just a simple dashed line to follow.`
+            : `1. LAYOUT: Create a SINGLE, LARGE, DETAILED scene filling the TOP 70% of the canvas. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) so that text can be added later. Do NOT draw a piece of paper.\n5. If Tracing: provide multiple rows of tracing practice.`)
         : "";
 
     // Phase 8: Age-Tailored Visuals in Image Prompt
     const ageInstruction = `Age/Grade target: ${profile.age}-year-old (${profile.grade_level}). Adjust visual complexity appropriately. For younger kids, use large, simple, chunky shapes. For older kids, use more intricate, detailed art.`;
 
-    const imagePrompt = `Generate high-contrast, clean black and white line art optimized for A4 paper printing for a children's ${input.category} activity about "${input.topic}".
+    const isColoringPage = input.category === 'screen-free';
+    const effectiveIsColor = (input.coloringBookMode || isColoringPage) ? false : (input.style === 'colorful');
+    const effectiveIsOutlineOnly = (input.coloringBookMode || isColoringPage);
+
+    const styleEnforcement = effectiveIsOutlineOnly 
+        ? 'STYLE ENFORCEMENT: All illustrations MUST be strictly black outlined with WHITE fills (coloring book style). Do NOT use solid blacks or grays for objects.'
+        : 'STYLE ENFORCEMENT: Output a fully colored, vibrant illustration.';
+
+    const imageStyleIntro = effectiveIsColor 
+        ? `Generate a highly engaging, colorful illustration for a children's ${input.category} activity about "${input.topic}".`
+        : `Generate high-contrast, clean black and white line art optimized for A4 paper printing for a children's ${input.category} activity about "${input.topic}".`;
+
+    const imagePrompt = `${imageStyleIntro}
 Activity Type: ${input.category}
 
-STYLE ENFORCEMENT: All illustrations MUST be strictly black outlined with WHITE fills (coloring book style). Do NOT use solid blacks or grays for objects.
+${styleEnforcement}
 IMPORTANT THEME ENFORCEMENT: The illustrations, characters, and decorative elements MUST be based on the theme: "${topInterests || input.topic}".
 
 Specific Instructions:

@@ -1,3 +1,4 @@
+import { GoogleGenAI, Type, Schema } from '@google/genai';
 import type { FastifyBaseLogger } from 'fastify';
 
 interface GenerateActivityParams {
@@ -14,6 +15,17 @@ interface GenerateResult {
     image_url: string | null;
 }
 
+// Define the schema for text responses exactly as requested
+const activityResponseSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING },
+    instructions: { type: Type.STRING },
+    content: { type: Type.STRING },
+  },
+  required: ["title", "instructions", "content"],
+};
+
 export async function generateActivityContent({
     geminiKey,
     sysInstruction,
@@ -23,54 +35,44 @@ export async function generateActivityContent({
     logger
 }: GenerateActivityParams): Promise<GenerateResult> {
     
+    // Create an instance leveraging the provided API key
+    const ai = new GoogleGenAI({ apiKey: geminiKey });
+
     // 1. Define Text Generation Promise
-    const textPromise = fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                systemInstruction: { parts: [{ text: sysInstruction }] },
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: { temperature: 0.85 },
-            }),
+    const textPromise = ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: promptText,
+        config: {
+            systemInstruction: sysInstruction,
+            responseMimeType: "application/json",
+            responseSchema: activityResponseSchema,
         },
-    ).then(async (res) => {
-        if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`Gemini text error: ${errText}`);
-        }
-        const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+    }).then(res => {
+        const text = res.text;
+        if (!text) throw new Error("No text returned from Gemini");
+        return text;
+    }).catch(err => {
+        logger.error(err, 'Gemini text error');
+        throw new Error(`Gemini text error: ${err.message}`);
     });
 
     // 2. Define Image Generation Promise (Optional)
     let imagePromise = Promise.resolve<string | null>(null);
 
     if (isVisualCategory && imagePrompt) {
-        imagePromise = fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: imagePrompt }] }],
-                }),
-            },
-        ).then(async (res) => {
-            if (!res.ok) {
-                const errText = await res.text();
-                logger.warn('Image generation failed: %s', errText);
-                return null;
+        imagePromise = ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [{ text: imagePrompt }],
             }
-            const data = await res.json();
-            const parts = data.candidates?.[0]?.content?.parts ?? [];
-            const imagePart = parts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
-            if (imagePart?.inlineData?.data) {
-                return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+        }).then(res => {
+            for (const part of res.candidates?.[0]?.content?.parts || []) {
+                if (part.inlineData) {
+                    return `data:image/png;base64,${part.inlineData.data}`;
+                }
             }
             return null;
-        }).catch((err) => {
+        }).catch((err: any) => {
             logger.error(err, 'Error calling image generation API');
             return null;
         });
