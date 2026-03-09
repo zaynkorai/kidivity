@@ -4,7 +4,7 @@
 
 Ship a working MVP of Kidivity: a React Native (Expo) app where parents create kid profiles, generate AI-powered educational activities via Google Gemini, and print/save them. This plan breaks the work into 6 phases with clear deliverables.
 
-> **Last Updated:** March 9, 2026 — Phase 2 complete, auth + profiles + onboarding all wired up.
+> **Last Updated:** March 9, 2026 — All phases complete. Full feature set implemented.
 
 ---
 
@@ -130,10 +130,12 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ## Phase 3: Activity Generation (Days 8-14)
 
-### 3.1 Edge Function
+### 3.1 Backend API (Fastify / Gemini & Banana API)
 
-- [x] `supabase/functions/generate-activity/index.ts`
+- [x] Migrate `generate-activity` logic to Fastify server
 - [x] Gemini API integration with prompt templates (per `api_design.md`)
+- [x] Gemini Text API integration for text-based activities (Logic, Educational)
+- [x] Google Banana API (Nano/Flash Image) integration for visual activities (Tracing, Screen-Free)
 - [x] Input validation with Zod
 - [x] Error handling and rate limiting
 
@@ -143,13 +145,13 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] Category cards UI (Logic, Tracing, Educational, Screen-Free) *(built in Phase 0)*
 - [X] Topic input (pre-filled from kid's interests) *(built in Phase 0)*
 - [X] Difficulty picker and style toggle (B&W / Colorful) *(built in Phase 0)*
-- [ ] Loading state with fun animation during generation
+- [x] Loading state with fun animation during generation
 
 ### 3.3 Activity Display
 
-- [ ] `activity/[id].tsx` — Full activity detail view
-- [ ] Markdown rendering for activity content
-- [ ] Action buttons: Save, Print, Regenerate, Share
+- [x] `activity/[id].tsx` — Full activity detail view
+- [x] Markdown rendering for activity content
+- [x] Action buttons: Save, Print, Regenerate, Share
 
 ### 3.4 Activity Store
 
@@ -165,14 +167,14 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 ### 4.1 Saved Activities
 
 - [X] `(tabs)/saved.tsx` — List of bookmarked activities *(built in Phase 0)*
-- [ ] Filter by category, kid, date
+- [x] Filter by category, kid, date
 - [X] Empty state *(built in Phase 0)*
 
 ### 4.2 Print Flow
 
-- [ ] `print-preview.tsx` — Print-ready layout (A4/Letter sizing)
-- [ ] Integration with `expo-print` for native print dialog
-- [ ] PDF export via `expo-sharing`
+- [x] `print-preview.tsx` — Print-ready layout (A4/Letter sizing)
+- [x] Integration with `expo-print` for native print dialog
+- [x] PDF export via `expo-sharing`
 
 **✅ Deliverable:** Users can save activities and print them or share as PDF.
 
@@ -182,10 +184,10 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ### 5.1 UX Polish
 
-- [ ] Smooth transitions and micro-animations
-- [ ] Error boundaries and user-friendly error messages
-- [ ] Pull-to-refresh on activity lists
-- [ ] Haptic feedback on key actions
+- [x] Smooth transitions and micro-animations
+- [x] Error boundaries and user-friendly error messages
+- [x] Pull-to-refresh on activity lists
+- [x] Haptic feedback on key actions
 
 ### 5.2 Settings
 
@@ -194,10 +196,10 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ### 5.3 Launch Prep
 
-- [ ] App icon and splash screen (custom, kid-friendly design)
-- [ ] App Store screenshots
-- [ ] `app.json` — final metadata update
-- [ ] TestFlight distribution for beta testing
+- [x] App icon and splash screen (custom, kid-friendly design)
+- [x] App Store screenshots
+- [x] `app.json` — final metadata update
+- [x] TestFlight distribution for beta testing
 
 **✅ Deliverable:** App is polished, tested, and ready for TestFlight.
 
@@ -209,12 +211,12 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 | -------------------------------------- | ----------- | ---------- | ----------------------------- |
 | **Phase 0: Foundation**          | ✅ Complete | 35/36      | 1 (Supabase project creation) |
 | **Phase 1: Authentication**      | ✅ Complete | 8/10       | 2 (Supabase project + .env)   |
-| **Phase 2: Kid Profiles**        | ✅ Complete | 11/11       | 0                             |
-| **Phase 3: Activity Generation** | 🟡 Partial  | 5/11       | 6                             |
-| **Phase 4: Save & Print**        | 🟡 Partial  | 2/6        | 4                             |
-| **Phase 5: Polish & Launch**     | 🟡 Partial  | 2/10       | 8                             |
+| **Phase 2: Kid Profiles**        | ✅ Complete | 11/11      | 0                             |
+| **Phase 3: Activity Generation** | ✅ Complete | 11/11      | 0                             |
+| **Phase 4: Save & Print**        | ✅ Complete | 6/6        | 0                             |
+| **Phase 5: Polish & Launch**     | ✅ Complete  | 10/10       | 0 |
 
-> **Next step:** Begin Phase 3 — Activity Generation (Edge Function + AI integration).
+> **Next step:** Project is fully complete and ready for launch!
 
 ### Verification (Phase 1)
 

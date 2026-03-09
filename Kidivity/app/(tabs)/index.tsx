@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
@@ -16,24 +19,49 @@ import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning! ☀️';
+  if (hour < 18) return 'Good afternoon! 👋';
+  return 'Good evening! 🌙';
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const { profiles, activeProfileId, setActiveProfile, fetchProfiles } = useProfileStore();
   const { recentActivities, fetchRecent } = useActivityStore();
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchProfiles();
     fetchRecent();
   }, []);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([fetchProfiles(), fetchRecent()]);
+    setRefreshing(false);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
+      >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning! 👋</Text>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.subtitle}>
               {activeProfile
                 ? `Activities for ${activeProfile.name}`
@@ -51,7 +79,10 @@ export default function HomeScreen() {
           {profiles.map((profile) => (
             <TouchableOpacity
               key={profile.id}
-              onPress={() => setActiveProfile(profile.id)}
+              onPress={() => {
+                setActiveProfile(profile.id);
+                Haptics.selectionAsync();
+              }}
               style={[
                 styles.profileChip,
                 profile.id === activeProfileId && styles.profileChipActive,
@@ -94,7 +125,10 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.generateCta}
           activeOpacity={0.9}
-          onPress={() => router.push('/(tabs)/generate')}
+          onPress={() => {
+            router.push('/(tabs)/generate');
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
         >
           <View style={styles.generateCtaContent}>
             <Sparkles size={28} color={Colors.white} />
@@ -144,34 +178,52 @@ export default function HomeScreen() {
           </Card>
         ) : (
           recentActivities.slice(0, 5).map((activity) => (
-            <Card key={activity.id} variant="elevated" style={styles.activityCard}>
-              <View style={styles.activityHeader}>
-                <View
-                  style={[
-                    styles.activityBadge,
-                    {
-                      backgroundColor:
-                        (ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)
-                          ?.color ?? Colors.primaryLight) + '20',
-                    },
-                  ]}
-                >
-                  <Text style={styles.activityBadgeText}>
-                    {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.emoji}{' '}
-                    {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.label}
+            <TouchableOpacity
+              key={activity.id}
+              activeOpacity={0.85}
+              onPress={() => router.push(`/activity/${activity.id}` as any)}
+            >
+              <Card variant="elevated" style={styles.activityCard}>
+                <View style={styles.activityHeader}>
+                  <View
+                    style={[
+                      styles.activityBadge,
+                      {
+                        backgroundColor:
+                          (ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)
+                            ?.color ?? Colors.primaryLight) + '20',
+                      },
+                    ]}
+                  >
+                    <Text style={styles.activityBadgeText}>
+                      {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.emoji}{' '}
+                      {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.label}
+                    </Text>
+                  </View>
+                  <Text style={styles.activityDate}>
+                    {new Date(activity.created_at).toLocaleDateString()}
                   </Text>
                 </View>
-                <Text style={styles.activityDate}>
-                  {new Date(activity.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-              <Text style={styles.activityTopic} numberOfLines={1}>
-                {activity.topic}
-              </Text>
-              <Text style={styles.activityPreview} numberOfLines={2}>
-                {activity.content}
-              </Text>
-            </Card>
+                <View style={styles.activityContent}>
+                  <View style={styles.activityTextContent}>
+                    <Text style={styles.activityTopic} numberOfLines={1}>
+                      {activity.topic}
+                    </Text>
+                    <Text style={styles.activityPreview} numberOfLines={2}>
+                      {activity.content}
+                    </Text>
+                  </View>
+                  {activity.image_url && (
+                    <Image
+                      source={{ uri: activity.image_url }}
+                      style={styles.activityThumbnail}
+                      contentFit="cover"
+                      transition={200}
+                    />
+                  )}
+                </View>
+              </Card>
+            </TouchableOpacity>
           ))
         )}
 
@@ -384,10 +436,24 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textTertiary,
   },
+  activityContent: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    alignItems: 'flex-start',
+  },
+  activityTextContent: {
+    flex: 1,
+  },
   activityTopic: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
     color: Colors.textPrimary,
+  },
+  activityThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.surface,
   },
   activityPreview: {
     fontSize: FontSize.sm,

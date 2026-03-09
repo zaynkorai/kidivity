@@ -3,6 +3,7 @@
     "name": "Kidivity",
     "slug": "Kidivity",
     "version": "1.0.0",
+    "description": "Kidivity - AI generated educational activities for kids",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kidivity",

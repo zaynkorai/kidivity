@@ -9,6 +9,7 @@ import {
     Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
@@ -30,7 +31,10 @@ export default function SettingsScreen() {
                 {
                     text: 'Delete',
                     style: 'destructive',
-                    onPress: () => deleteProfile(id),
+                    onPress: () => {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                        deleteProfile(id);
+                    },
                 },
             ]
         );
@@ -39,7 +43,12 @@ export default function SettingsScreen() {
     const handleSignOut = () => {
         Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign Out', style: 'destructive', onPress: signOut },
+            {
+                text: 'Sign Out', style: 'destructive', onPress: () => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                    signOut();
+                }
+            },
         ]);
     };
 

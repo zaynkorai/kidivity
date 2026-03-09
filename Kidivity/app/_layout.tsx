@@ -5,6 +5,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Colors } from '@/constants/theme';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import 'react-native-reanimated';
 
 export default function RootLayout() {
@@ -68,7 +69,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(onboarding)" />
@@ -81,9 +82,17 @@ export default function RootLayout() {
           name="profile/[id]/edit"
           options={{ presentation: 'modal', headerShown: true, title: 'Edit Profile' }}
         />
+        <Stack.Screen
+          name="activity/[id]"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="print-preview"
+          options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
+        />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </ErrorBoundary>
   );
 }
 
