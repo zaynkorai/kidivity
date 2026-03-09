@@ -205,6 +205,41 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ---
 
+## Phase 6: Core Value & Monetization
+
+### 6.1 "Parent Convenience" Generator UI (Providing Immediate Relief)
+- [ ] **Time Available Selector:** Options like "5 mins", "20 mins", "1 hour+".
+- [ ] **Parent Energy Level Toggle:** Exhausted (Independent play, low supervision), Moderate (Parent sets it up), High (Active bonding).
+- [ ] **Environment/Materials Selector:** Indoor/Rainy Day (Couches, blankets), Kitchen Scraps (Boxes, Tupperware), On the Go (Car, restaurant).
+- [ ] Update frontend generator (`(tabs)/generate.tsx`) interface to make these the primary focus before hitting "Generate".
+- [ ] Update backend AI prompt templates (`server/src/utils/gemini.ts`) to strictly enforce these constraints (e.g., if parent is exhausted, the output must require zero setup and keep the kid occupied independently).
+
+### 6.2 The 3 "Hybrid" Activity Types
+- [ ] **Format A: The "Printable" (Image-Driven):** Worksheets, tracing, custom coloring pages built via Banana API.
+- [ ] **Low-Ink Mode Toggle:** A high-value override for Format A to generate pure line-art and save parents colored ink.
+- [ ] **Format B: The "TBD" Format:** Placeholder for a 3rd format type (e.g., interactive screen-based, audio, etc.).
+- [ ] **Format C: The "Parent-Led Setup" (Text-Driven):** Recipe-style cards optimized for parent scanning (e.g., 3 mins prep, zero mess, exact materials, 3-bullet instructions).
+
+### 6.3 Premium Visual-First Activities (The "Wow" Factor)
+- [ ] **Hybrid Visual/Text Layouts:** Design structured visual templates (e.g., Flashcards, Tracing Sheets, Step-by-Step Visual Crafts) instead of large text blocks.
+- [ ] **Hyper-Personalized Imagery:** Use AI image generation to craft visuals featuring the kid's favorite things or specific interests (e.g., "Dinosaurs", "Space") directly into generated images via Banana AI prompts.
+- [ ] **Sparse, Punchy Text:** Highly scannable instructions.
+
+### 6.4 "Workbook" Generation (High-Value Deliverable)
+- [ ] **Multi-Activity Packs:** Generate multiple grouped activities into one themed PDF "Mini-Workbook".
+- [ ] **Professional PDF Export:** Enhanced PDF generation with cover pages, consistent branding, and the kid's name personalized on the sheets.
+
+### 6.5 Strict User-Based Rate Limiting & Tiered Access
+- [ ] Implement Fastify rate limiting tied to Supabase `user_id` (not just IP address).
+- [ ] Enforce quota logic (e.g., "Free users can generate 10 activities per day"). configurable by admin for free users.
+- [ ] Graceful UI handling for rate-limit exceeded states (e.g., limit reached banner).
+- [ ] **Premium Paywall UI:** Display a compelling paywall for "Workbook" generation and when hitting free tier limits.
+
+### 6.6 Additional User Plans
+- [ ] Placeholder for additional plans...
+
+---
+
 ## Progress Summary
 
 | Phase                                  | Status      | Items Done | Items Remaining               |
@@ -214,9 +249,10 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 | **Phase 2: Kid Profiles**        | ✅ Complete | 11/11      | 0                             |
 | **Phase 3: Activity Generation** | ✅ Complete | 11/11      | 0                             |
 | **Phase 4: Save & Print**        | ✅ Complete | 6/6        | 0                             |
-| **Phase 5: Polish & Launch**     | ✅ Complete  | 10/10       | 0 |
+| **Phase 5: Polish & Launch**     | ✅ Complete | 10/10      | 0                             |
+| **Phase 6: Monetization & Value** | 📝 Planning | 0/14       | 14                            |
 
-> **Next step:** Project is fully complete and ready for launch!
+> **Next step:** Execute Phase 6.1 (Parent Convenience UI) first to lock in the core hook for parents.
 
 ### Verification (Phase 1)
 
