@@ -21,6 +21,29 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
+/**
+ * Ensures a row exists in `public.users` for the given Supabase Auth user.
+ * Called on every successful sign-in / session restore — the upsert is
+ * idempotent so duplicates are harmless.
+ */
+async function ensureUserRow(user: User) {
+    try {
+        await supabase.from('users').upsert(
+            {
+                id: user.id,
+                email: user.email ?? '',
+                display_name: user.user_metadata?.full_name ?? null,
+                avatar_url: user.user_metadata?.avatar_url ?? null,
+            },
+            { onConflict: 'id' }
+        );
+    } catch {
+        // Non-critical — the row may already exist or the table might not
+        // be deployed yet (Phase 0 placeholder env).
+        console.warn('[auth] ensureUserRow failed — users table may not exist yet');
+    }
+}
+
 export const useAuthStore = create<AuthStore>()(
     persist(
         (set, get) => ({
@@ -40,12 +63,21 @@ export const useAuthStore = create<AuthStore>()(
                         isInitialized: true,
                     });
 
+                    // Ensure user row exists for current session
+                    if (session?.user) {
+                        ensureUserRow(session.user);
+                    }
+
                     // Listen for auth changes
                     supabase.auth.onAuthStateChange((_event, session) => {
                         set({
                             session,
                             user: session?.user ?? null,
                         });
+                        // Ensure user row on every SIGNED_IN event
+                        if (session?.user) {
+                            ensureUserRow(session.user);
+                        }
                     });
                 } catch {
                     set({ isInitialized: true });
@@ -65,6 +97,10 @@ export const useAuthStore = create<AuthStore>()(
                         session: data.session,
                         isLoading: false,
                     });
+                    // Create public.users row for new sign-up
+                    if (data.user) {
+                        ensureUserRow(data.user);
+                    }
                     return { error: null };
                 } catch (err) {
                     set({ isLoading: false });
@@ -85,6 +121,10 @@ export const useAuthStore = create<AuthStore>()(
                         session: data.session,
                         isLoading: false,
                     });
+                    // Ensure public.users row exists
+                    if (data.user) {
+                        ensureUserRow(data.user);
+                    }
                     return { error: null };
                 } catch (err) {
                     set({ isLoading: false });

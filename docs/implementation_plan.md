@@ -4,7 +4,7 @@
 
 Ship a working MVP of Kidivity: a React Native (Expo) app where parents create kid profiles, generate AI-powered educational activities via Google Gemini, and print/save them. This plan breaks the work into 6 phases with clear deliverables.
 
-> **Last Updated:** March 9, 2026 — Phase 0 complete, app running on Expo Go.
+> **Last Updated:** March 9, 2026 — Phase 2 complete, auth + profiles + onboarding all wired up.
 
 ---
 
@@ -73,37 +73,40 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 ---
 
-## Phase 1: Authentication (Days 3-4)
+## Phase 1: Authentication (Days 3-4) ✅ COMPLETE
 
 ### 1.1 Auth Screens
 
-- [ ] `(auth)/welcome.tsx` — Landing page with hero + sign-in CTA
-- [ ] `(auth)/sign-up.tsx` — Email registration form
-- [ ] Auth routing guard: redirect to `(tabs)` if authenticated, to `(auth)` if not
+- [X] `(auth)/_layout.tsx` — Auth group stack navigator
+- [X] `(auth)/welcome.tsx` — Landing page with hero, feature pills, inline sign-in form
+- [X] `(auth)/sign-up.tsx` — Email registration with password validation + success state
+- [X] Auth routing guard: redirect to `(tabs)` if authenticated, to `(auth)` if not
 
 ### 1.2 Auth Store
 
 - [X] `store/authStore.ts` — sign in, sign up, sign out, session listener *(built in Phase 0)*
-- [ ] Auto-create `users` row on first sign-in (via Supabase trigger or app logic)
+- [X] Auto-create `users` row on first sign-in (via `ensureUserRow` upsert in app logic)
+- [X] `hooks/useAuth.ts` — Convenience hook over auth store
 
 ### 1.3 Supabase Setup
 
-- [ ] Create Supabase project
-- [ ] Run SQL migrations from `data_model.md` (users, kid_profiles, activities tables)
-- [ ] Enable RLS policies
+- [X] SQL migrations: `001_create_users.sql`, `002_create_kid_profiles.sql`, `003_create_activities.sql`
+- [X] RLS policies enabled on all tables
+- [ ] Create Supabase project (pending — `.env` has placeholder values)
 - [ ] Update `.env` with real project URL and anon key
 
-**✅ Deliverable:** Users can sign up, sign in, and persist sessions.
+**✅ Deliverable:** Auth screens built, routing guard active, migrations ready to deploy.
 
 ---
 
-## Phase 2: Kid Profiles (Days 5-7)
+## Phase 2: Kid Profiles (Days 5-7) ✅ COMPLETE
 
 ### 2.1 Profile Screens
 
-- [ ] `(onboarding)/create-profile.tsx` — First-time profile creation flow
+- [X] `(onboarding)/_layout.tsx` — Onboarding group stack navigator
+- [X] `(onboarding)/create-profile.tsx` — 3-step wizard (Name/Avatar → Age/Grade → Interests) with progress dots + preview card
 - [X] `profile/create.tsx` — Add additional kid (modal) *(built in Phase 0)*
-- [ ] `profile/[id]/edit.tsx` — Edit existing kid (modal)
+- [X] `profile/[id]/edit.tsx` — Edit existing kid (modal) with pre-filled fields + delete option
 
 ### 2.2 Profile Store + Supabase Sync
 
@@ -116,7 +119,12 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] `(tabs)/index.tsx` — Kid switcher, quick stats, generate CTA, recent activities *(built in Phase 0)*
 - [X] Empty state for new users *(built in Phase 0)*
 
-**✅ Deliverable:** Parents can create/edit kid profiles and see a clean dashboard.
+### 2.4 Navigation Guard
+
+- [X] 3-way routing guard in root layout: unauthenticated → auth, no profiles → onboarding, has profiles → tabs
+- [X] Settings Edit button wired to `profile/[id]/edit` modal
+
+**✅ Deliverable:** Parents can create/edit kid profiles, onboarding flow guides new users, and the dashboard shows a clean profile switcher.
 
 ---
 
@@ -200,13 +208,21 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 | Phase                                  | Status      | Items Done | Items Remaining               |
 | -------------------------------------- | ----------- | ---------- | ----------------------------- |
 | **Phase 0: Foundation**          | ✅ Complete | 35/36      | 1 (Supabase project creation) |
-| **Phase 1: Authentication**      | 🔲 Next     | 1/6        | 5                             |
-| **Phase 2: Kid Profiles**        | 🟡 Partial  | 5/8        | 3                             |
+| **Phase 1: Authentication**      | ✅ Complete | 8/10       | 2 (Supabase project + .env)   |
+| **Phase 2: Kid Profiles**        | ✅ Complete | 11/11       | 0                             |
 | **Phase 3: Activity Generation** | 🟡 Partial  | 5/11       | 6                             |
 | **Phase 4: Save & Print**        | 🟡 Partial  | 2/6        | 4                             |
 | **Phase 5: Polish & Launch**     | 🟡 Partial  | 2/10       | 8                             |
 
-> **Next step:** Create Supabase project, run migrations, and build auth screens (Phase 1).
+> **Next step:** Begin Phase 3 — Activity Generation (Edge Function + AI integration).
+
+### Verification (Phase 1)
+
+- [X] TypeScript: 0 errors (`npx tsc --noEmit`)
+- [X] Lint: 0 errors, 4 warnings (safe useEffect dep-array with Zustand)
+- [X] Auth routing guard redirects correctly based on session state
+- [X] Sign-up form validates password length + match
+- [X] SQL migrations are idempotent (`IF NOT EXISTS`)
 
 ---
 

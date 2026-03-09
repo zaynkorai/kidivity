@@ -1,0 +1,371 @@
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+    SafeAreaView,
+    TouchableOpacity,
+    KeyboardAvoidingView,
+    Platform,
+    Alert,
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Check, Trash2 } from 'lucide-react-native';
+import { useProfileStore } from '@/store/profileStore';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Chip } from '@/components/ui/Chip';
+import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { GRADE_LEVELS } from '@/constants/grades';
+import { INTEREST_OPTIONS } from '@/constants/interests';
+import type { GradeLevel } from '@/constants/grades';
+import type { Interest } from '@/constants/interests';
+
+const AVATAR_COLORS = [
+    '#6C63FF', '#FF6B6B', '#00B894', '#FDCB6E', '#A29BFE',
+    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
+];
+
+export default function EditProfileScreen() {
+    const router = useRouter();
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const { profiles, updateProfile, deleteProfile } = useProfileStore();
+
+    const profile = profiles.find((p) => p.id === id);
+
+    const [name, setName] = useState('');
+    const [age, setAge] = useState('');
+    const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
+    const [interests, setInterests] = useState<Interest[]>([]);
+    const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Pre-fill form with existing profile data
+    useEffect(() => {
+        if (profile) {
+            setName(profile.name);
+            setAge(String(profile.age));
+            setGradeLevel(profile.grade_level);
+            setInterests([...profile.interests]);
+            setAvatarColor(profile.avatar_color);
+        }
+    }, [profile?.id]);
+
+    const toggleInterest = (interest: Interest) => {
+        setInterests((prev) =>
+            prev.includes(interest)
+                ? prev.filter((i) => i !== interest)
+                : [...prev, interest]
+        );
+    };
+
+    const handleSubmit = async () => {
+        if (!id || !profile) return;
+
+        if (!name.trim()) {
+            setError('Please enter a name');
+            return;
+        }
+        const ageNum = parseInt(age, 10);
+        if (isNaN(ageNum) || ageNum < 1 || ageNum > 18) {
+            setError('Please enter a valid age (1-18)');
+            return;
+        }
+        if (!gradeLevel) {
+            setError('Please select a grade level');
+            return;
+        }
+        if (interests.length === 0) {
+            setError('Please select at least one interest');
+            return;
+        }
+
+        setError(null);
+        setIsSubmitting(true);
+
+        const { error: submitError } = await updateProfile(id, {
+            name: name.trim(),
+            age: ageNum,
+            grade_level: gradeLevel,
+            interests,
+            avatar_color: avatarColor,
+        });
+
+        setIsSubmitting(false);
+
+        if (submitError) {
+            setError(submitError);
+        } else {
+            router.back();
+        }
+    };
+
+    const handleDelete = () => {
+        if (!id || !profile) return;
+
+        Alert.alert(
+            'Delete Profile',
+            `Are you sure you want to delete ${profile.name}'s profile? This will also delete all their activities.`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await deleteProfile(id);
+                        router.back();
+                    },
+                },
+            ]
+        );
+    };
+
+    if (!profile) {
+        return (
+            <SafeAreaView style={styles.safe}>
+                <View style={styles.notFound}>
+                    <Text style={styles.notFoundEmoji}>🤔</Text>
+                    <Text style={styles.notFoundText}>Profile not found</Text>
+                    <Button title="Go Back" onPress={() => router.back()} variant="outline" />
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    const isValid = name.trim() && age && gradeLevel && interests.length > 0;
+
+    return (
+        <SafeAreaView style={styles.safe}>
+            <KeyboardAvoidingView
+                style={styles.flex}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView
+                    style={styles.container}
+                    contentContainerStyle={styles.content}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    {/* Avatar Preview */}
+                    <View style={styles.avatarSection}>
+                        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+                            <Text style={styles.avatarInitial}>
+                                {name ? name.charAt(0).toUpperCase() : '?'}
+                            </Text>
+                        </View>
+                        <View style={styles.colorPicker}>
+                            {AVATAR_COLORS.map((color) => (
+                                <TouchableOpacity
+                                    key={color}
+                                    onPress={() => setAvatarColor(color)}
+                                    style={[
+                                        styles.colorDot,
+                                        { backgroundColor: color },
+                                        avatarColor === color && styles.colorDotSelected,
+                                    ]}
+                                >
+                                    {avatarColor === color && (
+                                        <Check size={12} color={Colors.white} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Name */}
+                    <Input
+                        label="Name"
+                        placeholder="Child's name"
+                        value={name}
+                        onChangeText={setName}
+                        autoCapitalize="words"
+                    />
+
+                    {/* Age */}
+                    <Input
+                        label="Age"
+                        placeholder="How old are they?"
+                        value={age}
+                        onChangeText={setAge}
+                        keyboardType="number-pad"
+                        maxLength={2}
+                        containerStyle={{ marginTop: Spacing.lg }}
+                    />
+
+                    {/* Grade Level */}
+                    <Text style={styles.fieldLabel}>Grade Level</Text>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.gradeList}
+                    >
+                        {GRADE_LEVELS.map((grade) => (
+                            <Chip
+                                key={grade}
+                                label={grade}
+                                selected={gradeLevel === grade}
+                                onPress={() => setGradeLevel(grade)}
+                            />
+                        ))}
+                    </ScrollView>
+
+                    {/* Interests */}
+                    <Text style={styles.fieldLabel}>
+                        Interests{' '}
+                        <Text style={styles.fieldHint}>
+                            ({interests.length} selected)
+                        </Text>
+                    </Text>
+                    <View style={styles.interestGrid}>
+                        {INTEREST_OPTIONS.map((option) => (
+                            <Chip
+                                key={option.value}
+                                label={option.label}
+                                selected={interests.includes(option.value)}
+                                onPress={() => toggleInterest(option.value)}
+                            />
+                        ))}
+                    </View>
+
+                    {/* Error */}
+                    {error && <Text style={styles.error}>⚠️ {error}</Text>}
+
+                    {/* Submit */}
+                    <Button
+                        title={isSubmitting ? 'Saving...' : 'Save Changes'}
+                        onPress={handleSubmit}
+                        loading={isSubmitting}
+                        disabled={!isValid}
+                        size="lg"
+                        style={styles.submitBtn}
+                        icon={<Check size={20} color={Colors.white} />}
+                    />
+
+                    {/* Delete */}
+                    <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
+                        <Trash2 size={16} color={Colors.accent} />
+                        <Text style={styles.deleteBtnText}>Delete Profile</Text>
+                    </TouchableOpacity>
+
+                    <View style={{ height: Spacing['4xl'] }} />
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    safe: {
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
+    flex: {
+        flex: 1,
+    },
+    container: {
+        flex: 1,
+    },
+    content: {
+        padding: Spacing.xl,
+    },
+
+    // Avatar
+    avatarSection: {
+        alignItems: 'center',
+        marginBottom: Spacing['2xl'],
+    },
+    avatar: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.md,
+        ...Shadows.md,
+    },
+    avatarInitial: {
+        fontSize: FontSize['4xl'],
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+    },
+    colorPicker: {
+        flexDirection: 'row',
+        gap: Spacing.sm,
+    },
+    colorDot: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    colorDotSelected: {
+        borderWidth: 3,
+        borderColor: Colors.textPrimary,
+    },
+
+    // Fields
+    fieldLabel: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.medium,
+        color: Colors.textSecondary,
+        marginTop: Spacing.xl,
+        marginBottom: Spacing.sm,
+        marginLeft: Spacing.xs,
+    },
+    fieldHint: {
+        color: Colors.textTertiary,
+        fontWeight: FontWeight.regular,
+    },
+
+    gradeList: {
+        gap: Spacing.sm,
+    },
+    interestGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: Spacing.sm,
+    },
+
+    error: {
+        fontSize: FontSize.sm,
+        color: Colors.accent,
+        marginTop: Spacing.lg,
+        textAlign: 'center',
+    },
+
+    submitBtn: {
+        marginTop: Spacing['2xl'],
+    },
+
+    deleteBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: Spacing.sm,
+        marginTop: Spacing.xl,
+        paddingVertical: Spacing.md,
+    },
+    deleteBtnText: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.medium,
+        color: Colors.accent,
+    },
+
+    // Not found
+    notFound: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: Spacing.md,
+    },
+    notFoundEmoji: {
+        fontSize: 48,
+    },
+    notFoundText: {
+        fontSize: FontSize.lg,
+        fontWeight: FontWeight.semibold,
+        color: Colors.textSecondary,
+    },
+});

@@ -77,7 +77,9 @@ export default function SettingsScreen() {
                                     </View>
                                 </View>
                                 <View style={styles.profileActions}>
-                                    <TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => router.push(`/profile/${profile.id}/edit`)}
+                                    >
                                         <Edit3 size={18} color={Colors.textSecondary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
