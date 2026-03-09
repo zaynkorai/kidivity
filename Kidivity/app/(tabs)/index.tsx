@@ -1,98 +1,398 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Plus, Sparkles, ChevronRight } from 'lucide-react-native';
+import { useProfileStore } from '@/store/profileStore';
+import { useActivityStore } from '@/store/activityStore';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const { profiles, activeProfileId, setActiveProfile, fetchProfiles } = useProfileStore();
+  const { recentActivities, fetchRecent } = useActivityStore();
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    fetchProfiles();
+    fetchRecent();
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Good morning! 👋</Text>
+            <Text style={styles.subtitle}>
+              {activeProfile
+                ? `Activities for ${activeProfile.name}`
+                : 'Add a kid to get started'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Kid Profile Switcher */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.profileList}
+        >
+          {profiles.map((profile) => (
+            <TouchableOpacity
+              key={profile.id}
+              onPress={() => setActiveProfile(profile.id)}
+              style={[
+                styles.profileChip,
+                profile.id === activeProfileId && styles.profileChipActive,
+              ]}
+            >
+              <View
+                style={[
+                  styles.profileAvatar,
+                  { backgroundColor: profile.avatar_color },
+                ]}
+              >
+                <Text style={styles.profileInitial}>
+                  {profile.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.profileName,
+                  profile.id === activeProfileId && styles.profileNameActive,
+                ]}
+              >
+                {profile.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+          {/* Add Kid Button */}
+          <TouchableOpacity
+            onPress={() => router.push('/profile/create')}
+            style={styles.addKidChip}
+          >
+            <View style={styles.addKidIcon}>
+              <Plus size={16} color={Colors.primary} />
+            </View>
+            <Text style={styles.addKidText}>Add Kid</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Quick Generate CTA */}
+        <TouchableOpacity
+          style={styles.generateCta}
+          activeOpacity={0.9}
+          onPress={() => router.push('/(tabs)/generate')}
+        >
+          <View style={styles.generateCtaContent}>
+            <Sparkles size={28} color={Colors.white} />
+            <View style={styles.generateCtaText}>
+              <Text style={styles.generateCtaTitle}>Generate Activity</Text>
+              <Text style={styles.generateCtaSubtitle}>
+                AI-powered fun for your kids
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={24} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+
+        {/* Category Quick Access */}
+        <Text style={styles.sectionTitle}>Categories</Text>
+        <View style={styles.categoryGrid}>
+          {ACTIVITY_CATEGORIES.map((cat) => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[styles.categoryCard]}
+              activeOpacity={0.8}
+              onPress={() => router.push('/(tabs)/generate')}
+            >
+              <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+              <Text style={styles.categoryLabel}>{cat.label}</Text>
+              <Text style={styles.categoryDesc}>{cat.description}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Recent Activities */}
+        <Text style={styles.sectionTitle}>Recent Activities</Text>
+        {recentActivities.length === 0 ? (
+          <Card variant="outlined" style={styles.emptyState}>
+            <Text style={styles.emptyEmoji}>🎨</Text>
+            <Text style={styles.emptyTitle}>No activities yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Generate your first activity to see it here!
+            </Text>
+            <Button
+              title="Create Activity"
+              onPress={() => router.push('/(tabs)/generate')}
+              variant="primary"
+              size="sm"
+              style={{ marginTop: Spacing.md }}
+            />
+          </Card>
+        ) : (
+          recentActivities.slice(0, 5).map((activity) => (
+            <Card key={activity.id} variant="elevated" style={styles.activityCard}>
+              <View style={styles.activityHeader}>
+                <View
+                  style={[
+                    styles.activityBadge,
+                    {
+                      backgroundColor:
+                        (ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)
+                          ?.color ?? Colors.primaryLight) + '20',
+                    },
+                  ]}
+                >
+                  <Text style={styles.activityBadgeText}>
+                    {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.emoji}{' '}
+                    {ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)?.label}
+                  </Text>
+                </View>
+                <Text style={styles.activityDate}>
+                  {new Date(activity.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+              <Text style={styles.activityTopic} numberOfLines={1}>
+                {activity.topic}
+              </Text>
+              <Text style={styles.activityPreview} numberOfLines={2}>
+                {activity.content}
+              </Text>
+            </Card>
+          ))
+        )}
+
+        <View style={{ height: Spacing['3xl'] }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: Spacing.xl,
+  },
+
+  // Header
+  header: {
+    marginBottom: Spacing.xl,
+  },
+  greeting: {
+    fontSize: FontSize['2xl'],
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  subtitle: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+  },
+
+  // Profile Switcher
+  profileList: {
+    gap: Spacing.sm,
+    paddingBottom: Spacing.lg,
+  },
+  profileChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  profileChipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '10',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  profileAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileInitial: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  },
+  profileName: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    color: Colors.textSecondary,
+  },
+  profileNameActive: {
+    color: Colors.primary,
+  },
+  addKidChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.primary + '40',
+    borderStyle: 'dashed',
+  },
+  addKidIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '15',
+  },
+  addKidText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    color: Colors.primary,
+  },
+
+  // Generate CTA
+  generateCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+    marginBottom: Spacing['2xl'],
+    ...Shadows.lg,
+  },
+  generateCtaContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  generateCtaText: {},
+  generateCtaTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  },
+  generateCtaSubtitle: {
+    fontSize: FontSize.sm,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 2,
+  },
+
+  // Section
+  sectionTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+
+  // Categories
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+    marginBottom: Spacing['2xl'],
+  },
+  categoryCard: {
+    width: '47%',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  categoryEmoji: {
+    fontSize: 28,
+    marginBottom: Spacing.sm,
+  },
+  categoryLabel: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  categoryDesc: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: Spacing['4xl'],
+  },
+  emptyEmoji: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  emptySubtitle: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
+  },
+
+  // Activity Cards
+  activityCard: {
+    marginBottom: Spacing.md,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  activityBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.sm,
+  },
+  activityBadgeText: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+    color: Colors.textSecondary,
+  },
+  activityDate: {
+    fontSize: FontSize.xs,
+    color: Colors.textTertiary,
+  },
+  activityTopic: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  activityPreview: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    lineHeight: 20,
   },
 });

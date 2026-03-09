@@ -82,12 +82,13 @@ kidivity/
 │   │   └── activityStore.ts
 │   │
 │   ├── lib/                       ← Utilities & clients
-│   │   ├── supabase.ts            ← Supabase client init
+│   │   ├── supabase.ts            ← Lazy-init Supabase client (Proxy)
 │   │   ├── api.ts                 ← Edge Function API calls
 │   │   └── utils.ts               ← Shared helpers
 │   │
 │   ├── constants/                 ← App constants
-│   │   ├── theme.ts               ← Colors, fonts, spacing
+│   │   ├── theme.ts               ← Colors, fonts, spacing, shadows
+│   │   ├── categories.ts          ← Activity category definitions
 │   │   ├── grades.ts              ← Grade level enum
 │   │   └── interests.ts           ← Interest options
 │   │
@@ -102,6 +103,7 @@ kidivity/
 │   │   └── useActivity.ts
 │   │
 │   ├── assets/                    ← Images, fonts, icons
+│   ├── .env                       ← EXPO_PUBLIC_SUPABASE_URL & KEY
 │   ├── app.json                   ← Expo config
 │   ├── package.json
 │   └── tsconfig.json
@@ -166,6 +168,8 @@ sequenceDiagram
 | **File-based routing** | Expo Router | Convention over configuration, deep linking for free |
 | **No monorepo tooling** | Single Expo app | KISS — no Turborepo/Nx overhead for a mobile-only project |
 | **SQL migrations** | Supabase CLI | Version-controlled schema changes, reproducible deploys |
+| **Lazy Supabase client** | Proxy pattern in `lib/supabase.ts` | Avoids `window is not defined` crash during Expo Router SSR |
+| **Pinned dependencies** | `async-storage@2.2.0`, `expo-print@15.0.8`, etc. | Match Expo 54's expected versions to avoid runtime errors |
 
 ---
 
