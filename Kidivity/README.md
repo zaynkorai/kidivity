@@ -1,50 +1,86 @@
-# Welcome to your Expo app 👋
+# Kidivity 🎨
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+AI-powered educational activity generator for kids. Built with React Native (Expo), Supabase, and Google Gemini.
 
-## Get started
+## What is Kidivity?
 
-1. Install dependencies
+Kidivity helps parents and homeschoolers generate fun, customizable, and printable educational activities for their children using AI. Create kid profiles, choose a category, and get personalized activities in seconds.
 
-   ```bash
-   npm install
-   ```
+**Categories:** Logic Puzzles · Tracing · Educational · Screen-Free Activities
 
-2. Start the app
+## Tech Stack
 
-   ```bash
-   npx expo start
-   ```
+- **Mobile:** React Native + Expo 54 (iOS & Android)
+- **Routing:** Expo Router (file-based)
+- **State:** Zustand + AsyncStorage
+- **Backend:** Supabase (Auth, PostgreSQL, Edge Functions, Storage)
+- **AI:** Google Gemini API (text) + Image Generation API
 
-In the output, you'll find options to open the app in a
+## Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Prerequisites
+- Node.js 18+
+- [pnpm](https://pnpm.io/)
+- [Expo Go](https://expo.dev/go) app on your phone (for testing)
+- Supabase project (see [docs/data_model.md](docs/data_model.md) for schema)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Setup & Run
 
 ```bash
-npm run reset-project
+# Clone the repo
+git clone https://github.com/your-username/kidivity.git
+cd kidivity/Kidivity
+
+# Install dependencies
+pnpm install
+
+# Start Expo dev server
+pnpm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR code with Expo Go to run on your device, or press `i` for iOS Simulator.
 
-## Learn more
+### Environment Variables
 
-To learn more about developing your project with Expo, look at the following resources:
+Create a `.env` file in the `Kidivity/` directory:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```env
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-## Join the community
+## Project Structure
 
-Join our community of developers creating universal apps.
+```
+kidivity/
+├── docs/                    ← Project documentation
+│   ├── project_requirements.md
+│   ├── screen_flow.md
+│   ├── data_model.md
+│   ├── api_design.md
+│   └── architecture.md
+├── Kidivity/                ← Expo mobile app
+│   ├── app/                 ← Screens (file-based routing)
+│   ├── components/          ← Reusable UI components
+│   ├── store/               ← Zustand state management
+│   ├── lib/                 ← Utilities & clients
+│   ├── constants/           ← Theme, grades, interests
+│   ├── types/               ← TypeScript types
+│   └── hooks/               ← Custom React hooks
+└── supabase/                ← Database & Edge Functions
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Documentation
+
+| Doc | Description |
+|---|---|
+| [PRD](docs/project_requirements.md) | Product requirements, user stories, MVP scope |
+| [Screen Flow](docs/screen_flow.md) | Navigation map & screen-by-screen specs |
+| [Data Model](docs/data_model.md) | Supabase schema, RLS policies, Zustand stores |
+| [API Design](docs/api_design.md) | Edge Function contracts & Gemini prompts |
+| [Architecture](docs/architecture.md) | System diagrams & directory structure |
+| [Implementation Plan](docs/implementation_plan.md) | Phased roadmap with deliverables |
+
+## License
+
+MIT
