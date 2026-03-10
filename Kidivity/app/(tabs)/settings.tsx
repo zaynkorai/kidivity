@@ -183,7 +183,7 @@ export default function SettingsScreen() {
                     style={styles.signOutBtn}
                 />
 
-                <View style={{ height: Spacing['3xl'] }} />
+                <View style={styles.bottomSpacer} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -301,5 +301,8 @@ const styles = StyleSheet.create({
 
     signOutBtn: {
         marginTop: Spacing['2xl'],
+    },
+    bottomSpacer: {
+        height: Spacing['3xl'],
     },
 });

@@ -255,7 +255,7 @@ export default function OnboardingCreateProfileScreen() {
                         </Card>
                     )}
 
-                    <View style={{ height: Spacing['4xl'] }} />
+                    <View style={styles.bottomSpacer} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -475,5 +475,8 @@ const styles = StyleSheet.create({
         fontSize: FontSize.md,
         color: Colors.textPrimary,
         textAlign: 'center',
+    },
+    bottomSpacer: {
+        height: Spacing['4xl'],
     },
 });

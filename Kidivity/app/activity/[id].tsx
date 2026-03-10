@@ -82,7 +82,7 @@ function MarkdownContent({ content }: { content: string }) {
         lines.forEach((line, idx) => {
             const trimmed = line.trim();
             if (!trimmed) {
-                result.push(<View key={idx} style={{ height: 8 }} />);
+                result.push(<View key={idx} style={styles.spacer} />);
                 return;
             }
 
@@ -179,7 +179,7 @@ function renderInline(text: string): React.ReactNode {
     return parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
             return (
-                <Text key={i} style={{ fontFamily: Fonts.bold, fontWeight: FontWeight.bold }}>
+                <Text key={i} style={styles.inlineBold}>
                     {part.slice(2, -2)}
                 </Text>
             );
@@ -213,7 +213,7 @@ export default function ActivityDetailScreen() {
                         onPress={() => router.back()}
                         variant="primary"
                         size="md"
-                        style={{ marginTop: Spacing.lg }}
+                        style={styles.goBackBtn}
                     />
                 </View>
             </SafeAreaView>
@@ -353,7 +353,7 @@ export default function ActivityDetailScreen() {
 
                 {activity.kid_name && (
                     <Text style={styles.kidLabel}>
-                        Created for <Text style={{ fontFamily: Fonts.medium, color: Colors.textPrimary, fontWeight: FontWeight.semibold }}>{activity.kid_name}</Text>
+                        Created for <Text style={styles.createdForKid}>{activity.kid_name}</Text>
                     </Text>
                 )}
 
@@ -410,7 +410,7 @@ export default function ActivityDetailScreen() {
                         variant="primary"
                         size="md"
                         icon={<Printer size={18} color={Colors.white} />}
-                        style={{ flex: 1 }}
+                        style={styles.flex1}
                     />
                     <Button
                         title="Regenerate"
@@ -418,11 +418,11 @@ export default function ActivityDetailScreen() {
                         variant="outline"
                         size="md"
                         icon={<RefreshCw size={18} color={Colors.primary} />}
-                        style={{ flex: 1 }}
+                        style={styles.flex1}
                     />
                 </View>
 
-                <View style={{ height: Spacing['5xl'] }} />
+                <View style={styles.bottomSpacer} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -619,6 +619,27 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         gap: Spacing.md,
+    },
+    goBackBtn: {
+        marginTop: Spacing.lg,
+    },
+    createdForKid: {
+        fontFamily: Fonts.medium, 
+        color: Colors.textPrimary, 
+        fontWeight: FontWeight.semibold,
+    },
+    flex1: {
+        flex: 1,
+    },
+    bottomSpacer: {
+        height: Spacing['5xl'],
+    },
+    spacer: {
+        height: 8,
+    },
+    inlineBold: {
+        fontFamily: Fonts.bold, 
+        fontWeight: FontWeight.bold,
     },
 });
 

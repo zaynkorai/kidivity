@@ -84,7 +84,17 @@ export default function ActivitiesScreen() {
     const renderItem = ({ item }: { item: Activity }) => {
         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
         const cardColor = category?.color ?? Colors.primary;
-        const bgColor = cardColor + '15'; // very light background
+        
+        // Use solid pastel colors instead of alpha hex to prevent Android shadow bleeding
+        let bgColor: string = Colors.pastelYellow;
+        switch(item.category) {
+            case 'puzzles': bgColor = Colors.pastelPurple; break;
+            case 'tracing': bgColor = Colors.pastelPink; break;
+            case 'science': bgColor = Colors.pastelMint; break;
+            case 'art': bgColor = Colors.pastelYellow; break;
+            case 'math': bgColor = Colors.pastelBlue; break;
+            case 'reading': bgColor = Colors.pastelPeach; break;
+        }
 
         return (
             <TouchableOpacity

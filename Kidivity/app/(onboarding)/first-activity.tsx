@@ -57,7 +57,7 @@ export default function FirstActivityScreen() {
             <ScreenBackground />
             <View style={[StyleSheet.absoluteFill, styles.buildingOverlay]}>
                 <View style={styles.buildingContent}>
-                    <Wand2 size={64} color={Colors.primary} style={{ marginBottom: Spacing.xl }} />
+                    <Wand2 size={64} color={Colors.primary} style={styles.wandIcon} />
                     <Text style={styles.buildingTitle}>Building Engine...</Text>
                     {name ? (
                         <Text style={styles.buildingSubtitle}>Customizing math quests for {name}</Text>
@@ -71,7 +71,7 @@ export default function FirstActivityScreen() {
                                 title="Skip to Dashboard"
                                 onPress={() => router.replace('/(tabs)')}
                                 variant="secondary"
-                                style={{ marginTop: Spacing.xl }}
+                                style={styles.skipBtn}
                             />
                         </View>
                     )}
@@ -119,5 +119,11 @@ const styles = StyleSheet.create({
         fontSize: FontSize.md,
         color: Colors.textPrimary,
         textAlign: 'center',
+    },
+    wandIcon: {
+        marginBottom: Spacing.xl,
+    },
+    skipBtn: {
+        marginTop: Spacing.xl,
     },
 });

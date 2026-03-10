@@ -16,6 +16,7 @@ import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Chip } from '@/components/ui/Chip';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
@@ -193,7 +194,7 @@ export default function EditProfileScreen() {
                         onChangeText={setAge}
                         keyboardType="number-pad"
                         maxLength={2}
-                        containerStyle={{ marginTop: Spacing.lg }}
+                        containerStyle={styles.ageInput}
                     />
 
                     {/* Grade Level */}
@@ -215,9 +216,9 @@ export default function EditProfileScreen() {
 
                     {/* Error */}
                     {error && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: Spacing.lg }}>
+                        <View style={styles.errorContainer}>
                             <AlertTriangle size={16} color={Colors.accent} />
-                            <Text style={[styles.error, { marginTop: 0, marginLeft: Spacing.xs }]}>{error}</Text>
+                            <Text style={[styles.error, styles.errorTextMargin]}>{error}</Text>
                         </View>
                     )}
 
@@ -238,7 +239,7 @@ export default function EditProfileScreen() {
                         <Text style={styles.deleteBtnText}>Delete Profile</Text>
                     </TouchableOpacity>
 
-                    <View style={{ height: Spacing['4xl'] }} />
+                    <View style={styles.bottomSpacer} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -348,5 +349,21 @@ const styles = StyleSheet.create({
         fontSize: FontSize.lg,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
+    },
+    ageInput: {
+        marginTop: Spacing.lg,
+    },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.lg,
+    },
+    errorTextMargin: {
+        marginTop: 0,
+        marginLeft: Spacing.xs,
+    },
+    bottomSpacer: {
+        height: Spacing['4xl'],
     },
 });

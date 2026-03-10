@@ -137,7 +137,7 @@ export default function HomeScreen() {
               >
                 <Text style={styles.profileInitial}>{profile.name.charAt(0).toUpperCase()}</Text>
               </View>
-              <View style={{ flexShrink: 1 }}>
+              <View style={styles.profileTextContainer}>
                 <Text style={styles.profileName} numberOfLines={1}>
                   {profile.name}
                 </Text>
@@ -238,7 +238,7 @@ export default function HomeScreen() {
                 <View style={[styles.categoryTileIcon, { backgroundColor: cat.color }]}>
                   <Icon size={18} color={Colors.white} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={styles.categoryTileTextContainer}>
                   <Text style={styles.categoryTileLabel} numberOfLines={1}>
                     {cat.label}
                   </Text>
@@ -253,7 +253,7 @@ export default function HomeScreen() {
 
 
 
-        <View style={{ height: Spacing['3xl'] }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -345,6 +345,9 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textPrimary,
     marginTop: 1,
+  },
+  profileTextContainer: {
+    flexShrink: 1,
   },
 
   addKidChip: {
@@ -515,7 +518,11 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginTop: 2,
   },
-
-
+  categoryTileTextContainer: {
+    flex: 1,
+  },
+  bottomSpacer: {
+    height: Spacing['3xl'],
+  },
 
 });

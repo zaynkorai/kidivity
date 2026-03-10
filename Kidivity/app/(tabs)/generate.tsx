@@ -147,7 +147,7 @@ export default function GenerateScreen() {
                                     {activeProfile.name.charAt(0).toUpperCase()}
                                 </Text>
                             </View>
-                            <View style={{ flex: 1 }}>
+                            <View style={styles.flex1}>
                                 <Text style={styles.kidTitle}>{activeProfile.name}</Text>
                                 <Text style={styles.kidMeta}>
                                     {activeProfile.age}yo · {activeProfile.grade_level}
@@ -167,7 +167,7 @@ export default function GenerateScreen() {
                             onPress={() => router.push('/profile/create')}
                             variant="outline"
                             size="md"
-                            style={{ marginTop: Spacing.md }}
+                            style={styles.addKidBtn}
                         />
                     </Card>
                 )}
@@ -182,7 +182,7 @@ export default function GenerateScreen() {
                         <View style={styles.rateIconWrap}>
                             <Zap size={16} color={Colors.surface} fill={Colors.surface} />
                         </View>
-                        <View style={{ flex: 1 }}>
+                        <View style={styles.flex1}>
                             <Text style={styles.rateBannerTitle}>Daily limit reached</Text>
                             <Text style={styles.rateBannerText}>
                                 {rateLimitState.used}/{rateLimitState.limit} free activities used today. Tap to upgrade.
@@ -266,7 +266,7 @@ export default function GenerateScreen() {
                                 value={topic}
                                 onChangeText={setTopic}
                                 maxLength={60}
-                                containerStyle={{ marginTop: Spacing.lg }}
+                                containerStyle={styles.topicInput}
                             />
                         </>
                     ) : (
@@ -296,7 +296,7 @@ export default function GenerateScreen() {
                         ))}
                     </View>
 
-                    <Text style={[styles.optionLabel, { marginTop: Spacing.lg }]}>Output</Text>
+                    <Text style={[styles.optionLabel, styles.marginTopLg]}>Output</Text>
                     <View style={styles.optionRow}>
                         <Chip
                             label="Colorful"
@@ -355,7 +355,7 @@ export default function GenerateScreen() {
                     </Card>
                 )}
 
-                <View style={{ height: Spacing['5xl'] }} />
+                <View style={styles.bottomSpacer} />
             </ScrollView>
         </SafeAreaView >
     );
@@ -523,4 +523,10 @@ const styles = StyleSheet.create({
 
     errorCard: { borderColor: Colors.accent },
     errorText: { flex: 1, fontSize: FontSize.sm, fontFamily: Fonts.medium, color: Colors.accent },
+
+    flex1: { flex: 1 },
+    addKidBtn: { marginTop: Spacing.md },
+    topicInput: { marginTop: Spacing.lg },
+    marginTopLg: { marginTop: Spacing.lg },
+    bottomSpacer: { height: Spacing['5xl'] },
 });

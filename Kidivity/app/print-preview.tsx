@@ -159,14 +159,14 @@ export default function PrintPreviewScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.centered}>
-                    <Search size={48} color={Colors.textPrimary} style={{ marginBottom: Spacing.md }} />
+                    <Search size={48} color={Colors.textPrimary} style={styles.searchIcon} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
                     <Button
                         title="Go Back"
                         onPress={() => router.back()}
                         variant="primary"
                         size="md"
-                        style={{ marginTop: Spacing.lg }}
+                        style={styles.goBackBtn}
                     />
                 </View>
             </SafeAreaView>
@@ -213,7 +213,7 @@ export default function PrintPreviewScreen() {
                     <ArrowLeft size={22} color={Colors.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.topTitle}>Print Preview</Text>
-                <View style={{ width: 38 }} />
+                <View style={styles.topBarSpacer} />
             </View>
 
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -261,7 +261,7 @@ export default function PrintPreviewScreen() {
                         variant="primary"
                         size="lg"
                         icon={<Printer size={20} color={Colors.white} />}
-                        style={{ flex: 1 }}
+                        style={styles.flex1}
                     />
                     <Button
                         title="Save PDF"
@@ -269,11 +269,11 @@ export default function PrintPreviewScreen() {
                         variant="outline"
                         size="lg"
                         icon={<FileDown size={20} color={Colors.primary} />}
-                        style={{ flex: 1 }}
+                        style={styles.flex1}
                     />
                 </View>
 
-                <View style={{ height: Spacing['3xl'] }} />
+                <View style={styles.bottomSpacer} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -389,5 +389,20 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         gap: Spacing.md,
+    },
+    flex1: {
+        flex: 1,
+    },
+    goBackBtn: {
+        marginTop: Spacing.lg,
+    },
+    searchIcon: {
+        marginBottom: Spacing.md,
+    },
+    topBarSpacer: {
+        width: 38,
+    },
+    bottomSpacer: {
+        height: Spacing['3xl'],
     },
 });

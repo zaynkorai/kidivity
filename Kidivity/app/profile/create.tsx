@@ -14,6 +14,7 @@ import { AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
@@ -75,7 +76,7 @@ export default function CreateProfileScreen() {
         <SafeAreaView style={styles.safe}>
             <ScreenBackground />
             <KeyboardAvoidingView
-                style={{ flex: 1 }}
+                style={styles.flex1}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <ScrollView
@@ -122,7 +123,7 @@ export default function CreateProfileScreen() {
                         onChangeText={setAge}
                         keyboardType="number-pad"
                         maxLength={2}
-                        containerStyle={{ marginTop: Spacing.lg }}
+                        containerStyle={styles.ageInput}
                     />
 
                     {/* Grade Level */}
@@ -144,9 +145,9 @@ export default function CreateProfileScreen() {
 
                     {/* Error */}
                     {error && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: Spacing.lg }}>
+                        <View style={styles.errorContainer}>
                             <AlertTriangle size={16} color={Colors.accent} />
-                            <Text style={[styles.error, { marginTop: 0, marginLeft: Spacing.xs }]}>{error}</Text>
+                            <Text style={[styles.error, styles.errorTextMargin]}>{error}</Text>
                         </View>
                     )}
 
@@ -160,7 +161,7 @@ export default function CreateProfileScreen() {
                         style={styles.submitBtn}
                     />
 
-                    <View style={{ height: Spacing['4xl'] }} />
+                    <View style={styles.bottomSpacer} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -234,5 +235,24 @@ const styles = StyleSheet.create({
 
     submitBtn: {
         marginTop: Spacing['2xl'],
+    },
+    flex1: {
+        flex: 1,
+    },
+    ageInput: {
+        marginTop: Spacing.lg,
+    },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.lg,
+    },
+    errorTextMargin: {
+        marginTop: 0,
+        marginLeft: Spacing.xs,
+    },
+    bottomSpacer: {
+        height: Spacing['4xl'],
     },
 });
