@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
+import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
@@ -32,6 +33,7 @@ export default function EditProfileScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
     const { profiles, updateProfile, deleteProfile } = useProfileStore();
+    const { user } = useAuthStore();
 
     const profile = profiles.find((p) => p.id === id);
 
@@ -139,8 +141,9 @@ export default function EditProfileScreen() {
                 visible={gateVisible}
                 onClose={() => setGateVisible(false)}
                 onSuccess={handleGateSuccess}
-                title="Parents Only"
-                description="Solve this to delete the profile."
+                title="Password Required"
+                description="Enter your password to delete the profile."
+                userEmail={user?.email}
             />
             <KeyboardAvoidingView
                 style={styles.flex}

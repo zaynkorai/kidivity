@@ -5,13 +5,15 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-
     Alert,
+    Share,
+    Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as LinkingApi from 'expo-linking';
 import * as Haptics from 'expo-haptics';
-import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight, Share } from 'lucide-react-native';
+import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight, Share as ShareIcon, HelpCircle, Star, Shield, KeyRound } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Card } from '@/components/ui/Card';
@@ -19,8 +21,10 @@ import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
+import { Platform } from 'react-native';
 
-type GateAction = 'delete' | 'add' | 'signout' | null;
+type GateAction = 'delete' | 'add' | 'signout' | 'delete_account' | null;
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -70,10 +74,75 @@ export default function SettingsScreen() {
                         }
                     },
                 ]);
+            } else if (pendingAction === 'delete_account') {
+                Alert.alert('Delete Account', 'Are you sure you want to permanently delete your account and all kid profiles? This action cannot be undone.', [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete Account', style: 'destructive', onPress: () => {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                            // TODO: Implement user deletion via supabase auth and profile cascading deletion
+                            Alert.alert('Notice', 'Account deletion will be implemented in a future update.');
+                        }
+                    },
+                ]);
             }
             setPendingAction(null);
             setPendingProfileId(null);
         }, 300); // Small delay to allow modal to close smoothly before alert/nav
+    };
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: 'Check out Kidivity - The best app for supercharging your kid\'s development!',
+            });
+        } catch (error) {
+            console.error('Share failed', error);
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!user?.email) return;
+        
+        Alert.alert(
+            'Reset Password',
+            `Send a password reset email to ${user.email}?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Send Email',
+                    onPress: async () => {
+                        const redirectUrl = LinkingApi.createURL('/(auth)/reset-password');
+                        const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
+                            redirectTo: redirectUrl,
+                        });
+                        if (error) {
+                            Alert.alert('Error', error.message);
+                        } else {
+                            Alert.alert('Success', 'Password reset email sent! Check your inbox.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleHelpSupport = () => {
+        Linking.openURL('mailto:support@kidivity.com');
+    };
+
+    const handleRateApp = () => {
+        // Placeholder IDs - swap with real ones before launch
+        const url = Platform.OS === 'ios'
+            ? 'itms-apps://itunes.apple.com/app/id123456789'
+            : 'market://details?id=com.kidivity.app';
+        Linking.openURL(url).catch(() => {
+            Alert.alert('Error', 'Unable to open store.');
+        });
+    };
+
+    const handlePrivacyTerms = () => {
+        Linking.openURL('https://kidivity.com/privacy'); // Placeholder URL
     };
 
     return (
@@ -86,12 +155,14 @@ export default function SettingsScreen() {
                     setPendingAction(null);
                 }}
                 onSuccess={handleGateSuccess}
-                title="Parents Only"
+                title="Password Required"
                 description={
-                    pendingAction === 'add' ? 'Solve this to add a new kid.' :
-                        pendingAction === 'delete' ? 'Solve this to manage profiles.' :
-                            'Solve this to access account settings.'
+                    pendingAction === 'add' ? 'Enter your password to add a new kid.' :
+                        pendingAction === 'delete' ? 'Enter your password to manage profiles.' :
+                            pendingAction === 'delete_account' ? 'Enter your password to verify your identity.' :
+                                'Enter your password to access account settings.'
                 }
+                userEmail={user?.email}
             />
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Header */}
@@ -154,23 +225,74 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Account</Text>
                 <Card variant="elevated">
                     <View style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>Email</Text>
+                        <View style={styles.settingLabelGroup}>
+                            <Text style={styles.settingLabel}>Email</Text>
+                        </View>
                         <Text style={styles.settingValue}>{user?.email ?? 'Not signed in'}</Text>
                     </View>
+                    <View style={styles.divider} />
+                    <TouchableOpacity 
+                        style={styles.settingRow}
+                        onPress={handleResetPassword}
+                        disabled={!user?.email}
+                    >
+                        <View style={styles.settingLabelGroup}>
+                            <KeyRound size={18} color={Colors.primary} />
+                            <Text style={styles.settingLabel}>Reset Password</Text>
+                        </View>
+                        <ChevronRight size={18} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <TouchableOpacity 
+                        style={styles.settingRow}
+                        onPress={() => openGate('delete_account')}
+                    >
+                        <View style={styles.settingLabelGroup}>
+                            <Text style={[styles.settingLabel, { color: Colors.accent }]}>Delete Account</Text>
+                        </View>
+                        <ChevronRight size={18} color={Colors.textPrimary} />
+                    </TouchableOpacity>
                 </Card>
 
                 {/* About Section */}
-                <Text style={styles.sectionTitle}>About</Text>
+                <Text style={styles.sectionTitle}>About & Support</Text>
                 <Card variant="elevated">
-                    <View style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>Version</Text>
-                        <Text style={styles.settingValue}>1.0.0</Text>
-                    </View>
-                    <View style={styles.divider} />
-                    <TouchableOpacity style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>Send Feedback</Text>
+                    <TouchableOpacity style={styles.settingRow} onPress={handleHelpSupport}>
+                        <View style={styles.settingLabelGroup}>
+                            <HelpCircle size={18} color={Colors.primary} />
+                            <Text style={styles.settingLabel}>Help & Support</Text>
+                        </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
                     </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <TouchableOpacity style={styles.settingRow} onPress={handleRateApp}>
+                        <View style={styles.settingLabelGroup}>
+                            <Star size={18} color={Colors.primary} />
+                            <Text style={styles.settingLabel}>Rate App</Text>
+                        </View>
+                        <ChevronRight size={18} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <TouchableOpacity style={styles.settingRow} onPress={handleShare}>
+                        <View style={styles.settingLabelGroup}>
+                            <ShareIcon size={18} color={Colors.primary} />
+                            <Text style={styles.settingLabel}>Share App</Text>
+                        </View>
+                        <ChevronRight size={18} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <TouchableOpacity style={styles.settingRow} onPress={handlePrivacyTerms}>
+                        <View style={styles.settingLabelGroup}>
+                            <Shield size={18} color={Colors.primary} />
+                            <Text style={styles.settingLabel}>Privacy & Terms</Text>
+                        </View>
+                        <ChevronRight size={18} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <View style={styles.settingRow}>
+                        <Text style={styles.settingLabel}>App Version</Text>
+                        <Text style={styles.settingValue}>1.0.0</Text>
+                    </View>
                 </Card>
 
                 {/* Sign Out */}
@@ -285,13 +407,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: Spacing.md,
     },
+    settingLabelGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+    },
     settingLabel: {
         fontSize: FontSize.md,
         color: Colors.textPrimary,
+        fontWeight: FontWeight.medium,
     },
     settingValue: {
         fontSize: FontSize.sm,
-        color: Colors.textPrimary,
+        color: Colors.textSecondary,
     },
 
     divider: {

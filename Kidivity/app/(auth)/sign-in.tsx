@@ -25,6 +25,7 @@ const ScreenColors = {
     blueHeader: Colors.pastelBlue,
     blueText: Colors.textPrimary,
     textMain: Colors.textPrimary,
+    textPrimary: Colors.textPrimary,
     textSecondary: Colors.textPrimary,
 };
 

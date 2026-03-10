@@ -23,6 +23,7 @@ const ScreenColors = {
     purpleHeader: Colors.pastelPurple,
     purpleText: Colors.textPrimary,
     textMain: Colors.textPrimary,
+    textPrimary: Colors.textPrimary,
     textSecondary: Colors.textPrimary,
 };
 

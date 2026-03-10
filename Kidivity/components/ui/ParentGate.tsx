@@ -15,11 +15,13 @@ import * as Haptics from 'expo-haptics';
 import { Button } from './Button';
 import { Input } from './Input';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 
 interface ParentGateProps {
     visible: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    userEmail: string | undefined;
     title?: string;
     description?: string;
 }
@@ -28,33 +30,45 @@ export function ParentGate({
     visible,
     onClose,
     onSuccess,
+    userEmail,
     title = 'Parent Gate',
-    description = 'Ask a parent to solve this to continue.',
+    description = 'Enter your password to continue.',
 }: ParentGateProps) {
-    const [num1, setNum1] = useState(0);
-    const [num2, setNum2] = useState(0);
-    const [answer, setAnswer] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (visible) {
-            // Generate a random multiplication problem suitable for adults (e.g. 6x7 to 12x12)
-            setNum1(Math.floor(Math.random() * 7) + 6);
-            setNum2(Math.floor(Math.random() * 7) + 6);
-            setAnswer('');
+            setPassword('');
             setError('');
+            setIsLoading(false);
         }
     }, [visible]);
 
-    const handleSubmit = () => {
-        const parsed = parseInt(answer.trim(), 10);
-        if (parsed === num1 * num2) {
+    const handleSubmit = async () => {
+        if (!password.trim()) return;
+        setError('');
+
+        if (!userEmail) {
+            setError('No email found to verify.');
+            return;
+        }
+
+        setIsLoading(true);
+        const { error: authError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: password,
+        });
+        setIsLoading(false);
+
+        if (authError) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            setError('Incorrect password. Please try again.');
+            setPassword('');
+        } else {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             onSuccess();
-        } else {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            setError('Incorrect. Please try again.');
-            setAnswer('');
         }
     };
 
@@ -85,23 +99,19 @@ export function ParentGate({
                         {/* Content */}
                         <Text style={styles.description}>{description}</Text>
 
-                        <View style={styles.challengeContainer}>
-                            <Text style={styles.challengeText}>
-                                {num1} × {num2} = ?
-                            </Text>
-                        </View>
-
                         <Input
-                            label="Answer"
-                            placeholder="Enter the product"
-                            value={answer}
+                            label="Password"
+                            placeholder="Enter your password"
+                            value={password}
                             onChangeText={(text) => {
-                                setAnswer(text);
+                                setPassword(text);
                                 setError('');
                             }}
-                            keyboardType="number-pad"
+                            secureTextEntry={true}
                             autoFocus
                             onSubmitEditing={handleSubmit}
+                            editable={!isLoading}
+                            autoCapitalize="none"
                         />
 
                         {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -112,12 +122,13 @@ export function ParentGate({
                                 title="Cancel"
                                 onPress={onClose}
                                 variant="outline"
+                                disabled={isLoading}
                                 style={styles.actionBtn}
                             />
                             <Button
-                                title="Submit"
+                                title={isLoading ? 'Verifying...' : 'Submit'}
                                 onPress={handleSubmit}
-                                disabled={!answer.trim()}
+                                disabled={!password.trim() || isLoading}
                                 style={styles.actionBtn}
                             />
                         </View>
@@ -169,21 +180,6 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         marginBottom: Spacing.xl,
         lineHeight: 20,
-    },
-    challengeContainer: {
-        backgroundColor: Colors.background,
-        padding: Spacing.xl,
-        borderRadius: Radius.lg,
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
-        borderWidth: 1,
-        borderColor: Colors.border,
-    },
-    challengeText: {
-        fontSize: FontSize['3xl'],
-        fontWeight: FontWeight.bold,
-        color: Colors.primaryDark,
-        letterSpacing: 2,
     },
     footer: {
         flexDirection: 'row',

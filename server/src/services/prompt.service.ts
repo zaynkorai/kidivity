@@ -52,23 +52,28 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             break;
             
         case 'tracing':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} tracing and pen-control practice activity about "${input.topic}".
+            const isCharacterTracing = /number|digit|alphabet|letter/i.test(input.topic);
+            const taskFocus = isCharacterTracing 
+                ? `character formation and tracing (large, clear, dotted-outline characters)`
+                : `pen-control and pre-writing practice (foundational warm-up)`;
+
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} ${taskFocus} activity about "${input.topic}".
             Target: ${profile.age}-year-old (${profile.grade_level}).
             
             IMAGE PROMPT REQUIREMENTS:
             - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Trace Type: <shape | path | object-outline>
-              2) Main Subject: <single concrete noun scene>
+              1) Trace Type: <${isCharacterTracing ? 'character | digit' : 'shape | path'}>
+              2) Main Subject: <${isCharacterTracing ? 'single large character or digit' : 'single concrete noun scene'}>
               3) Trace Path: <describe the tracing path in words, single-stroke if simple>
               4) Blank Area: <bottom 30% empty, pure white>
               5) Line Style: <dotted or dashed, spacing noted, no double lines>
               6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
+            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image EXCEPT for the tracing character itself.
             
             CONTENT REQUIREMENTS:
             - title: "Let's Trace: ..." (plain text).
-            - instructions: Start with > **Parent Note:** (fine motor + posture/grip tip). Then ## Instructions with 3-5 simple steps.
-            - content: Include ## Story Time with exactly 2 sentences describing the illustration. Include ## Tracing Practice with a bulleted list of 3-5 CONCRETE NOUNS related to "${input.topic}" (single words, easy to visualize/write).`;
+            - instructions: Start with > **Parent Note:** Explain that this is a "${isCharacterTracing ? 'character formation practice' : 'foundational pre-writing warm-up'}" for pencil control (fine motor + posture/grip tip). Then ## Instructions with 3-5 simple steps for tracing the ${isCharacterTracing ? 'character' : 'path or outline'}.
+            - content: Include ## Story Time with exactly 2 sentences describing the illustration. Include ## Target Words with a bulleted list of 3-5 CONCRETE NOUNS related to "${input.topic}" (single words, easy to visualize/talk about).`;
             break;
             
         case 'science':
@@ -231,6 +236,8 @@ export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPromp
         : `Generate elegantly designed, high-contrast, clean black and white line art optimized for A4 paper printing for a children's ${input.category} activity about "${input.topic}".`;
 
 
+    const isCharacterTracing = input.category === 'tracing' && /number|digit|alphabet|letter/i.test(input.topic);
+
     const imagePrompt = `${imageStyleIntro}
 Activity Type: ${input.category}
 Topic: ${input.topic}
@@ -248,7 +255,7 @@ ${layoutInstruction}
 3. ${ageInstruction}
 ${tracingInstruction}
 6. Keep lines simple, bold, and distinct.
-7. NO TEXT OR LETTERS: ABSOLUTELY NO WORDS, NUMBERS, OR CURSIVE SCRIPT in the image. The AI text engine will handle the text separately. 
+7. NO TEXT OR LETTERS (EXCEPT TRACING): ${isCharacterTracing ? 'You ARE allowed to draw a large, centered, single dotted-outline digit or letter if it is the target of the tracing activity. Ensure it has NO solid fill.' : 'ABSOLUTELY NO WORDS, NUMBERS, OR CURSIVE SCRIPT in the image.'} 
 8. FINAL CHECK: Ensure the background is PURE WHITE (#FFFFFF) with NO texture, gradient, or grey tint. Do not draw a physical page or frame.
 Constraints: No shading or gradients to ensure maximum clarity on printing.`;
 

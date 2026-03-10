@@ -17,6 +17,7 @@ const ScreenColors = {
     background: '#FDFBF7', // Very pale cream background matching screenshot
     authBg: '#FFF9E6',     // Pale beige for the sign in screen
     textMain: '#1A1A1A',
+    textPrimary: '#1A1A1A',
     textSecondary: '#7A7A7A',
 };
 
