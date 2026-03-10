@@ -28,21 +28,21 @@ export function Chip({
             activeOpacity={0.7}
             style={[
                 styles.chip,
-                selected && { backgroundColor: activeColor, borderColor: activeColor },
+                selected && { backgroundColor: activeColor + '15', borderColor: activeColor },
                 style,
             ]}
         >
             {Icon && (
                 <Icon
                     size={16}
-                    color={selected ? Colors.white : Colors.textSecondary}
+                    color={selected ? activeColor : Colors.textSecondary}
                     style={styles.icon}
                 />
             )}
             <Text
                 style={[
                     styles.label,
-                    selected && styles.labelSelected,
+                    selected && { color: activeColor, fontWeight: FontWeight.bold },
                 ]}
             >
                 {label}
@@ -71,6 +71,6 @@ const styles = StyleSheet.create({
         color: Colors.textSecondary,
     },
     labelSelected: {
-        color: Colors.white,
+        // Will be overwritten inline
     },
 });

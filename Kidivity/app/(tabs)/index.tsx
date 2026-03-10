@@ -231,7 +231,7 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Recent Quests</Text>
         {recentActivities.length === 0 ? (
           <Card variant="outlined" style={styles.emptyState}>
-            <Palette size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
+            <Palette size={48} color={Colors.textTertiary} style={{ marginBottom: Spacing.md }} />
             <Text style={styles.emptyTitle}>No activities yet</Text>
             <Text style={styles.emptySubtitle}>
               Generate your first activity to see it here!
@@ -245,63 +245,60 @@ export default function HomeScreen() {
             />
           </Card>
         ) : (
-          recentActivities.slice(0, 5).map((activity) => (
-            <TouchableOpacity
-              key={activity.id}
-              activeOpacity={0.85}
-              onPress={() => router.push(`/activity/${activity.id}` as any)}
-            >
-              <Card variant="elevated" style={styles.activityCard}>
-                <View style={styles.activityHeader}>
-                  <View
-                    style={[
-                      styles.activityBadge,
-                      {
-                        backgroundColor:
-                          (ACTIVITY_CATEGORIES.find((c) => c.id === activity.category)
-                            ?.color ?? Colors.primaryLight) + '20',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                      },
-                    ]}
-                  >
-                    {(() => {
-                      const cat = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
-                      const Icon = cat?.icon;
-                      return (
-                        <>
-                          {Icon && <Icon size={14} color={cat?.color} />}
-                          <Text style={styles.activityBadgeText}>{cat?.label}</Text>
-                        </>
-                      );
-                    })()}
-                  </View>
-                  <Text style={styles.activityDate}>
-                    {new Date(activity.created_at).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View style={styles.activityContent}>
-                  <View style={styles.activityTextContent}>
-                    <Text style={styles.activityTopic} numberOfLines={1}>
-                      {activity.topic}
-                    </Text>
-                    <Text style={styles.activityPreview} numberOfLines={2}>
-                      {activity.content}
+          recentActivities.slice(0, 5).map((activity) => {
+            const cat = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
+            const catColor = cat?.color ?? Colors.primaryLight;
+            const Icon = cat?.icon ?? Star;
+
+            return (
+              <TouchableOpacity
+                key={activity.id}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/activity/${activity.id}` as any)}
+              >
+                <Card variant="elevated" style={[styles.activityCard, { borderColor: catColor + '30', borderWidth: 1 }]}>
+                  <View style={styles.activityHeader}>
+                    <View
+                      style={[
+                        styles.activityBadge,
+                        {
+                          backgroundColor: catColor + '15',
+                        },
+                      ]}
+                    >
+                      <Icon size={14} color={catColor} />
+                      <Text style={[styles.activityBadgeText, { color: catColor }]}>{cat?.label ?? 'Activity'}</Text>
+                    </View>
+                    <Text style={styles.activityDate}>
+                      {new Date(activity.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </Text>
                   </View>
-                  {activity.image_url && (
-                    <Image
-                      source={{ uri: activity.image_url }}
-                      style={styles.activityThumbnail}
-                      contentFit="cover"
-                      transition={200}
-                    />
-                  )}
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))
+                  <View style={styles.activityContent}>
+                    <View style={styles.activityTextContent}>
+                      <Text style={styles.activityTopic} numberOfLines={1}>
+                        {activity.topic || 'New Discovery'}
+                      </Text>
+                      <Text style={styles.activityPreview} numberOfLines={2}>
+                        {activity.content.replace(/[#*_~]/g, '').trim()}
+                      </Text>
+                    </View>
+                    {activity.image_url ? (
+                      <Image
+                        source={{ uri: activity.image_url }}
+                        style={styles.activityThumbnail}
+                        contentFit="cover"
+                        transition={300}
+                      />
+                    ) : (
+                      <View style={[styles.activityThumbnail, styles.activityThumbnailPlaceholder, { backgroundColor: catColor + '10', borderColor: catColor + '20' }]}>
+                        <Wand2 size={24} color={catColor} />
+                      </View>
+                    )}
+                  </View>
+                </Card>
+              </TouchableOpacity>
+            );
+          })
         )}
 
         <View style={{ height: Spacing['3xl'] }} />
@@ -577,45 +574,54 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   activityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: Radius.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
   },
   activityBadgeText: {
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
-    color: Colors.textSecondary,
+    fontWeight: FontWeight.bold,
   },
   activityDate: {
     fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
     color: Colors.textTertiary,
   },
   activityContent: {
     flexDirection: 'row',
-    gap: Spacing.md,
-    alignItems: 'flex-start',
+    gap: Spacing.lg,
+    alignItems: 'center',
   },
   activityTextContent: {
     flex: 1,
   },
   activityTopic: {
     fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
+    marginBottom: 4,
   },
   activityThumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surface,
+    width: 72,
+    height: 72,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  activityThumbnailPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activityPreview: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    marginTop: Spacing.xs,
     lineHeight: 20,
   },
 });

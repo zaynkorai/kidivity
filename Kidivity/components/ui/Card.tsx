@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
 import { Colors, Radius, Spacing, Shadows } from '@/constants/theme';
 
 interface CardProps {
@@ -7,7 +7,7 @@ interface CardProps {
     variant?: 'elevated' | 'outlined' | 'filled';
     padding?: keyof typeof Spacing;
     color?: string;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
 }
 
 export function Card({

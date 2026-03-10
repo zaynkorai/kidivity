@@ -15,6 +15,7 @@ import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { INTEREST_OPTIONS } from '@/constants/interests';
@@ -90,6 +91,7 @@ export default function CreateProfileScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
+            <ScreenBackground />
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}

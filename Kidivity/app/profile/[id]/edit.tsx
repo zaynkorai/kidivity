@@ -11,11 +11,14 @@ import {
     Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
+import { ParentGate } from '@/components/ui/ParentGate';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { INTEREST_OPTIONS } from '@/constants/interests';
@@ -41,6 +44,8 @@ export default function EditProfileScreen() {
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [gateVisible, setGateVisible] = useState(false);
 
     // Pre-fill form with existing profile data
     useEffect(() => {
@@ -103,23 +108,32 @@ export default function EditProfileScreen() {
     };
 
     const handleDelete = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setGateVisible(true);
+    };
+
+    const handleGateSuccess = () => {
+        setGateVisible(false);
         if (!id || !profile) return;
 
-        Alert.alert(
-            'Delete Profile',
-            `Are you sure you want to delete ${profile.name}'s profile? This will also delete all their activities.`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await deleteProfile(id);
-                        router.back();
+        setTimeout(() => {
+            Alert.alert(
+                'Delete Profile',
+                `Are you sure you want to delete ${profile.name}'s profile?`,
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                            await deleteProfile(id);
+                            router.back();
+                        },
                     },
-                },
-            ]
-        );
+                ]
+            );
+        }, 300);
     };
 
     if (!profile) {
@@ -138,6 +152,14 @@ export default function EditProfileScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
+            <ScreenBackground />
+            <ParentGate
+                visible={gateVisible}
+                onClose={() => setGateVisible(false)}
+                onSuccess={handleGateSuccess}
+                title="Parents Only"
+                description="Solve this to delete the profile."
+            />
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}

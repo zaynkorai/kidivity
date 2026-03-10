@@ -102,6 +102,8 @@ export const useActivityStore = create<ActivityStore>()(
                         apiUrl = apiUrl.replace('localhost', '172.16.162.13'); 
                     }
 
+                    console.log('[Generate Activity] Sending payload:', JSON.stringify(input, null, 2));
+
                     const response = await fetch(`${apiUrl}/api/activities/generate`, {
                         method: 'POST',
                         headers: {
@@ -127,6 +129,7 @@ export const useActivityStore = create<ActivityStore>()(
                     }
 
                     if (!response.ok) {
+                        console.error('[Generate] API Error:', data);
                         set({ isGenerating: false });
                         return { data: null, error: data.error || 'Failed to generate activity' };
                     }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -11,50 +11,88 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight } from 'lucide-react-native';
+import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight, Share } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { ParentGate } from '@/components/ui/ParentGate';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+
+type GateAction = 'delete' | 'add' | 'signout' | null;
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { user, signOut } = useAuthStore();
     const { profiles, deleteProfile } = useProfileStore();
 
-    const handleDeleteProfile = (id: string, name: string) => {
-        Alert.alert(
-            'Delete Profile',
-            `Are you sure you want to delete ${name}'s profile? This will also delete all their activities.`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => {
-                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                        deleteProfile(id);
-                    },
-                },
-            ]
-        );
+    const [gateVisible, setGateVisible] = useState(false);
+    const [pendingAction, setPendingAction] = useState<GateAction>(null);
+    const [pendingProfileId, setPendingProfileId] = useState<string | null>(null);
+
+    const openGate = (action: GateAction, id?: string) => {
+        setPendingAction(action);
+        if (id) setPendingProfileId(id);
+        setGateVisible(true);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     };
 
-    const handleSignOut = () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Sign Out', style: 'destructive', onPress: () => {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                    signOut();
-                }
-            },
-        ]);
+    const handleGateSuccess = () => {
+        setGateVisible(false);
+        setTimeout(() => {
+            if (pendingAction === 'delete' && pendingProfileId) {
+                const profile = profiles.find((p) => p.id === pendingProfileId);
+                Alert.alert(
+                    'Delete Profile',
+                    `Are you sure you want to delete ${profile?.name}'s profile?`,
+                    [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                            text: 'Delete',
+                            style: 'destructive',
+                            onPress: () => {
+                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                                deleteProfile(pendingProfileId);
+                            },
+                        },
+                    ]
+                );
+            } else if (pendingAction === 'add') {
+                router.push('/profile/create');
+            } else if (pendingAction === 'signout') {
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Sign Out', style: 'destructive', onPress: () => {
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                            signOut();
+                        }
+                    },
+                ]);
+            }
+            setPendingAction(null);
+            setPendingProfileId(null);
+        }, 300); // Small delay to allow modal to close smoothly before alert/nav
     };
 
     return (
         <SafeAreaView style={styles.safe}>
+            <ScreenBackground />
+            <ParentGate
+                visible={gateVisible}
+                onClose={() => {
+                    setGateVisible(false);
+                    setPendingAction(null);
+                }}
+                onSuccess={handleGateSuccess}
+                title="Parents Only"
+                description={
+                    pendingAction === 'add' ? 'Solve this to add a new kid.' :
+                        pendingAction === 'delete' ? 'Solve this to manage profiles.' :
+                            'Solve this to access account settings.'
+                }
+            />
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
@@ -93,7 +131,7 @@ export default function SettingsScreen() {
                                         <Edit3 size={18} color={Colors.textSecondary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        onPress={() => handleDeleteProfile(profile.id, profile.name)}
+                                        onPress={() => openGate('delete', profile.id)}
                                     >
                                         <Trash2 size={18} color={Colors.accent} />
                                     </TouchableOpacity>
@@ -105,7 +143,7 @@ export default function SettingsScreen() {
 
                     <TouchableOpacity
                         style={styles.addProfileBtn}
-                        onPress={() => router.push('/profile/create')}
+                        onPress={() => openGate('add')}
                     >
                         <Plus size={18} color={Colors.primary} />
                         <Text style={styles.addProfileText}>Add Kid Profile</Text>
@@ -138,7 +176,7 @@ export default function SettingsScreen() {
                 {/* Sign Out */}
                 <Button
                     title="Sign Out"
-                    onPress={handleSignOut}
+                    onPress={() => openGate('signout')}
                     variant="outline"
                     size="lg"
                     icon={<LogOut size={18} color={Colors.primary} />}
@@ -160,7 +198,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: Spacing.xl,
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing['3xl'],
+        paddingBottom: Spacing.xl,
     },
     header: {
         flexDirection: 'row',
