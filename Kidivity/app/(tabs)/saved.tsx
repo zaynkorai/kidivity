@@ -17,6 +17,7 @@ import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import type { Activity } from '@/types/activity';
@@ -143,6 +144,7 @@ export default function SavedScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
+            <ScreenBackground />
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
@@ -271,7 +273,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: Spacing.xl,
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing['3xl'],
         paddingBottom: Spacing.md,
     },
     headerLeft: {

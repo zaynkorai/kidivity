@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -54,6 +55,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <ScreenBackground />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -317,7 +319,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing['3xl'],
+    paddingBottom: Spacing.xl,
   },
 
   // Header

@@ -29,6 +29,7 @@ import {
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
@@ -157,6 +158,7 @@ export default function ActivityDetailScreen() {
     if (!activity) {
         return (
             <SafeAreaView style={styles.safe}>
+                <ScreenBackground />
                 <View style={styles.centered}>
                     <Search size={48} color={Colors.textSecondary} style={styles.emptyEmoji} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
@@ -231,6 +233,7 @@ export default function ActivityDetailScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
+            <ScreenBackground />
             <GeneratingOverlay visible={isGenerating} />
             {/* Top bar */}
             <View style={styles.topBar}>
@@ -402,17 +405,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.sm,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xl,
+        paddingBottom: Spacing.sm,
     },
     backBtn: {
         padding: Spacing.sm,
+        marginLeft: -Spacing.sm,
     },
     topBarActions: {
         flexDirection: 'row',
         gap: Spacing.sm,
+        marginRight: -Spacing.sm,
     },
     iconBtn: {
         padding: Spacing.sm,
@@ -421,7 +425,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: Spacing.xl,
+        paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.lg,
+        paddingBottom: Spacing.xl,
     },
     metaRow: {
         flexDirection: 'row',
