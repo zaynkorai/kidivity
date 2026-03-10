@@ -105,12 +105,16 @@ export const Radius = {
 export const Fonts = Platform.select({
   ios: {
     sans: 'Poppins_400Regular',
+    medium: 'Poppins_500Medium',
+    bold: 'Poppins_700Bold',
     serif: 'Georgia',
     rounded: 'Poppins_500Medium',
     mono: 'Menlo',
   },
   default: {
     sans: 'Poppins_400Regular',
+    medium: 'Poppins_500Medium',
+    bold: 'Poppins_700Bold',
     serif: 'serif',
     rounded: 'Poppins_500Medium',
     mono: 'monospace',

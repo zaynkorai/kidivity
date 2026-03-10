@@ -15,6 +15,10 @@ interface RateLimitState {
 interface ActivityState {
     recentActivities: Activity[];
     savedActivities: Activity[];
+    kidStats: Record<
+        string,
+        { total: number; saved: number; weekCount: number; lastCreatedAt: string | null }
+    >;
     isGenerating: boolean;
     isLoading: boolean;
     rateLimitState: RateLimitState;
@@ -23,6 +27,7 @@ interface ActivityState {
 interface ActivityActions {
     fetchRecent: () => Promise<void>;
     fetchSaved: () => Promise<void>;
+    fetchKidStats: (kidProfileId: string) => Promise<void>;
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
@@ -38,6 +43,7 @@ export const useActivityStore = create<ActivityStore>()(
         (set, get) => ({
             recentActivities: [],
             savedActivities: [],
+            kidStats: {},
             isGenerating: false,
             isLoading: false,
             rateLimitState: DEFAULT_RATE_LIMIT,
@@ -83,6 +89,49 @@ export const useActivityStore = create<ActivityStore>()(
                     }
                 } finally {
                     set({ isLoading: false });
+                }
+            },
+
+            fetchKidStats: async (kidProfileId) => {
+                try {
+                    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+                    const [totalRes, savedRes, weekRes, lastRes] = await Promise.all([
+                        supabase
+                            .from('activities')
+                            .select('id', { count: 'exact', head: true })
+                            .eq('kid_profile_id', kidProfileId),
+                        supabase
+                            .from('activities')
+                            .select('id', { count: 'exact', head: true })
+                            .eq('kid_profile_id', kidProfileId)
+                            .eq('is_saved', true),
+                        supabase
+                            .from('activities')
+                            .select('id', { count: 'exact', head: true })
+                            .eq('kid_profile_id', kidProfileId)
+                            .gte('created_at', weekAgo),
+                        supabase
+                            .from('activities')
+                            .select('created_at')
+                            .eq('kid_profile_id', kidProfileId)
+                            .order('created_at', { ascending: false })
+                            .limit(1),
+                    ]);
+
+                    const total = totalRes.count ?? 0;
+                    const saved = savedRes.count ?? 0;
+                    const weekCount = weekRes.count ?? 0;
+                    const lastCreatedAt = lastRes.data?.[0]?.created_at ?? null;
+
+                    set({
+                        kidStats: {
+                            ...get().kidStats,
+                            [kidProfileId]: { total, saved, weekCount, lastCreatedAt },
+                        },
+                    });
+                } catch {
+                    // Non-critical: home can still render without stats.
                 }
             },
 

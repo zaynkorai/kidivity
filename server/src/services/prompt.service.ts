@@ -193,7 +193,7 @@ ${layoutInstruction}
 ${tracingInstruction}
 6. Keep lines simple, bold, and distinct.
 7. NO TEXT OR LETTERS: ABSOLUTELY NO WORDS, NUMBERS, OR CURSIVE SCRIPT in the image. The AI text engine will handle the text separately. 
-8. **FINAL CHECK**: Ensure the background is PURE WHITE (#FFFFFF) with NO texture, gradient, or grey tint. Do not draw a physical page or frame.
+8. FINAL CHECK: Ensure the background is PURE WHITE (#FFFFFF) with NO texture, gradient, or grey tint. Do not draw a physical page or frame.
 Constraints: No shading or gradients to ensure maximum clarity on printing.`;
 
     return imagePrompt;

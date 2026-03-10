@@ -1,18 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-
-  RefreshControl,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, ChevronRight, Palette, Wand2, Star, Award, CheckCircle, Sun, Sunset, Moon, TrendingUp } from 'lucide-react-native';
+import { Plus, Wand2, Sun, Sunset, Moon, Bookmark, Clock } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -23,35 +15,58 @@ import { ScreenBackground } from '@/components/ui/ScreenBackground';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning!';
-  if (hour < 18) return 'Good afternoon!';
-  return 'Good evening!';
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
 function getGreetingIcon() {
   const hour = new Date().getHours();
-  if (hour < 12) return <Sun size={28} color={Colors.categoryReading} />;
-  if (hour < 18) return <Sunset size={28} color={Colors.categoryMath} />;
-  return <Moon size={28} color={Colors.primaryLight} />;
+  if (hour < 12) return <Sun size={18} color={Colors.primary} />;
+  if (hour < 18) return <Sunset size={18} color={Colors.primary} />;
+  return <Moon size={18} color={Colors.primary} />;
+}
+
+function formatShortDate(dateIso: string): string {
+  const d = new Date(dateIso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 export default function HomeScreen() {
   const router = useRouter();
   const { profiles, activeProfileId, setActiveProfile, fetchProfiles } = useProfileStore();
-  const { recentActivities, fetchRecent } = useActivityStore();
-  const activeProfile = profiles.find((p) => p.id === activeProfileId);
+  const { recentActivities, kidStats, fetchRecent, fetchKidStats } = useActivityStore();
   const [refreshing, setRefreshing] = useState(false);
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId);
+  const stats = activeProfileId ? kidStats[activeProfileId] : undefined;
 
   useEffect(() => {
     fetchProfiles();
     fetchRecent();
-  }, []);
+  }, [fetchProfiles, fetchRecent]);
+
+  useEffect(() => {
+    if (!activeProfileId) return;
+    fetchKidStats(activeProfileId);
+  }, [activeProfileId, fetchKidStats]);
+
+  const visibleActivities = useMemo(() => {
+    if (!activeProfileId) return recentActivities;
+    return recentActivities.filter((a) => a.kid_profile_id === activeProfileId);
+  }, [activeProfileId, recentActivities]);
+
+  const lastActivity = visibleActivities[0];
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([fetchProfiles(), fetchRecent()]);
+    await Promise.all([
+      fetchProfiles(),
+      fetchRecent(),
+      activeProfileId ? fetchKidStats(activeProfileId) : Promise.resolve(),
+    ]);
     setRefreshing(false);
-  }, []);
+  }, [activeProfileId, fetchKidStats, fetchProfiles, fetchRecent]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -68,27 +83,29 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Header */}
         <View style={styles.header}>
-          <View>
-            <View style={styles.greetingRow}>
-              {getGreetingIcon()}
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-            </View>
-            <Text style={styles.subtitle}>
-              {activeProfile
-                ? `Activities for ${activeProfile.name}`
-                : 'Add a kid to get started'}
-            </Text>
+          <View style={styles.greetingRow}>
+            {getGreetingIcon()}
+            <Text style={styles.greeting}>{getGreeting()}</Text>
           </View>
+          <Text style={styles.title}>
+            {activeProfile ? `Today for ${activeProfile.name}` : 'Start with a kid profile'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {activeProfile
+              ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
+              : 'Add a profile to generate your first printable activity.'}
+          </Text>
         </View>
 
-        {/* Kid Profile Switcher */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.profileList}
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.profileList}>
+          <TouchableOpacity onPress={() => router.push('/profile/create')} style={styles.addKidChip} activeOpacity={0.85}>
+            <View style={styles.addKidIcon}>
+              <Plus size={16} color={Colors.primary} />
+            </View>
+            <Text style={styles.addKidText}>Add Kid</Text>
+          </TouchableOpacity>
+
           {profiles.map((profile) => (
             <TouchableOpacity
               key={profile.id}
@@ -100,144 +117,141 @@ export default function HomeScreen() {
                 styles.profileChip,
                 profile.id === activeProfileId && styles.profileChipActive,
               ]}
+              activeOpacity={0.85}
             >
               <View
                 style={[
                   styles.profileAvatar,
                   { backgroundColor: profile.avatar_color },
+                  profile.id === activeProfileId && styles.profileAvatarActive,
                 ]}
               >
-                <Text style={styles.profileInitial}>
-                  {profile.name.charAt(0).toUpperCase()}
+                <Text style={styles.profileInitial}>{profile.name.charAt(0).toUpperCase()}</Text>
+              </View>
+              <View style={{ flexShrink: 1 }}>
+                <Text style={styles.profileName} numberOfLines={1}>
+                  {profile.name}
+                </Text>
+                <Text style={styles.profileMeta} numberOfLines={1}>
+                  {profile.age}yo · {profile.grade_level}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.profileName,
-                  profile.id === activeProfileId && styles.profileNameActive,
-                ]}
-              >
-                {profile.name}
-              </Text>
             </TouchableOpacity>
           ))}
-
-          {/* Add Kid Button */}
-          <TouchableOpacity
-            onPress={() => router.push('/profile/create')}
-            style={styles.addKidChip}
-          >
-            <View style={styles.addKidIcon}>
-              <Plus size={16} color={Colors.primary} />
-            </View>
-            <Text style={styles.addKidText}>Add Kid</Text>
-          </TouchableOpacity>
         </ScrollView>
 
-        {/* Parent Insight */}
-        {activeProfile && (
-          <View style={styles.insightCard}>
-            <View style={styles.insightIconWrap}>
-              <TrendingUp size={20} color={Colors.white} />
-            </View>
-            <View style={styles.insightTextWrap}>
-              <Text style={styles.insightTitle}>Parent Insight</Text>
-              <Text style={styles.insightText}>
-                {activeProfile.name} is building consistent learning habits. They are on a {Math.floor((activeProfile.activity_count || 0) / 3) + 1}-day streak!
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Hero Generate CTA */}
         <TouchableOpacity
-          style={styles.generateCta}
           activeOpacity={0.9}
           onPress={() => {
             router.push('/(tabs)/generate');
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }}
         >
-          <View style={styles.generateCtaContent}>
-            <View style={styles.generateIconContainer}>
-              <Wand2 size={32} color={Colors.categoryMath} />
+          <Card variant="elevated" style={styles.heroCard}>
+            <View style={styles.heroHeader}>
+              <View style={styles.heroIcon}>
+                <Wand2 size={20} color={Colors.white} />
+              </View>
+              <View style={styles.heroText}>
+                <Text style={styles.heroTitle}>Generate an activity</Text>
+                <Text style={styles.heroSubtitle}>Print-ready worksheets, tailored to your kid.</Text>
+              </View>
             </View>
-            <View style={styles.generateCtaText}>
-              <Text style={styles.generateCtaTitle}>Unlock Today's Quest</Text>
-              <Text style={styles.generateCtaSubtitle}>
-                A personalized challenge awaits {activeProfile ? activeProfile.name : 'your child'}!
-              </Text>
+
+            <View style={styles.heroActions}>
+              <TouchableOpacity
+                style={styles.heroAction}
+                activeOpacity={0.85}
+                onPress={() => router.push('/(tabs)/saved')}
+              >
+                <Bookmark size={16} color={Colors.primary} />
+                <Text style={styles.heroActionText}>Saved</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.heroAction, !lastActivity && styles.heroActionDisabled]}
+                activeOpacity={0.85}
+                disabled={!lastActivity}
+                onPress={() => {
+                  if (!lastActivity) return;
+                  router.push(`/activity/${lastActivity.id}` as any);
+                }}
+              >
+                <Clock size={16} color={Colors.primary} />
+                <Text style={styles.heroActionText}>Open last</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          </Card>
         </TouchableOpacity>
 
-        {/* Player Stats Dashboard */}
         {activeProfile && (
-          <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle}>Daily Goals</Text>
-            <View style={styles.statsRow}>
-              <View style={[styles.statCard, { backgroundColor: Colors.categoryMath + '15', borderColor: Colors.categoryMath + '30' }]}>
-                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryMath + '20' }]}>
-                  <Award size={20} color={Colors.categoryMath} />
-                </View>
-                <Text style={styles.statValue}>Lvl {Math.floor((activeProfile.activity_count || 0) / 3) + 1}</Text>
-                <Text style={styles.statLabel}>Explorer Rank</Text>
+          <View style={styles.snapshot}>
+            <Text style={styles.sectionTitle}>Snapshot</Text>
+            <View style={styles.snapshotRow}>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricValue}>{stats ? stats.total : '—'}</Text>
+                <Text style={styles.metricLabel}>Activities</Text>
               </View>
-              <View style={[styles.statCard, { backgroundColor: Colors.categoryArt + '15', borderColor: Colors.categoryArt + '30' }]}>
-                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryArt + '20' }]}>
-                  <Star size={20} color={'#F59E0B'} />
-                </View>
-                <Text style={styles.statValue}>{(activeProfile.activity_count || 0) * 10}</Text>
-                <Text style={styles.statLabel}>Total XP</Text>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricValue}>{stats ? stats.weekCount : '—'}</Text>
+                <Text style={styles.metricLabel}>This week</Text>
               </View>
-              <View style={[styles.statCard, { backgroundColor: Colors.categoryScience + '15', borderColor: Colors.categoryScience + '30' }]}>
-                <View style={[styles.statIconWrap, { backgroundColor: Colors.categoryScience + '20' }]}>
-                  <CheckCircle size={20} color={Colors.categoryScience} />
-                </View>
-                <Text style={styles.statValue}>{activeProfile.activity_count || 0}</Text>
-                <Text style={styles.statLabel}>Quests Done</Text>
+              <View style={styles.metricCard}>
+                <Text style={styles.metricValue}>{stats ? stats.saved : '—'}</Text>
+                <Text style={styles.metricLabel}>Saved</Text>
               </View>
+            </View>
+            <View style={styles.lastMadeRow}>
+              <Clock size={14} color={Colors.textTertiary} />
+              <Text style={styles.lastMadeText}>
+                {stats?.lastCreatedAt ? `Last generated: ${formatShortDate(stats.lastCreatedAt)}` : 'No activities yet'}
+              </Text>
             </View>
           </View>
         )}
 
-        {/* Category Quick Access */}
-        <Text style={styles.sectionTitle}>Explore Categories</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryScroll}
-          style={{ marginBottom: Spacing['2xl'] }}
-        >
+        <Text style={styles.sectionTitle}>Explore categories</Text>
+        <View style={styles.categoryGrid}>
           {ACTIVITY_CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
               <TouchableOpacity
                 key={cat.id}
-                style={[styles.categoryPill, { borderColor: cat.color + '30', backgroundColor: cat.color + '10' }]}
-                activeOpacity={0.8}
-                onPress={() => router.push('/(tabs)/generate')}
+                style={[
+                  styles.categoryTile,
+                  { borderColor: cat.color + '33', backgroundColor: cat.color + '12' },
+                ]}
+                activeOpacity={0.85}
+                onPress={() => {
+                  router.push({ pathname: '/(tabs)/generate', params: { category: cat.id } } as any);
+                  Haptics.selectionAsync();
+                }}
               >
-                <View style={[styles.categoryPillIcon, { backgroundColor: cat.color }]}>
-                  <Icon size={16} color={Colors.white} />
+                <View style={[styles.categoryTileIcon, { backgroundColor: cat.color }]}>
+                  <Icon size={18} color={Colors.white} />
                 </View>
-                <Text style={styles.categoryPillLabel}>{cat.label}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.categoryTileLabel} numberOfLines={1}>
+                    {cat.label}
+                  </Text>
+                  <Text style={styles.categoryTileSub} numberOfLines={1}>
+                    {cat.description}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
-        </ScrollView>
+        </View>
 
-        {/* Recent Activities */}
-        <Text style={styles.sectionTitle}>Recent Quests</Text>
-        {recentActivities.length === 0 ? (
+        <Text style={styles.sectionTitle}>Recent activities</Text>
+        {visibleActivities.length === 0 ? (
           <Card variant="outlined" style={styles.emptyState}>
-            <Palette size={48} color={Colors.textTertiary} style={{ marginBottom: Spacing.md }} />
-            <Text style={styles.emptyTitle}>No activities yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Generate your first activity to see it here!
-            </Text>
+            <View style={styles.emptyIcon}>
+              <Wand2 size={20} color={Colors.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>Nothing here yet</Text>
+            <Text style={styles.emptySubtitle}>Generate an activity and it will appear here for quick reprint.</Text>
             <Button
-              title="Create Activity"
+              title="Generate activity"
               onPress={() => router.push('/(tabs)/generate')}
               variant="primary"
               size="sm"
@@ -245,43 +259,34 @@ export default function HomeScreen() {
             />
           </Card>
         ) : (
-          recentActivities.slice(0, 5).map((activity) => {
+          visibleActivities.slice(0, 5).map((activity) => {
             const cat = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
             const catColor = cat?.color ?? Colors.primaryLight;
-            const Icon = cat?.icon ?? Star;
+            const Icon = cat?.icon ?? Wand2;
 
             return (
               <TouchableOpacity
                 key={activity.id}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
                 onPress={() => router.push(`/activity/${activity.id}` as any)}
               >
-                <Card variant="elevated" style={[styles.activityCard, { borderColor: catColor + '30', borderWidth: 1 }]}>
-                  <View style={styles.activityHeader}>
-                    <View
-                      style={[
-                        styles.activityBadge,
-                        {
-                          backgroundColor: catColor + '15',
-                        },
-                      ]}
-                    >
-                      <Icon size={14} color={catColor} />
-                      <Text style={[styles.activityBadgeText, { color: catColor }]}>{cat?.label ?? 'Activity'}</Text>
-                    </View>
-                    <Text style={styles.activityDate}>
-                      {new Date(activity.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </Text>
-                  </View>
+                <Card variant="outlined" style={[styles.activityCard, { borderColor: catColor + '26' }]}>
                   <View style={styles.activityContent}>
                     <View style={styles.activityTextContent}>
+                      <View style={styles.activityMetaRow}>
+                        <View style={[styles.activityDot, { backgroundColor: catColor }]} />
+                        <Text style={styles.activityMetaText} numberOfLines={1}>
+                          {cat?.label ?? 'Activity'} · {formatShortDate(activity.created_at)}
+                        </Text>
+                      </View>
                       <Text style={styles.activityTopic} numberOfLines={1}>
-                        {activity.topic || 'New Discovery'}
+                        {activity.topic || 'Activity'}
                       </Text>
                       <Text style={styles.activityPreview} numberOfLines={2}>
                         {activity.content.replace(/[#*_~]/g, '').trim()}
                       </Text>
                     </View>
+
                     {activity.image_url ? (
                       <Image
                         source={{ uri: activity.image_url }}
@@ -290,8 +295,14 @@ export default function HomeScreen() {
                         transition={300}
                       />
                     ) : (
-                      <View style={[styles.activityThumbnail, styles.activityThumbnailPlaceholder, { backgroundColor: catColor + '10', borderColor: catColor + '20' }]}>
-                        <Wand2 size={24} color={catColor} />
+                      <View
+                        style={[
+                          styles.activityThumbnail,
+                          styles.activityThumbnailPlaceholder,
+                          { backgroundColor: catColor + '10', borderColor: catColor + '20' },
+                        ]}
+                      >
+                        <Icon size={20} color={catColor} />
                       </View>
                     )}
                   </View>
@@ -317,31 +328,37 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing['3xl'],
+    paddingTop: Spacing['2xl'],
     paddingBottom: Spacing.xl,
   },
 
-  // Header
   header: {
     marginBottom: Spacing.xl,
   },
   greetingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   greeting: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textPrimary,
+  },
+  title: {
     fontSize: FontSize['3xl'],
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
+    lineHeight: 22,
   },
 
-  // Profile Switcher
   profileList: {
     gap: Spacing.sm,
     paddingBottom: Spacing.lg,
@@ -356,17 +373,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1.5,
     borderColor: Colors.border,
+    ...Shadows.sm,
   },
   profileChipActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary + '10',
+    borderColor: Colors.primary + '55',
   },
   profileAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  profileAvatarActive: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   profileInitial: {
     fontSize: FontSize.sm,
@@ -375,12 +396,15 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
-    color: Colors.textSecondary,
+    fontWeight: FontWeight.semibold,
+    color: Colors.textPrimary,
   },
-  profileNameActive: {
-    color: Colors.primary,
+  profileMeta: {
+    fontSize: FontSize.xs,
+    color: Colors.textTertiary,
+    marginTop: 1,
   },
+
   addKidChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,168 +415,176 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.primary + '40',
     borderStyle: 'dashed',
+    backgroundColor: Colors.surface,
   },
   addKidIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primary + '15',
   },
   addKidText: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
     color: Colors.primary,
   },
 
-  // Insight
-  insightCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    padding: Spacing.lg,
-    borderRadius: Radius.lg,
+  heroCard: {
+    borderRadius: Radius['2xl'],
     borderWidth: 1,
     borderColor: Colors.border,
     marginBottom: Spacing.xl,
-    gap: Spacing.md,
-    alignItems: 'center',
   },
-  insightIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  heroIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.sm,
   },
-  insightTextWrap: {
+  heroText: {
     flex: 1,
   },
-  insightTitle: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.bold,
-    color: Colors.primaryDark,
-    marginBottom: 2,
-  },
-  insightText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-
-  // Generate CTA
-  generateCta: {
-    backgroundColor: Colors.categoryMath,
-    borderRadius: Radius['2xl'],
-    padding: Spacing['2xl'],
-    marginBottom: Spacing['2xl'],
-    ...Shadows.lg,
-  },
-  generateCtaContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-  },
-  generateIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.md,
-  },
-  generateCtaText: {
-    flex: 1,
-  },
-  generateCtaTitle: {
+  heroTitle: {
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
-  generateCtaSubtitle: {
+  heroSubtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    marginTop: 4,
-    flexShrink: 1,
-  },
-
-  // Stats Row
-  statsSection: {
-    marginBottom: Spacing['2xl'],
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    padding: Spacing.md,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  statIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  statValue: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-  },
-  statLabel: {
-    fontSize: FontSize.xs,
-    color: Colors.textSecondary,
-    fontWeight: FontWeight.medium,
     marginTop: 2,
   },
+  heroActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  heroAction: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.primary + '10',
+    borderWidth: 1,
+    borderColor: Colors.primary + '22',
+  },
+  heroActionDisabled: {
+    opacity: 0.55,
+  },
+  heroActionText: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semibold,
+    color: Colors.primaryDark,
+  },
 
-  // Section
+  snapshot: {
+    marginBottom: Spacing['2xl'],
+  },
   sectionTitle: {
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     marginBottom: Spacing.md,
   },
-
-  // Categories Scroll
-  categoryScroll: {
+  snapshotRow: {
+    flexDirection: 'row',
     gap: Spacing.sm,
-    paddingRight: Spacing.xl, // For nice scroll bleeding
   },
-  categoryPill: {
+  metricCard: {
+    flex: 1,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.sm,
+  },
+  metricValue: {
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+  },
+  metricLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: FontWeight.medium,
+    marginTop: 2,
+  },
+  lastMadeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    gap: Spacing.sm,
+    gap: 8,
+    marginTop: Spacing.sm,
   },
-  categoryPillIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  lastMadeText: {
+    fontSize: FontSize.xs,
+    color: Colors.textTertiary,
+    fontWeight: FontWeight.medium,
+  },
+
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing['2xl'],
+  },
+  categoryTile: {
+    width: '48.5%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    backgroundColor: Colors.surface,
+  },
+  categoryTileIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Shadows.sm,
   },
-  categoryPillLabel: {
+  categoryTileLabel: {
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
     color: Colors.textPrimary,
   },
+  categoryTileSub: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
 
-  // Empty State
   emptyState: {
     alignItems: 'center',
-    paddingVertical: Spacing['4xl'],
+    paddingVertical: Spacing['3xl'],
+  },
+  emptyIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '12',
+    borderWidth: 1,
+    borderColor: Colors.primary + '22',
+    marginBottom: Spacing.md,
   },
   emptyTitle: {
     fontSize: FontSize.lg,
@@ -566,32 +598,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
 
-  // Activity Cards
   activityCard: {
     marginBottom: Spacing.md,
-  },
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  activityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-  },
-  activityBadgeText: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.bold,
-  },
-  activityDate: {
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
-    color: Colors.textTertiary,
   },
   activityContent: {
     flexDirection: 'row',
@@ -601,11 +609,32 @@ const styles = StyleSheet.create({
   activityTextContent: {
     flex: 1,
   },
+  activityMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  activityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  activityMetaText: {
+    fontSize: FontSize.xs,
+    color: Colors.textTertiary,
+    fontWeight: FontWeight.medium,
+  },
   activityTopic: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     marginBottom: 4,
+  },
+  activityPreview: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   activityThumbnail: {
     width: 72,
@@ -618,10 +647,5 @@ const styles = StyleSheet.create({
   activityThumbnailPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  activityPreview: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
   },
 });

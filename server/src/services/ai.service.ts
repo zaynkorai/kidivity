@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { GoogleGenAI, Modality, Type, Schema } from '@google/genai';
 import type { FastifyBaseLogger } from 'fastify';
 
 interface GenerateActivityParams {
@@ -140,16 +140,58 @@ export async function generateActivityContent({
     if (isVisualCategory && buildImagePrompt && dynamicImagePrompt) {
         try {
             const finalImagePrompt = buildImagePrompt(dynamicImagePrompt);
-            const res = await ai.models.generateContent({
-                model: 'gemini-2.5-flash-image',
-                contents: {
-                    parts: [{ text: finalImagePrompt }],
+            const promptPreview = finalImagePrompt.slice(0, 400);
+
+            // Prefer Gemini multimodal generation first.
+            try {
+                const res = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash-image',
+                    contents: finalImagePrompt,
+                    config: { responseModalities: [Modality.IMAGE] },
+                });
+
+                const parts = res.candidates?.[0]?.content?.parts || [];
+                for (const part of parts) {
+                    if (part.inlineData?.data) {
+                        const mimeType = part.inlineData.mimeType || 'image/png';
+                        image_url = `data:${mimeType};base64,${part.inlineData.data}`;
+                        break;
+                    }
                 }
-            });
-            for (const part of res.candidates?.[0]?.content?.parts || []) {
-                if (part.inlineData) {
-                    image_url = `data:image/png;base64,${part.inlineData.data}`;
-                    break;
+
+                if (!image_url) {
+                    const textParts = parts
+                        .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
+                        .filter(Boolean)
+                        .join('\n')
+                        .slice(0, 400);
+                    logger.warn(
+                        { promptPreview, textPartsPreview: textParts },
+                        'Image model returned no inline image data'
+                    );
+                }
+            } catch (err: any) {
+                logger.error({ err, promptPreview }, 'Gemini image generation failed');
+            }
+
+            // Fallback to Imagen if Gemini returns no inline image.
+            if (!image_url) {
+                const img = await ai.models.generateImages({
+                    model: 'imagen-4.0-generate-001',
+                    prompt: finalImagePrompt,
+                    config: { numberOfImages: 1 },
+                });
+
+                const first = img.generatedImages?.[0];
+                const bytes = first?.image?.imageBytes;
+                if (bytes) {
+                    const mimeType = first?.image?.mimeType || 'image/png';
+                    image_url = `data:${mimeType};base64,${bytes}`;
+                } else {
+                    logger.warn(
+                        { promptPreview, raiFilteredReason: first?.raiFilteredReason },
+                        'Imagen returned no image bytes'
+                    );
                 }
             }
         } catch (err: any) {

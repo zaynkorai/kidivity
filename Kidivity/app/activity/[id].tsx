@@ -36,21 +36,46 @@ import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 
 const VISUAL_CATEGORIES = new Set(['tracing', 'drawings', 'logic', 'educational', 'math', 'coloring', 'story']);
 
+function normalizeActivityContent(raw: string) {
+    let text = raw ?? '';
+    const trimmed = text.trim();
+
+    try {
+        if (
+            (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+            trimmed.startsWith('{') ||
+            trimmed.startsWith('[')
+        ) {
+            const parsed = JSON.parse(trimmed);
+            if (typeof parsed === 'string') {
+                text = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+                const obj = parsed as Record<string, unknown>;
+                const title = typeof obj.title === 'string' ? obj.title : '';
+                const instructions = typeof obj.instructions === 'string' ? obj.instructions : '';
+                const content = typeof obj.content === 'string' ? obj.content : '';
+                if (title || instructions || content) {
+                    text = `${title ? `# ${title}\n\n` : ''}${instructions ? `${instructions}\n\n` : ''}${content}`;
+                }
+            }
+        }
+    } catch {
+        // ignore
+    }
+
+    // Handle double-escaped newlines coming from storage/API (e.g. "\\n" instead of "\n").
+    // Keep this narrow to avoid unexpectedly changing other escape sequences.
+    if (text.includes('\\n') || text.includes('\\r\\n')) {
+        text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
+    }
+
+    return text;
+}
+
 /** Simple markdown-ish renderer: handles #, ##, ###, **, *, -, numbered lists */
 function MarkdownContent({ content }: { content: string }) {
     const elements = useMemo(() => {
-        // Fallback: If the content is accidentally stored as pure JSON string due to API failure 
-        // to parse markdown block, try to parse it and format it gracefully.
-        let safeContent = content;
-        try {
-            if (safeContent.trim().startsWith('{')) {
-                const parsed = JSON.parse(safeContent);
-                if (parsed.title && parsed.content) {
-                    safeContent = `# ${parsed.title}\n\n${parsed.instructions || ''}\n\n${parsed.content}`;
-                }
-            }
-        } catch (e) { /* ignore and render normal content */ }
-
+        const safeContent = normalizeActivityContent(content);
         const lines = safeContent.split('\n');
         const result: React.ReactElement[] = [];
 
@@ -60,6 +85,8 @@ function MarkdownContent({ content }: { content: string }) {
                 result.push(<View key={idx} style={{ height: 8 }} />);
                 return;
             }
+
+            const boldLine = trimmed.match(/^\*\*(.+)\*\*$/)?.[1]?.trim();
 
             // Headings
             if (trimmed.startsWith('### ')) {
@@ -78,6 +105,25 @@ function MarkdownContent({ content }: { content: string }) {
                 result.push(
                     <Text key={idx} style={mdStyles.h1}>
                         {trimmed.slice(2)}
+                    </Text>
+                );
+            }
+            // Blockquote
+            else if (trimmed.startsWith('>')) {
+                const quote = trimmed.replace(/^>\s?/, '').trim();
+                result.push(
+                    <View key={idx} style={mdStyles.blockquote}>
+                        <Text style={mdStyles.blockquoteText}>{renderInline(quote)}</Text>
+                    </View>
+                );
+            }
+            // Fully-bold line (common for prompt sections)
+            else if (boldLine) {
+                const isShort = boldLine.length <= 60;
+                const isNumbered = /^\d+\.\s/.test(boldLine);
+                result.push(
+                    <Text key={idx} style={(isNumbered || isShort) ? mdStyles.h3 : mdStyles.paragraph}>
+                        {renderInline(trimmed)}
                     </Text>
                 );
             }
@@ -623,5 +669,19 @@ const mdStyles = StyleSheet.create({
         height: 1,
         backgroundColor: Colors.border,
         marginVertical: Spacing.md,
+    },
+    blockquote: {
+        backgroundColor: Colors.primaryLight + '55',
+        borderLeftWidth: 3,
+        borderLeftColor: Colors.primaryPurple,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: Radius.sm,
+        marginBottom: Spacing.sm,
+    },
+    blockquoteText: {
+        fontSize: FontSize.md,
+        color: Colors.textPrimary,
+        lineHeight: 24,
     },
 });
