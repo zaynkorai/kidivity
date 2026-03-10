@@ -38,7 +38,7 @@
 
 ### 3.2 Activity Generation
 **User Stories:**
-- As a parent, I can select a category (Logic, Tracing, Educational, Screen-Free) and specify a topic
+- As a parent, I can select a category (Puzzles, Tracing, Science, Art, Math, Reading) and specify a topic
 - As a parent, I can choose the difficulty level (Easy, Medium, Hard)
 - As a parent, I can choose between B&W (print-ready) or Colorful visual styles
 - As a parent, I can regenerate an activity if I don't like the result
@@ -47,13 +47,12 @@
 **Categories Explained:**
 | **Category** | **What It Produces** | **Example** |
 |---|---|---|
-| **Logic** | Puzzles, patterns, matching | "Find the pattern: 🌟⭐🌟⭐__" |
-| **Tracing** | Letter/shape tracing sheets | Dotted uppercase A with arrows |
-| **Educational** | Facts, quizzes, reading prompts | "3 fun facts about dinosaurs + quiz" |
-| **Drawings** | Step-by-step drawing & art | "Draw a rocket ship step-by-step" |
-| **Math** | Counting, addition & math games | "Count the 5 apples and add 2 more" |
-| **Coloring** | Beautiful color-in artwork | High-contrast B&W coloring page |
-| **Story** | Short tales & reading skills | "A short story about a brave little toaster" |
+| **Puzzles & Logic** | Mazes, matching, sorting | "Match each animal to its habitat" |
+| **Letters & Tracing** | Letter/shape tracing sheets | Dotted uppercase A with arrows |
+| **Science & Discovery** | Facts, experiments, discovery prompts | "3 fun facts about dinosaurs + a mini experiment" |
+| **Art & Creation** | Drawing, coloring, simple crafts | "Draw a rocket ship step-by-step" |
+| **Math & Numbers** | Counting, addition & math games | "Count the 5 apples and add 2 more" |
+| **Reading & Stories** | Short tales & reading skills | "A short story about a brave little toaster" |
 
 ### 3.3 Activity Display & Printing
 **User Stories:**

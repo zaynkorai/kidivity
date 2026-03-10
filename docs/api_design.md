@@ -19,7 +19,7 @@ The Kidivity project transitioned from **Supabase Edge Functions** to a custom *
 ```typescript
 interface GenerateActivityRequest {
   kid_profile_id: string;      // UUID of the kid
-  category: 'logic' | 'tracing' | 'educational' | 'screen-free' | 'math' | 'coloring' | 'story';
+  category: 'puzzles' | 'tracing' | 'science' | 'art' | 'math' | 'reading';
   topic: string;               // e.g. "Dinosaurs"
   difficulty: 'easy' | 'medium' | 'hard';
   style: 'bw' | 'colorful';
@@ -128,11 +128,11 @@ Difficulty: {difficulty}
 
 ### Category-Specific Prompts
 
-**Logic:**
+**Puzzles:**
 ```
-Create a {difficulty} logic puzzle about "{topic}" for a {age}-year-old ({grade_level}).
+Create a {difficulty} puzzle activity about "{topic}" for a {age}-year-old ({grade_level}).
 Include: the puzzle, clear instructions, and the answer key at the bottom.
-Types: pattern recognition, sequencing, matching, simple deduction.
+Types: mazes, matching, sorting, pattern recognition, simple deduction.
 ```
 
 **Tracing:**
@@ -142,18 +142,17 @@ Include: letters or shapes to trace, dotted guidelines, and a fun illustration d
 Describe the layout so it can be hand-drawn or generated as an image.
 ```
 
-**Educational:**
+**Science:**
 ```
-Create a {difficulty} educational activity about "{topic}" for a {age}-year-old ({grade_level}).
-Include: 3-5 fun facts, a short reading passage, and a mini quiz (3 questions).
-Make it engaging and spark curiosity.
+Create a {difficulty} science discovery activity about "{topic}" for a {age}-year-old ({grade_level}).
+Include: how it works (simple explanation), a mini experiment without special equipment, and amazing science facts.
 ```
 
-**Drawings:**
+**Art:**
 ```
-Create a {difficulty} hands-on drawing and art project about "{topic}" for a {age}-year-old ({grade_level}).
-Include: materials needed (art supplies), step-by-step drawing instructions,
-and fine motor skill outcomes. Should take 15-30 minutes.
+Create a {difficulty} art creation activity about "{topic}" for a {age}-year-old ({grade_level}).
+Choose one: step-by-step drawing, a coloring page prompt, or a simple craft using common materials.
+Include: materials needed (if any), clear steps, and what the final result should look like.
 ```
 
 **Math:**
@@ -163,23 +162,11 @@ Focus on counting, simple addition, or number logic appropriate for their age.
 Include: 3-4 simple word problems or counting exercises and an answer key.
 ```
 
-**Coloring:**
+**Reading:**
 ```
-Create a short, engaging description for a {difficulty} coloring page about "{topic}" for a {age}-year-old ({grade_level}).
-Include: A fun 2-3 sentence imaginative description of the coloring page and a creative prompt.
-```
-
-**Science:**
-```
-Create a {difficulty} science discovery activity about "{topic}" for a {age}-year-old ({grade_level}).
-Include: How it works (simple explanation), a mini experiment without special equipment, and amazing science facts.
-```
-
-**Story:**
-```
-Create a {difficulty} short story and reading exercise about "{topic}" for a {age}-year-old ({grade_level}).
+Create a {difficulty} reading activity about "{topic}" for a {age}-year-old ({grade_level}).
 The text length and vocabulary must be strictly tailored to this level.
-Include: a 2-3 paragraph short story and 2 reading comprehension questions.
+Include: a short story or passage and 2-3 reading comprehension questions.
 ```
 
 ---

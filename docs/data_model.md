@@ -121,7 +121,7 @@ CREATE TABLE public.activities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     kid_profile_id UUID NOT NULL REFERENCES public.kid_profiles(id) ON DELETE CASCADE,
-    category TEXT NOT NULL CHECK (category IN ('logic', 'tracing', 'educational', 'drawings', 'math', 'coloring', 'story')),
+    category TEXT NOT NULL CHECK (category IN ('puzzles', 'tracing', 'science', 'art', 'math', 'reading')),
     topic TEXT NOT NULL,
     difficulty TEXT NOT NULL DEFAULT 'medium' CHECK (difficulty IN ('easy', 'medium', 'hard')),
     style TEXT NOT NULL DEFAULT 'colorful' CHECK (style IN ('bw', 'colorful')),

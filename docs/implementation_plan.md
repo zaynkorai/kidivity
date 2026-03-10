@@ -37,7 +37,7 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] Create `types/activity.ts` — `Activity`, `GenerateActivityInput`, difficulty/style types
 - [X] Create `constants/grades.ts` — Pre-K through 12th grade enum
 - [X] Create `constants/interests.ts` — 20 interests with emoji labels
-- [X] Create `constants/categories.ts` — 4 activity categories with colors
+- [X] Create `constants/categories.ts` — 6 activity categories with colors
 
 ### 0.4 Design System
 

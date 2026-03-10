@@ -25,7 +25,7 @@ Now that the core loop is functional, we need to focus on retention, community, 
 
 ### Phase 9: The Journey Map & Progress Tracking (Retention)
 - **Weekly Calendar:** A dashboard view allowing parents to schedule downloaded or generated activities across the week.
-- **Activity Tracker:** Mark activities as "Completed" and track a child's progress over time (e.g., "5 Logic puzzles solved this week!").
+- **Activity Tracker:** Mark activities as "Completed" and track a child's progress over time (e.g., "5 puzzle activities completed this week!").
 - **Achievement System:** Simple visual badges (using Lucide icons) for kids when they hit milestones.
 
 ### Phase 10: Advanced Export & Workbooks (Utility)

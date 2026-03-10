@@ -1,34 +1,33 @@
-# Kidivity Categories - Expansion Complete
+# Kidivity Categories - Current
 
 ## 1. Final Integrated Categories
-The Kidivity category engine has been expanded from 4 to 8 distinct pedagogical buckets. "Screen-Free" has been renamed to "Drawings" to better reflect the visual output.
+The Kidivity category engine now uses **6** core buckets aligned to the app constants.
 
 | Category ID | Label | Icon | Focus |
 |---|---|---|---|
-| `logic` | Logic | `Puzzle` | Patterns, matching & deduction |
-| `tracing` | Tracing | `PenTool` | Letters, shapes & pen control |
-| `educational` | Educational | `BookOpen` | Facts, quizzes & reading comprehension |
-| `drawings` | Drawings | `Palette` | Step-by-step art & creative projects |
-| `math` | Math & Numbers | `Calculator` | Counting, addition & simple math |
-| `coloring` | Coloring | `Paintbrush` | High-contrast B&W coloring pages |
-| `story` | Stories & Reading | `Library` | Short tales & reading skills |
+| `puzzles` | Puzzles & Logic | `Puzzle` | Mazes, matching & sorting |
+| `tracing` | Letters & Tracing | `PenTool` | Alphabet, shapes & writing |
+| `science` | Science & Discovery | `FlaskConical` | Animals, space & facts |
+| `art` | Art & Creation | `Palette` | Drawing, coloring & crafts |
+| `math` | Math & Numbers | `Calculator` | Counting, addition & logic |
+| `reading` | Reading & Stories | `BookOpen` | Stories & reading skills |
 
 ---
 
 ## 2. Implementation Summary
 
 ### Frontend (Mobile App)
-- **Constants**: `Kidivity/constants/categories.ts` updated with 8 items.
-- **Theming**: `Kidivity/constants/theme.ts` added 8 unique category colors.
-- **UI Logic**: `Kidivity/app/activity/[id].tsx` updated `VISUAL_CATEGORIES` set to ensure all relevant categories display the generated Hero Image.
+- **Constants**: `Kidivity/constants/categories.ts` aligned to 6 items.
+- **Theming**: `Kidivity/constants/theme.ts` provides category colors per item.
+- **UI Logic**: Activity detail screens render hero visuals for all visual-first categories.
 
 ### Backend (Fastify & AI)
-- **Schema**: `server/src/schemas/activity.schema.ts` now validates all 8 enums via Zod.
-- **Text Engine**: `server/src/services/prompt.service.ts` includes specialized Markdown templates for the new buckets.
-- **Visual Engine**: `server/src/services/prompt.service.ts` updated with layout overrides (e.g., `math` layout enforces countable objects, `coloring` enforces B&W).
+- **Schema**: `server/src/schemas/activity.schema.ts` should validate the 6 category enums.
+- **Text Engine**: `server/src/services/prompt.service.ts` should map prompts to these 6 buckets.
+- **Visual Engine**: `server/src/services/prompt.service.ts` should enforce per-category visual rules (e.g., `math` count accuracy, `art` B&W for print when style is `bw`).
 
 ### Persistence (Supabase)
-- **Migration**: Created `supabase/migrations/004_update_activity_categories.sql` which renames existing data and updates the category check constraint.
+- **Migration**: Category check constraint should match the 6 enums above.
 
 ### Documentation
-- Updated `project_requirements.md`, `api_design.md`, and `data_model.md`.
+- Update `project_requirements.md`, `api_design.md`, and `data_model.md` to reflect the 6 categories.
