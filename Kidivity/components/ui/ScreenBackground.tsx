@@ -4,7 +4,7 @@ import { Triangle, Square, Circle, Cloud, Star } from 'lucide-react-native';
 import { Colors } from '@/constants/theme';
 
 // Opacity for the faint watermark geometric shapes
-const OPACITY = 0.04;
+const OPACITY = 0.20; // Increased significantly to add dynamic texture
 
 export function ScreenBackground() {
     const { width, height } = useWindowDimensions();
