@@ -15,17 +15,68 @@ interface GenerateResult {
     image_url: string | null;
 }
 
+type ActivityResponse = {
+    title: string;
+    instructions: string;
+    content: string;
+    imagePrompt: string;
+};
+
 // Define the schema for text responses exactly as requested
 const activityResponseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    title: { type: Type.STRING },
-    instructions: { type: Type.STRING },
-    content: { type: Type.STRING },
-    imagePrompt: { type: Type.STRING, description: "A detailed prompt for generating an image that perfectly matches the activity content." },
+    title: { type: Type.STRING, description: "Plain title text (no Markdown)." },
+    instructions: { type: Type.STRING, description: "Markdown (no H1). Must start with a single > Parent Note line, then ## Instructions." },
+    content: { type: Type.STRING, description: "Markdown sections (no H1). Print-friendly formatting only." },
+    imagePrompt: { type: Type.STRING, description: "Plain text only (no Markdown). Describe exactly what the illustration should show; mention concrete objects/counts/characters. No text/letters/numbers in the image." },
   },
   required: ["title", "instructions", "content", "imagePrompt"],
 };
+
+function stripCodeFences(text: string): string {
+    let cleanText = text.trim();
+    if (cleanText.startsWith('```')) {
+        cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+    }
+    return cleanText;
+}
+
+function stripH1(markdown: string): string {
+    return markdown
+        .split('\n')
+        .filter((line) => !/^#\s+/.test(line))
+        .join('\n')
+        .trim();
+}
+
+function parseActivityResponse(logger: FastifyBaseLogger, text: string): ActivityResponse {
+    const cleanText = stripCodeFences(text);
+    let parsed: any;
+    try {
+        parsed = JSON.parse(cleanText);
+    } catch (parseErr) {
+        logger.error({ err: parseErr, cleanText }, 'Gemini returned invalid JSON');
+        throw new Error('AI returned an unexpected format. Please try again.');
+    }
+
+    const title = typeof parsed?.title === 'string' ? parsed.title.trim() : '';
+    const instructions = typeof parsed?.instructions === 'string' ? parsed.instructions.trim() : '';
+    const content = typeof parsed?.content === 'string' ? parsed.content.trim() : '';
+    const imagePrompt = typeof parsed?.imagePrompt === 'string' ? parsed.imagePrompt.trim() : '';
+
+    if (!title || !instructions || !content || !imagePrompt) {
+        logger.error({ parsed }, 'Gemini returned JSON missing required fields');
+        throw new Error('AI returned an incomplete response. Please try again.');
+    }
+
+    return {
+        title,
+        instructions: stripH1(instructions),
+        content: stripH1(content),
+        imagePrompt,
+    };
+}
 
 export async function generateActivityContent({
     geminiKey,
@@ -43,39 +94,45 @@ export async function generateActivityContent({
     let markdown = '';
     let dynamicImagePrompt = '';
     
-    try {
-        const res = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: promptText,
-            config: {
-                systemInstruction: sysInstruction,
-                responseMimeType: "application/json",
-                responseSchema: activityResponseSchema,
-            },
-        });
-        
-        const text = res.text;
-        if (!text) throw new Error("No text returned from Gemini");
-        
-        // Strip markdown block formatting if Gemini included it despite application/json mimetype
-        let cleanText = text.trim();
-        if (cleanText.startsWith('```')) {
-            cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-        }
-        let parsed: any;
-        try {
-            parsed = JSON.parse(cleanText);
-        } catch (parseErr) {
-            logger.error({ err: parseErr, cleanText }, 'Gemini returned invalid JSON');
-            throw new Error('AI returned an unexpected format. Please try again.');
-        }
+    let activity: ActivityResponse | null = null;
+    const maxAttempts = 3;
 
-        markdown = `# ${parsed.title}\n\n${parsed.instructions}\n\n${parsed.content}`;
-        dynamicImagePrompt = parsed.imagePrompt;
-    } catch (err: any) {
-        logger.error(err, 'Gemini text error');
-        throw new Error(err.message || 'Unknown error generating activity');
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            const retrySuffix =
+                attempt === 1
+                    ? ''
+                    : '\n\nIMPORTANT: Return ONLY valid JSON matching the schema. Do not include Markdown code fences or any extra text.';
+            const res = await ai.models.generateContent({
+                model: "gemini-3-flash-preview",
+                contents: `${promptText}${retrySuffix}`,
+                config: {
+                    systemInstruction: sysInstruction,
+                    responseMimeType: "application/json",
+                    responseSchema: activityResponseSchema,
+                    temperature: 0.4,
+                },
+            });
+
+            const text = res.text;
+            if (!text) throw new Error("No text returned from Gemini");
+
+            activity = parseActivityResponse(logger, text);
+            break;
+        } catch (err: any) {
+            logger.error({ err, attempt }, 'Gemini text attempt failed');
+            if (attempt === maxAttempts) {
+                throw new Error(err.message || 'Unknown error generating activity');
+            }
+        }
     }
+
+    if (!activity) {
+        throw new Error('AI returned an unexpected format. Please try again.');
+    }
+
+    markdown = `# ${activity.title}\n\n${activity.instructions}\n\n${activity.content}`;
+    dynamicImagePrompt = activity.imagePrompt;
 
     // 2. Generate Image (Sequential)
     let image_url: string | null = null;
