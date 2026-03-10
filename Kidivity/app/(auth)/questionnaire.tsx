@@ -97,7 +97,7 @@ export default function QuestionnaireScreen() {
                     </View>
                     <Text style={styles.transitionTitle}>We've got you covered.</Text>
                     <Text style={styles.transitionSubtitle}>
-                        We specialize in turning mindless screen time into productive, <Text style={{ color: Colors.primary, fontWeight: FontWeight.bold }}>{goalLabel}</Text>.
+                        We specialize in turning mindless screen time into productive, <Text style={{ color: Colors.textPrimary, fontWeight: FontWeight.bold }}>{goalLabel}</Text>.
                     </Text>
                     <Text style={[styles.transitionSubtitle, { marginTop: Spacing.xl }]}>
                         Let's set up your child's profile to get started.
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: FontSize.lg,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         flex: 1,
     },
     optionTextSelected: {
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     backText: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.semibold,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     nextBtn: {
         flex: 0.6,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     },
     transitionSubtitle: {
         fontSize: FontSize.lg,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
         lineHeight: 28,
     },

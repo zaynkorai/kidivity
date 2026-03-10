@@ -120,7 +120,7 @@ export default function SettingsScreen() {
                                     <View>
                                         <Text style={styles.profileName}>{profile.name}</Text>
                                         <Text style={styles.profileMeta}>
-                                            {profile.age}yo · {profile.grade_level} · {profile.interests.length} interests
+                                            {profile.age}yo · {profile.grade_level}
                                         </Text>
                                     </View>
                                 </View>
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
                                     <TouchableOpacity
                                         onPress={() => router.push(`/profile/${profile.id}/edit`)}
                                     >
-                                        <Edit3 size={18} color={Colors.textSecondary} />
+                                        <Edit3 size={18} color={Colors.textPrimary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={() => openGate('delete', profile.id)}
@@ -169,7 +169,7 @@ export default function SettingsScreen() {
                     <View style={styles.divider} />
                     <TouchableOpacity style={styles.settingRow}>
                         <Text style={styles.settingLabel}>Send Feedback</Text>
-                        <ChevronRight size={18} color={Colors.textTertiary} />
+                        <ChevronRight size={18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                 </Card>
 
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.semibold,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginTop: Spacing.xl,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     },
     profileMeta: {
         fontSize: FontSize.xs,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginTop: 2,
     },
     profileActions: {
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     },
     settingValue: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
 
     divider: {

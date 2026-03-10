@@ -20,8 +20,7 @@ QUALITY / ACCURACY:
 Child Profile:
 - Name: ${profile.name}
 - Age: ${profile.age}
-- Grade: ${profile.grade_level}
-- Interests: ${(profile.interests || []).join(', ')}`;
+- Grade: ${profile.grade_level}`;
 }
 
 // ── Prompt builders ─────────────────────────────────────
@@ -36,6 +35,16 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             
             NON-OVERLAP CONSTRAINT: Do NOT include arithmetic or counting questions; focus purely on spatial, visual, or logical rules.
             
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Puzzle Type: <maze | matching | sorting | pattern | odd-one-out | logic grid>
+              2) Grid/Layout: <rows x cols or layout description; centered; generous whitespace>
+              3) Required Objects: <object(count), object(count), ...> (concrete nouns only)
+              4) Distractors: <object(count), ...> or "none"
+              5) Answer/Path: <describe the correct solution placement or path in words>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts must be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
+            
             CONTENT REQUIREMENTS (Markdown goes in "instructions" and "content" fields only):
             - title: A fun theme title (plain text, no #).
             - instructions: Start with > **Parent Note:** briefly explain the logic rule. Then add ## Instructions with step-by-step guidance for the child.
@@ -45,6 +54,16 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
         case 'tracing':
             categoryPrompt = `Task: Create a professional-grade ${input.difficulty} tracing and pen-control practice activity about "${input.topic}".
             Target: ${profile.age}-year-old (${profile.grade_level}).
+            
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Trace Type: <shape | path | object-outline>
+              2) Main Subject: <single concrete noun scene>
+              3) Trace Path: <describe the tracing path in words, single-stroke if simple>
+              4) Blank Area: <bottom 30% empty, pure white>
+              5) Line Style: <dotted or dashed, spacing noted, no double lines>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
             
             CONTENT REQUIREMENTS:
             - title: "Let's Trace: ..." (plain text).
@@ -58,6 +77,16 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             
             PEDAGOGICAL CONSTRAINT: Focus on objective facts and knowledge. Do NOT use a fictional narrative or character-driven story here (use the 'story' category for that).
             
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Diagram Type: <labeled diagram | lifecycle | comparison | simple scene>
+              2) Required Objects: <object(count), object(count), ...> (concrete nouns only)
+              3) Callout Points: <list of callout targets, no text>
+              4) Sequence Steps: <if lifecycle or process, list steps in words>
+              5) Visual Emphasis: <what should be central vs secondary>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
+            
             CONTENT REQUIREMENTS:
             - title: "Discovering ..." (plain text).
             - instructions: Start with > **Parent Note:** (how to use the page). Then ## Instructions with 2-4 steps.
@@ -70,6 +99,16 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             
             FOCUS: Depending on the topic, provide either step-by-step drawing instructions, a coloring page description, or craft instructions related to "${input.topic}".
             
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Art Type: <drawing-steps | coloring | craft-template>
+              2) Subject: <main subject and theme>
+              3) Panels/Regions: <panel grid or coloring regions description>
+              4) Line Style: <thick outlines, closed shapes for coloring>
+              5) Craft Lines: <if craft, describe cut or fold lines in words>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
+            
             CONTENT REQUIREMENTS:
             - title: "Art Time: ..." (plain text).
             - instructions: Start with > **Parent Note:** what the child practices. Then ## Instructions with clear numbered steps.
@@ -81,7 +120,17 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             Target: ${profile.age}-year-old (${profile.grade_level}).
             
             FOCUS: Counting, simple addition, or number logic. 
-            NON-OVERLAP CONSTRAINT: Do NOT use complex visual patterns or abstract mazes; focus purely on numbers, increments, and arithmetic.
+            NON-OVERLAP CONSTRAINT: Do NOT use complex visual patterns or abstract mazes. Avoid number lines or symbolic-only equations. Each question must be solvable by counting visible objects in the image.
+            
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Math Type: <counting | addition | subtraction | comparison>
+              2) Required Objects: <object(count), object(count), ...> (concrete nouns only)
+              3) Grouping/Layout: <rows x cols or grouping description; centered; generous whitespace>
+              4) Problem Mapping: <describe how each question maps to object groups, in words>
+              5) Answer Targets: <list targets in words, no numerals in the image>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts must be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
             
             CONTENT REQUIREMENTS:
             - title: "Math Fun: ..." (plain text).
@@ -94,6 +143,16 @@ export function buildPromptUser(profile: any, input: GenerateBody): string {
             Target: ${profile.age}-year-old (${profile.grade_level}).
             
             PEDAGOGICAL CONSTRAINT: Focus on a fictional tale or reading comprehension.
+            
+            IMAGE PROMPT REQUIREMENTS:
+            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
+              1) Scene: <what moment to depict>
+              2) Characters: <list characters and counts>
+              3) Props/Setting: <key objects and setting details>
+              4) Action/Emotion: <central action or mood>
+              5) Panel Layout: <single scene or multi-panel grid>
+              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
+            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
             
             CONTENT REQUIREMENTS:
             - title: "Story Time: ..." (plain text).
@@ -121,7 +180,6 @@ ${categoryPrompt}
 }
 
 export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPrompt: string): string {
-    const topInterests = (profile.interests || []).slice(0, 3).join(', ');
     const isTracing = input.category === 'tracing';
 
     let layoutInstruction = "";
@@ -129,22 +187,22 @@ export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPromp
     
     switch (input.category) {
         case 'puzzles':
-            layoutInstruction = "1. LAYOUT: Create a clean visual logic puzzle component (like a simple maze, spot the difference, matching element, or visual grid). The image should be the PUZZLE itself, clear, uncluttered, and solvable visually. Do NOT draw a border around the image.";
+            layoutInstruction = "1. LAYOUT: Create a clean visual logic puzzle component (maze, matching, sorting, pattern, or logic grid). The image should be the PUZZLE itself, clear, uncluttered, and solvable visually. Use A4 portrait composition with a 12mm safe margin. Keep the puzzle centered, use generous whitespace, and avoid filling more than ~70% of the activity field. Do NOT draw a border or frame.";
             break;
         case 'tracing':
-            layoutInstruction = "1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) for writing practice. Do NOT draw a piece of paper.";
+            layoutInstruction = "1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) for writing practice. Use A4 portrait composition with a 12mm safe margin. Keep the scene centered and uncluttered. Do NOT draw a piece of paper.";
             break;
         case 'science':
-            layoutInstruction = "1. LAYOUT: Create a clear, focused educational illustration or diagram related to the topic. Use 'exploded view' or clear labeling points if appropriate, but with NO text. Avoid unnecessary decorative clutter. This should be an INFORMATIONAL visual, not a story scene.";
+            layoutInstruction = "1. LAYOUT: Create a clear, focused educational illustration or diagram related to the topic. Use 'exploded view' or clear labeling points if appropriate, but with NO text. Avoid unnecessary decorative clutter. Use A4 portrait composition with a 12mm safe margin and generous whitespace. This should be an INFORMATIONAL visual, not a story scene.";
             break;
         case 'math':
-            layoutInstruction = `1. LAYOUT: Create an image with clear, DISCRETE, COUNTABLE items related to the topic (e.g., 5 distinct apples in a row). The count should be between 1 and ${mathMaxCount} for clarity. The items must be easy to distinguish and count. Keep the background minimal. Do NOT draw a border.`;
+            layoutInstruction = `1. LAYOUT: Create an image with clear, DISCRETE, COUNTABLE items related to the topic (e.g., 5 distinct apples in a row). The count should be between 1 and ${mathMaxCount} for clarity. The items must be easy to distinguish and count. Use A4 portrait composition with a 12mm safe margin. Keep the composition centered with generous whitespace and avoid filling more than ~70% of the activity field. Keep the background minimal. Do NOT draw a border or frame.`;
             break;
         case 'art':
-            layoutInstruction = "1. LAYOUT: Create a visual suitable for art crafting. If instructed for coloring, create a full-page scene with large open white spaces inside shapes and avoid complex shading. Include a main subject and a simple background environment.";
+            layoutInstruction = "1. LAYOUT: Create a visual suitable for art crafting. If instructed for coloring, create a full-page scene with large open white spaces inside shapes and avoid complex shading. Use A4 portrait composition with a 12mm safe margin, centered subject, and generous whitespace. Include a main subject and a simple background environment.";
             break;
         case 'reading':
-            layoutInstruction = "1. LAYOUT: Create a narrative scene that depicts a specific moment or character from a story. It should look like a professional children's book illustration plate, focused on storytelling and mood. One central action.";
+            layoutInstruction = "1. LAYOUT: Create a narrative scene that depicts a specific moment or character from a story. It should look like a professional children's book illustration plate, focused on storytelling and mood. Use A4 portrait composition with a 12mm safe margin and generous whitespace. One central action.";
             break;
         default:
             layoutInstruction = "1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene with ONE main subject. Do NOT overcrowd the image. Do NOT draw a border or frame.";
@@ -152,8 +210,8 @@ export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPromp
 
     const tracingInstruction = isTracing
         ? (input.simpleTracingPaths 
-            ? `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice. CRITICAL: Provide a SIMPLE SINGLE-STROKE DOTTED LINE path related to the drawing. Do NOT use outlines, double lines, or 'road' shapes for the path. Just a simple dashed line.`
-            : `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice.`)
+            ? `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Use A4 portrait composition with a 12mm safe margin. Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice. CRITICAL: Provide a SIMPLE SINGLE-STROKE DOTTED LINE path related to the drawing. Do NOT use outlines, double lines, or 'road' shapes for the path. Just a simple dashed line.`
+            : `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Use A4 portrait composition with a 12mm safe margin. Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice.`)
         : "";
 
     // Age-Tailored Visuals in Image Prompt
@@ -172,16 +230,14 @@ export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPromp
         ? `Generate a beautiful, highly engaging, and professionally polished colored illustration for a children's ${input.category} activity about "${input.topic}".`
         : `Generate elegantly designed, high-contrast, clean black and white line art optimized for A4 paper printing for a children's ${input.category} activity about "${input.topic}".`;
 
-    const interestNote = topInterests 
-        ? `Theme Note: The child loves ${topInterests}. You may incorporate these ONLY IF they naturally fit the topic, otherwise stick purely to the topic.` 
-        : '';
 
     const imagePrompt = `${imageStyleIntro}
 Activity Type: ${input.category}
 Topic: ${input.topic}
 
 ${styleEnforcement}
-IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". ${interestNote} DO NOT add random characters, animals, or elements that don't make sense for the topic.
+IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". DO NOT add random characters, animals, or elements that don't make sense for the topic.
+IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". DO NOT add random characters, animals, or elements that don't make sense for the topic.
 
 Dynamic Content to Visualize:
 ${dynamicPrompt}

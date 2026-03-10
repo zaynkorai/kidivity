@@ -16,14 +16,11 @@ import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Chip } from '@/components/ui/Chip';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
-import { INTEREST_OPTIONS } from '@/constants/interests';
 import type { GradeLevel } from '@/constants/grades';
-import type { Interest } from '@/constants/interests';
 
 const AVATAR_COLORS = [
     '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
@@ -40,7 +37,6 @@ export default function EditProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [interests, setInterests] = useState<Interest[]>([]);
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -53,18 +49,9 @@ export default function EditProfileScreen() {
             setName(profile.name);
             setAge(String(profile.age));
             setGradeLevel(profile.grade_level);
-            setInterests([...profile.interests]);
             setAvatarColor(profile.avatar_color);
         }
     }, [profile?.id]);
-
-    const toggleInterest = (interest: Interest) => {
-        setInterests((prev) =>
-            prev.includes(interest)
-                ? prev.filter((i) => i !== interest)
-                : [...prev, interest]
-        );
-    };
 
     const handleSubmit = async () => {
         if (!id || !profile) return;
@@ -82,11 +69,6 @@ export default function EditProfileScreen() {
             setError('Please select a grade level');
             return;
         }
-        if (interests.length === 0) {
-            setError('Please select at least one interest');
-            return;
-        }
-
         setError(null);
         setIsSubmitting(true);
 
@@ -94,7 +76,6 @@ export default function EditProfileScreen() {
             name: name.trim(),
             age: ageNum,
             grade_level: gradeLevel,
-            interests,
             avatar_color: avatarColor,
         });
 
@@ -140,7 +121,7 @@ export default function EditProfileScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.notFound}>
-                    <Search size={48} color={Colors.textSecondary} style={styles.notFoundEmoji} />
+                    <Search size={48} color={Colors.textPrimary} style={styles.notFoundEmoji} />
                     <Text style={styles.notFoundText}>Profile not found</Text>
                     <Button title="Go Back" onPress={() => router.back()} variant="outline" />
                 </View>
@@ -148,7 +129,7 @@ export default function EditProfileScreen() {
         );
     }
 
-    const isValid = name.trim() && age && gradeLevel && interests.length > 0;
+    const isValid = name.trim() && age && gradeLevel;
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -231,24 +212,6 @@ export default function EditProfileScreen() {
                             />
                         ))}
                     </ScrollView>
-
-                    {/* Interests */}
-                    <Text style={styles.fieldLabel}>
-                        Interests{' '}
-                        <Text style={styles.fieldHint}>
-                            ({interests.length} selected)
-                        </Text>
-                    </Text>
-                    <View style={styles.interestGrid}>
-                        {INTEREST_OPTIONS.map((option) => (
-                            <Chip
-                                key={option.value}
-                                label={option.label}
-                                selected={interests.includes(option.value)}
-                                onPress={() => toggleInterest(option.value)}
-                            />
-                        ))}
-                    </View>
 
                     {/* Error */}
                     {error && (
@@ -336,22 +299,13 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
         marginLeft: Spacing.xs,
     },
-    fieldHint: {
-        color: Colors.textTertiary,
-        fontWeight: FontWeight.regular,
-    },
 
     gradeList: {
-        gap: Spacing.sm,
-    },
-    interestGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
         gap: Spacing.sm,
     },
 
@@ -393,6 +347,6 @@ const styles = StyleSheet.create({
     notFoundText: {
         fontSize: FontSize.lg,
         fontWeight: FontWeight.semibold,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
 });

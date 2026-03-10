@@ -14,13 +14,10 @@ import { AlertTriangle } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
-import { INTEREST_OPTIONS } from '@/constants/interests';
 import type { GradeLevel } from '@/constants/grades';
-import type { Interest } from '@/constants/interests';
 
 const AVATAR_COLORS = [
     '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
@@ -34,18 +31,9 @@ export default function CreateProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [interests, setInterests] = useState<Interest[]>([]);
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const toggleInterest = (interest: Interest) => {
-        setInterests((prev) =>
-            prev.includes(interest)
-                ? prev.filter((i) => i !== interest)
-                : [...prev, interest]
-        );
-    };
 
     const handleSubmit = async () => {
         // Validation
@@ -62,11 +50,6 @@ export default function CreateProfileScreen() {
             setError('Please select a grade level');
             return;
         }
-        if (interests.length === 0) {
-            setError('Please select at least one interest');
-            return;
-        }
-
         setError(null);
         setIsSubmitting(true);
 
@@ -74,7 +57,6 @@ export default function CreateProfileScreen() {
             name: name.trim(),
             age: ageNum,
             grade_level: gradeLevel,
-            interests,
             avatar_color: avatarColor,
         });
 
@@ -87,7 +69,7 @@ export default function CreateProfileScreen() {
         }
     };
 
-    const isValid = name.trim() && age && gradeLevel && interests.length > 0;
+    const isValid = name.trim() && age && gradeLevel;
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -159,24 +141,6 @@ export default function CreateProfileScreen() {
                             />
                         ))}
                     </ScrollView>
-
-                    {/* Interests */}
-                    <Text style={styles.fieldLabel}>
-                        Interests{' '}
-                        <Text style={styles.fieldHint}>
-                            ({interests.length} selected)
-                        </Text>
-                    </Text>
-                    <View style={styles.interestGrid}>
-                        {INTEREST_OPTIONS.map((option) => (
-                            <Chip
-                                key={option.value}
-                                label={option.label}
-                                selected={interests.includes(option.value)}
-                                onPress={() => toggleInterest(option.value)}
-                            />
-                        ))}
-                    </View>
 
                     {/* Error */}
                     {error && (
@@ -251,22 +215,13 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
         marginLeft: Spacing.xs,
     },
-    fieldHint: {
-        color: Colors.textTertiary,
-        fontWeight: FontWeight.regular,
-    },
 
     gradeList: {
-        gap: Spacing.sm,
-    },
-    interestGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
         gap: Spacing.sm,
     },
 

@@ -12,22 +12,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Bookmark, BookmarkCheck, Trash2, Filter, X, Search } from 'lucide-react-native';
+import { Filter, X, Search, History } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
-import { Card } from '@/components/ui/Card';
+
 import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import type { Activity } from '@/types/activity';
 
 type SortOption = 'newest' | 'oldest';
 
-export default function SavedScreen() {
+export default function ActivitiesScreen() {
     const router = useRouter();
-    const { savedActivities, fetchSaved, toggleSaved, deleteActivity } = useActivityStore();
-    const { profiles } = useProfileStore();
+    
+    // Stable action selectors
+    const fetchRecent = useActivityStore((state) => state.fetchRecent);
+    const toggleSaved = useActivityStore((state) => state.toggleSaved);
+    const deleteActivity = useActivityStore((state) => state.deleteActivity);
+    
+    // State selectors
+    const recentActivities = useActivityStore((state) => state.recentActivities);
+    const profiles = useProfileStore((state) => state.profiles);
 
     const [showFilters, setShowFilters] = useState(false);
     const [filterCategory, setFilterCategory] = useState<ActivityCategory | null>(null);
@@ -36,16 +43,16 @@ export default function SavedScreen() {
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        fetchSaved();
-    }, []);
+        fetchRecent();
+    }, [fetchRecent]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        await fetchSaved();
+        await fetchRecent();
         setRefreshing(false);
-    }, []);
+    }, [fetchRecent]);
 
-    const filteredActivities = savedActivities
+    const filteredActivities = recentActivities
         .filter((a) => {
             if (filterCategory && a.category !== filterCategory) return false;
             if (filterKidId && a.kid_profile_id !== filterKidId) return false;
@@ -76,68 +83,47 @@ export default function SavedScreen() {
 
     const renderItem = ({ item }: { item: Activity }) => {
         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
+        const cardColor = category?.color ?? Colors.primary;
+        const bgColor = cardColor + '15'; // very light background
+
         return (
             <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => router.push(`/activity/${item.id}` as any)}
+                style={styles.gridItemWrapper}
             >
-                <Card variant="elevated" style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <View
-                            style={[
-                                styles.badge,
-                                {
-                                    backgroundColor: (category?.color ?? Colors.primary) + '20',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                },
-                            ]}
-                        >
-                            {(() => {
-                                const Icon = category?.icon;
-                                return (
-                                    <>
-                                        {Icon && <Icon size={14} color={category?.color} />}
-                                        <Text style={styles.badgeText}>{category?.label}</Text>
-                                    </>
-                                );
-                            })()}
-                        </View>
+                <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
+                    {/* Inner highlight for completely rounded sticker/book effect */}
+                    <View style={styles.gridCardInnerHighlight} />
 
-                        <View style={styles.actions}>
-                            <TouchableOpacity onPress={() => handleToggleSaved(item.id)}>
-                                <BookmarkCheck size={20} color={Colors.primary} />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                                <Trash2 size={18} color={Colors.accent} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <View style={styles.cardContent}>
-                        <View style={styles.textContent}>
-                            <Text style={styles.topic}>{item.topic}</Text>
-                            {item.kid_name && (
-                                <Text style={styles.kidName}>For {item.kid_name}</Text>
-                            )}
-                            <Text style={styles.preview} numberOfLines={3}>
-                                {item.content}
+                    <View style={styles.gridCardContent}>
+                        <View style={styles.gridTextContainer}>
+                            <Text style={[styles.gridTopic, { color: Colors.textPrimary }]} numberOfLines={2}>
+                                {item.topic}
                             </Text>
+                            {item.kid_name && (
+                                <Text style={[styles.gridKidName, { color: Colors.textPrimary }]} numberOfLines={1}>
+                                    For {item.kid_name}
+                                </Text>
+                            )}
                         </View>
-                        {item.image_url && (
-                            <Image
-                                source={{ uri: item.image_url }}
-                                style={styles.thumbnail}
-                                contentFit="cover"
-                                transition={200}
-                            />
-                        )}
+
+                        <View style={styles.gridImageContainer}>
+                            {item.image_url ? (
+                                <Image
+                                    source={{ uri: item.image_url }}
+                                    style={styles.gridImage}
+                                    contentFit="cover"
+                                    transition={300}
+                                />
+                            ) : (
+                                <View style={[styles.gridImage, styles.gridImagePlaceholder, { backgroundColor: cardColor + '10' }]}>
+                                    {category?.icon ? React.createElement(category.icon, { size: 40, color: cardColor }) : <Search size={40} color={Colors.textPrimary} />}
+                                </View>
+                            )}
+                        </View>
                     </View>
-                    <Text style={styles.date}>
-                        {new Date(item.created_at).toLocaleDateString()}
-                    </Text>
-                </Card>
+                </View>
             </TouchableOpacity>
         );
     };
@@ -148,14 +134,14 @@ export default function SavedScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
-                    <Bookmark size={24} color={Colors.primary} />
-                    <Text style={styles.title}>Saved Activities</Text>
+                    <History size={24} color={Colors.primary} />
+                    <Text style={styles.title}>Activities</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => setShowFilters(!showFilters)}
                     style={[styles.filterBtn, hasActiveFilters && styles.filterBtnActive]}
                 >
-                    <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textSecondary} />
+                    <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
                 </TouchableOpacity>
             </View>
 
@@ -234,14 +220,16 @@ export default function SavedScreen() {
 
             {filteredActivities.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                    <Search size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
+                    <View style={styles.emptyIconWrapper}>
+                        <History size={32} color={Colors.primary} />
+                    </View>
                     <Text style={styles.emptyTitle}>
-                        {hasActiveFilters ? 'No matches' : 'No saved activities'}
+                        {hasActiveFilters ? 'No matches found' : 'No activities yet'}
                     </Text>
                     <Text style={styles.emptySubtitle}>
                         {hasActiveFilters
-                            ? 'Try adjusting your filters.'
-                            : 'Bookmark activities you love to find them here later.'}
+                            ? 'Try adjusting your filters to see more results.'
+                            : 'Generate your first activity and it will appear here.'}
                     </Text>
                 </View>
             ) : (
@@ -249,7 +237,10 @@ export default function SavedScreen() {
                     data={filteredActivities}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.list}
+                    numColumns={2}
+                    columnWrapperStyle={styles.columnWrapper}
                     renderItem={renderItem}
+                    showsVerticalScrollIndicator={false}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -280,12 +271,13 @@ const styles = StyleSheet.create({
     headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.sm,
+        gap: Spacing.md,
     },
     title: {
-        fontSize: FontSize['2xl'],
+        fontSize: FontSize['3xl'],
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
+        letterSpacing: -0.5,
     },
     filterBtn: {
         padding: Spacing.sm,
@@ -307,7 +299,7 @@ const styles = StyleSheet.create({
     filterLabel: {
         fontSize: FontSize.xs,
         fontWeight: FontWeight.semibold,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: Spacing.xs,
@@ -336,88 +328,103 @@ const styles = StyleSheet.create({
     },
     resultCountText: {
         fontSize: FontSize.xs,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
     },
     list: {
         padding: Spacing.xl,
         paddingTop: Spacing.sm,
+        paddingBottom: 120, // Account for floating tab bar
+    },
+    columnWrapper: {
         gap: Spacing.md,
+        marginBottom: Spacing.md,
     },
-
-    card: {
-        marginBottom: Spacing.sm,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.sm,
-    },
-    badge: {
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: 3,
-        borderRadius: Radius.sm,
-    },
-    badgeText: {
-        fontSize: FontSize.xs,
-        fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
-    },
-    actions: {
-        flexDirection: 'row',
-        gap: Spacing.md,
-    },
-    cardContent: {
-        flexDirection: 'row',
-        gap: Spacing.md,
-        alignItems: 'flex-start',
-    },
-    textContent: {
+    gridItemWrapper: {
         flex: 1,
+        maxWidth: '48%', // Ensure 2 columns fit perfectly with gap
     },
-    topic: {
+    gridCard: {
+        aspectRatio: 0.75, // 3:4 aspect ratio for book cover feel
+        borderRadius: 24,
+        overflow: 'hidden',
+        position: 'relative',
+        ...Shadows.sm,
+    },
+    gridCardInnerHighlight: {
+        ...StyleSheet.absoluteFillObject,
+        borderWidth: 4,
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: 24,
+        zIndex: 1,
+        pointerEvents: 'none',
+    },
+    gridCardContent: {
+        flex: 1,
+        padding: Spacing.md,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        zIndex: 2,
+    },
+    gridTopic: {
         fontSize: FontSize.md,
-        fontWeight: FontWeight.semibold,
-        color: Colors.textPrimary,
-    },
-    kidName: {
-        fontSize: FontSize.xs,
-        color: Colors.primary,
-        marginTop: 2,
-    },
-    thumbnail: {
-        width: 60,
-        height: 60,
-        borderRadius: Radius.sm,
-        backgroundColor: Colors.surface,
-    },
-    preview: {
-        fontSize: FontSize.sm,
-        color: Colors.textSecondary,
-        marginTop: Spacing.sm,
+        fontWeight: '800', // Extra bold
+        textAlign: 'center',
+        marginTop: Spacing.xs,
+        marginBottom: 2,
         lineHeight: 20,
     },
-    date: {
-        fontSize: FontSize.xs,
-        color: Colors.textTertiary,
-        marginTop: Spacing.sm,
+    gridTextContainer: {
+        width: '100%',
+        alignItems: 'center',
     },
+    gridKidName: {
+        fontSize: FontSize.xs,
+        fontWeight: '600',
+        textAlign: 'center',
+        opacity: 0.8,
+        marginBottom: Spacing.xs,
+    },
+    gridImageContainer: {
+        width: '100%',
+        flex: 1, // Take up remaining space below text
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    gridImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 16,
+    },
+    gridImagePlaceholder: {
+        justifyContent: 'center',
+    },
+
 
     emptyContainer: {
         flex: 1,
         alignItems: 'center',
+        paddingVertical: Spacing['4xl'],
+    },
+    emptyIconWrapper: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: Colors.primary + '15',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: Spacing['4xl'],
+        marginBottom: Spacing.lg,
     },
     emptyTitle: {
         fontSize: FontSize.lg,
-        fontWeight: FontWeight.semibold,
+        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
+        marginBottom: Spacing.xs,
     },
     emptySubtitle: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
-        marginTop: Spacing.xs,
+        maxWidth: '80%',
+        lineHeight: 20,
     },
 });

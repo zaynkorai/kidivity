@@ -30,7 +30,7 @@ import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 
@@ -179,7 +179,7 @@ function renderInline(text: string): React.ReactNode {
     return parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
             return (
-                <Text key={i} style={{ fontWeight: FontWeight.bold }}>
+                <Text key={i} style={{ fontFamily: Fonts.bold, fontWeight: FontWeight.bold }}>
                     {part.slice(2, -2)}
                 </Text>
             );
@@ -206,7 +206,7 @@ export default function ActivityDetailScreen() {
             <SafeAreaView style={styles.safe}>
                 <ScreenBackground />
                 <View style={styles.centered}>
-                    <Search size={48} color={Colors.textSecondary} style={styles.emptyEmoji} />
+                    <Search size={48} color={Colors.textPrimary} style={styles.emptyEmoji} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
                     <Button
                         title="Go Back"
@@ -291,11 +291,11 @@ export default function ActivityDetailScreen() {
                         {activity.is_saved ? (
                             <BookmarkCheck size={22} color={Colors.primary} />
                         ) : (
-                            <Bookmark size={22} color={Colors.textSecondary} />
+                            <Bookmark size={22} color={Colors.textPrimary} />
                         )}
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleShare} style={styles.iconBtn}>
-                        <Share2 size={20} color={Colors.textSecondary} />
+                        <Share2 size={20} color={Colors.textPrimary} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -313,8 +313,8 @@ export default function ActivityDetailScreen() {
                             const Icon = category?.icon;
                             return (
                                 <>
-                                    {Icon && <Icon size={14} color={category?.color ?? Colors.primary} />}
-                                    <Text style={[styles.badgeText, { color: category?.color ?? Colors.primary }]}>
+                                    {Icon && <Icon size={14} color={Colors.textPrimary} />}
+                                    <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                         {category?.label}
                                     </Text>
                                 </>
@@ -326,25 +326,25 @@ export default function ActivityDetailScreen() {
                 {/* Meta chips */}
                 <View style={styles.chipRow}>
                     <View style={styles.metaChip}>
-                        <Tag size={14} color={Colors.textSecondary} />
+                        <Tag size={14} color={Colors.textPrimary} />
                         <Text style={styles.metaChipText}>
                             {activity.topic}
                         </Text>
                     </View>
                     <View style={styles.metaChip}>
-                        <Zap size={14} color={Colors.textSecondary} />
+                        <Zap size={14} color={Colors.textPrimary} />
                         <Text style={styles.metaChipText}>
                             {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
                         </Text>
                     </View>
                     <View style={styles.metaChip}>
-                        <Palette size={14} color={Colors.textSecondary} />
+                        <Palette size={14} color={Colors.textPrimary} />
                         <Text style={styles.metaChipText}>
                             {activity.style === 'colorful' ? 'Colorful' : 'B&W'}
                         </Text>
                     </View>
                     <View style={styles.metaChip}>
-                        <Clock size={14} color={Colors.textSecondary} />
+                        <Clock size={14} color={Colors.textPrimary} />
                         <Text style={styles.metaChipText}>
                             {new Date(activity.created_at).toLocaleDateString()}
                         </Text>
@@ -353,7 +353,7 @@ export default function ActivityDetailScreen() {
 
                 {activity.kid_name && (
                     <Text style={styles.kidLabel}>
-                        Created for <Text style={{ color: Colors.primary, fontWeight: FontWeight.semibold }}>{activity.kid_name}</Text>
+                        Created for <Text style={{ fontFamily: Fonts.medium, color: Colors.textPrimary, fontWeight: FontWeight.semibold }}>{activity.kid_name}</Text>
                     </Text>
                 )}
 
@@ -371,8 +371,8 @@ export default function ActivityDetailScreen() {
                             </View>
                         ) : (
                             <View style={styles.heroPlaceholder}>
-                                <ImageIcon size={48} color={category?.color ?? Colors.primary} />
-                                <Text style={[styles.heroPlaceholderText, { color: category?.color ?? Colors.primary }]}>
+                                <ImageIcon size={48} color={Colors.textPrimary} />
+                                <Text style={[styles.heroPlaceholderText, { color: Colors.textPrimary }]}>
                                     Visual Activity
                                 </Text>
                                 <Text style={styles.heroPlaceholderSub}>
@@ -381,8 +381,8 @@ export default function ActivityDetailScreen() {
                             </View>
                         )}
                         <View style={[styles.visualBadge, { backgroundColor: (category?.color ?? Colors.primary) + '20' }]}>
-                            <ImageIcon size={12} color={category?.color ?? Colors.primary} />
-                            <Text style={[styles.visualBadgeText, { color: category?.color ?? Colors.primary }]}>
+                            <ImageIcon size={12} color={Colors.textPrimary} />
+                            <Text style={[styles.visualBadgeText, { color: Colors.textPrimary }]}>
                                 Visual Activity
                             </Text>
                         </View>
@@ -443,6 +443,7 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     emptyTitle: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.lg,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
@@ -485,6 +486,7 @@ const styles = StyleSheet.create({
         borderRadius: Radius.sm,
     },
     badgeText: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.sm,
         fontWeight: FontWeight.semibold,
     },
@@ -506,20 +508,23 @@ const styles = StyleSheet.create({
         borderColor: Colors.border,
     },
     metaChipText: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.xs,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     kidLabel: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginBottom: Spacing.lg,
     },
     generatedImage: {
         width: '100%',
         aspectRatio: 1,
-        borderRadius: Radius.sm,
+        borderRadius: Radius.md,
         marginBottom: Spacing.xl,
         backgroundColor: Colors.background,
+        ...Shadows.sm,
     },
     // Visual hero
     visualHero: {
@@ -529,6 +534,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.surface,
         borderWidth: 1,
         borderColor: Colors.border,
+        ...Shadows.sm,
     },
     tracingContainer: {
         position: 'relative',
@@ -553,9 +559,9 @@ const styles = StyleSheet.create({
         borderTopColor: Colors.border,
     },
     tracingText: {
-        fontFamily: 'Courier',
+        fontFamily: Fonts.bold,
         fontSize: FontSize['3xl'],
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         letterSpacing: 2,
         opacity: 0.4,
         marginBottom: Spacing.md,
@@ -566,9 +572,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     tracingTextWord: {
-        fontFamily: 'Courier',
+        fontFamily: Fonts.bold,
         fontSize: FontSize['4xl'],
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         letterSpacing: 8,
         opacity: 0.4,
         borderBottomWidth: 1,
@@ -586,12 +592,14 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.background,
     },
     heroPlaceholderText: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.lg,
         fontWeight: FontWeight.semibold,
     },
     heroPlaceholderSub: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.xs,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     visualBadge: {
         flexDirection: 'row',
@@ -601,6 +609,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
     },
     visualBadgeText: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.xs,
         fontWeight: FontWeight.semibold,
     },
@@ -615,6 +624,7 @@ const styles = StyleSheet.create({
 
 const mdStyles = StyleSheet.create({
     h1: {
+        fontFamily: Fonts.bold,
         fontSize: FontSize['3xl'],
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
@@ -622,6 +632,7 @@ const mdStyles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     h2: {
+        fontFamily: Fonts.bold,
         fontSize: FontSize.xl,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
@@ -629,6 +640,7 @@ const mdStyles = StyleSheet.create({
         marginBottom: Spacing.xs,
     },
     h3: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.lg,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
@@ -636,8 +648,9 @@ const mdStyles = StyleSheet.create({
         marginBottom: Spacing.xs,
     },
     paragraph: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.md,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         lineHeight: 24,
         marginBottom: Spacing.xs,
     },
@@ -647,22 +660,25 @@ const mdStyles = StyleSheet.create({
         marginBottom: 4,
     },
     bullet: {
+        fontFamily: Fonts.bold,
         fontSize: FontSize.md,
-        color: Colors.primary,
+        color: Colors.textPrimary,
         marginRight: Spacing.sm,
         width: 16,
     },
     number: {
+        fontFamily: Fonts.medium,
         fontSize: FontSize.md,
-        color: Colors.primary,
+        color: Colors.textPrimary,
         fontWeight: FontWeight.semibold,
         marginRight: Spacing.sm,
         width: 20,
     },
     listText: {
         flex: 1,
+        fontFamily: Fonts.sans,
         fontSize: FontSize.md,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         lineHeight: 24,
     },
     hr: {
@@ -680,8 +696,10 @@ const mdStyles = StyleSheet.create({
         marginBottom: Spacing.sm,
     },
     blockquoteText: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.md,
         color: Colors.textPrimary,
         lineHeight: 24,
+        fontStyle: 'italic',
     },
 });

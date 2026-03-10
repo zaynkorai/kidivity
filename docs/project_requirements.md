@@ -2,7 +2,7 @@
 
 ## 1. Vision
 
-**Kidivity** is a mobile app that uses AI (Google Gemini + image generation) to create fun, educational, printable activities tailored to each child's age, grade, and interests. Built for parents and homeschoolers who want quality screen-free learning.
+**Kidivity** is a mobile app that uses AI (Google Gemini + image generation) to create fun, educational, printable activities tailored to each child's age and grade. Built for parents and homeschoolers who want quality screen-free learning.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ### 3.1 Kid Profiles
 **User Stories:**
-- As a parent, I can create a profile for my child with name, age, grade level, and interests
+- As a parent, I can create a profile for my child with name, age, and grade level
 - As a parent, I can manage multiple kid profiles and switch between them
 - As a parent, I can edit or delete an existing kid profile
 
@@ -33,7 +33,6 @@
 | `name` | string | ✅ | "Aisha" |
 | `age` | number | ✅ | 6 |
 | `grade_level` | enum | ✅ | "1st Grade" |
-| `interests` | string[] | ✅ | ["Space", "Dinosaurs"] |
 | `avatar_color` | string | ❌ | "#FF6B6B" |
 
 ### 3.2 Activity Generation

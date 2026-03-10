@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Wand2 } from 'lucide-react-native';
-import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { useActivityStore } from '@/store/activityStore';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Button } from '@/components/ui/Button';
@@ -96,14 +96,16 @@ const styles = StyleSheet.create({
         padding: Spacing['2xl'],
     },
     buildingTitle: {
+        fontFamily: Fonts.bold,
         fontSize: FontSize['3xl'],
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },
     buildingSubtitle: {
+        fontFamily: Fonts.sans,
         fontSize: FontSize.lg,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
     },
     errorContainer: {
@@ -112,9 +114,10 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     errorText: {
+        fontFamily: Fonts.sans,
         marginTop: Spacing.lg,
         fontSize: FontSize.md,
-        color: Colors.accent,
+        color: Colors.textPrimary,
         textAlign: 'center',
     },
 });

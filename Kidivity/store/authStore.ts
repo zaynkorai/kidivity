@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { useProfileStore } from './profileStore';
 
 interface AuthState {
     user: User | null;
@@ -156,6 +157,10 @@ export const useAuthStore = create<AuthStore>()(
             signOut: async () => {
                 set({ isLoading: true });
                 await supabase.auth.signOut();
+                
+                // Clear profiles to prevent routing leaks for subsequent sign-ins
+                useProfileStore.getState().clearProfiles();
+                
                 set({
                     user: null,
                     session: null,

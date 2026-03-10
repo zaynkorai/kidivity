@@ -35,7 +35,7 @@ export function Chip({
             {Icon && (
                 <Icon
                     size={16}
-                    color={selected ? activeColor : Colors.textSecondary}
+                    color={selected ? activeColor : Colors.textPrimary}
                     style={styles.icon}
                 />
             )}
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     labelSelected: {
         // Will be overwritten inline

@@ -1,5 +1,4 @@
 import type { GradeLevel } from '@/constants/grades';
-import type { Interest } from '@/constants/interests';
 
 export interface KidProfile {
     id: string;
@@ -7,7 +6,6 @@ export interface KidProfile {
     name: string;
     age: number;
     grade_level: GradeLevel;
-    interests: Interest[];
     avatar_color: string;
     activity_count: number;
     created_at: string;
@@ -16,7 +14,7 @@ export interface KidProfile {
 
 export type CreateKidProfileInput = Pick<
     KidProfile,
-    'name' | 'age' | 'grade_level' | 'interests' | 'avatar_color'
+    'name' | 'age' | 'grade_level' | 'avatar_color'
 >;
 
 export type UpdateKidProfileInput = Partial<CreateKidProfileInput>;

@@ -30,7 +30,6 @@ erDiagram
         string name
         int age
         string grade_level
-        text[] interests
         string avatar_color
         int activity_count
         timestamp created_at
@@ -95,7 +94,6 @@ CREATE TABLE public.kid_profiles (
     name TEXT NOT NULL,
     age INTEGER NOT NULL CHECK (age >= 1 AND age <= 18),
     grade_level TEXT NOT NULL,
-    interests TEXT[] NOT NULL DEFAULT '{}',
     avatar_color TEXT DEFAULT '#6C63FF',
     activity_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -164,17 +162,6 @@ export const GRADE_LEVELS = [
   '10th Grade',
   '11th Grade',
   '12th Grade',
-] as const;
-```
-
-## Default Interest Options
-
-```typescript
-export const INTEREST_OPTIONS = [
-  'Space', 'Dinosaurs', 'Animals', 'Art', 'Music',
-  'Sports', 'Nature', 'Cars', 'Cooking', 'Science',
-  'Math', 'Reading', 'History', 'Geography', 'Robots',
-  'Ocean', 'Weather', 'Trains', 'Superheroes', 'Fairy Tales',
 ] as const;
 ```
 

@@ -18,17 +18,15 @@ import { Chip } from '@/components/ui/Chip';
 import { Card } from '@/components/ui/Card';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
-import { INTEREST_OPTIONS } from '@/constants/interests';
 import type { GradeLevel } from '@/constants/grades';
-import type { Interest } from '@/constants/interests';
 
 const AVATAR_COLORS = [
     '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
     '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
 ];
 
-// Steps: 0 = Name & Avatar, 1 = Age & Grade, 2 = Interests
-const STEP_COUNT = 3;
+// Steps: 0 = Name & Avatar, 1 = Age & Grade
+const STEP_COUNT = 2;
 
 export default function OnboardingCreateProfileScreen() {
     const router = useRouter();
@@ -38,18 +36,9 @@ export default function OnboardingCreateProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [interests, setInterests] = useState<Interest[]>([]);
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const toggleInterest = (interest: Interest) => {
-        setInterests((prev) =>
-            prev.includes(interest)
-                ? prev.filter((i) => i !== interest)
-                : [...prev, interest]
-        );
-    };
 
     const canAdvance = () => {
         switch (step) {
@@ -59,8 +48,6 @@ export default function OnboardingCreateProfileScreen() {
                 const ageNum = parseInt(age, 10);
                 return !isNaN(ageNum) && ageNum >= 1 && ageNum <= 12 && gradeLevel !== null;
             }
-            case 2:
-                return interests.length > 0;
             default:
                 return false;
         }
@@ -84,7 +71,7 @@ export default function OnboardingCreateProfileScreen() {
 
     const handleSubmit = async () => {
         const ageNum = parseInt(age, 10);
-        if (!name.trim() || isNaN(ageNum) || !gradeLevel || interests.length === 0) {
+        if (!name.trim() || isNaN(ageNum) || !gradeLevel) {
             setError('Please complete all fields.');
             return;
         }
@@ -96,7 +83,6 @@ export default function OnboardingCreateProfileScreen() {
             name: name.trim(),
             age: ageNum,
             grade_level: gradeLevel,
-            interests,
             avatar_color: avatarColor,
         });
 
@@ -116,7 +102,6 @@ export default function OnboardingCreateProfileScreen() {
     const stepTitles = [
         { title: 'Who is this for?', subtitle: 'Let\'s personalize their learning journey' },
         { title: 'Calibrating Engine...', subtitle: 'We use age and grade to dial in math complexity and vocabulary' },
-        { title: 'Curating Interests', subtitle: 'Select topics to make their quests wildly engaging' },
     ];
 
     return (
@@ -223,29 +208,6 @@ export default function OnboardingCreateProfileScreen() {
                         </View>
                     )}
 
-                    {/* Step 2: Interests */}
-                    {step === 2 && (
-                        <View style={styles.stepContent}>
-                            <View style={styles.interestHeader}>
-                                <Text style={styles.interestCount}>
-                                    {interests.length === 0
-                                        ? 'Tap to select'
-                                        : `${interests.length} selected`}
-                                </Text>
-                            </View>
-                            <View style={styles.interestGrid}>
-                                {INTEREST_OPTIONS.map((option) => (
-                                    <Chip
-                                        key={option.value}
-                                        label={option.label}
-                                        selected={interests.includes(option.value)}
-                                        onPress={() => toggleInterest(option.value)}
-                                    />
-                                ))}
-                            </View>
-                        </View>
-                    )}
-
                     {/* Error */}
                     {error && <Text style={styles.error}>{error}</Text>}
 
@@ -274,8 +236,8 @@ export default function OnboardingCreateProfileScreen() {
                         />
                     </View>
 
-                    {/* Preview Card (step 2) */}
-                    {step === 2 && name.trim() && (
+                    {/* Preview Card (last step) */}
+                    {step === STEP_COUNT - 1 && name.trim() && (
                         <Card variant="outlined" style={styles.previewCard}>
                             <View style={styles.previewRow}>
                                 <View style={[styles.previewAvatar, { backgroundColor: avatarColor }]}>
@@ -290,23 +252,6 @@ export default function OnboardingCreateProfileScreen() {
                                     </Text>
                                 </View>
                             </View>
-                            {interests.length > 0 && (
-                                <View style={styles.previewInterests}>
-                                    {interests.slice(0, 5).map((i) => {
-                                        const opt = INTEREST_OPTIONS.find((o) => o.value === i);
-                                        return (
-                                            <Text key={i} style={styles.previewInterestText}>
-                                                {opt?.label ?? i}
-                                            </Text>
-                                        );
-                                    })}
-                                    {interests.length > 5 && (
-                                        <Text style={styles.previewInterestMore}>
-                                            +{interests.length - 5} more
-                                        </Text>
-                                    )}
-                                </View>
-                            )}
                         </Card>
                     )}
 
@@ -372,7 +317,7 @@ const styles = StyleSheet.create({
     },
     stepSubtitle: {
         fontSize: FontSize.md,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
     },
 
@@ -423,7 +368,7 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.md,
         marginLeft: Spacing.xs,
@@ -436,21 +381,6 @@ const styles = StyleSheet.create({
         gap: Spacing.sm,
     },
 
-    // Interests
-    interestHeader: {
-        marginBottom: Spacing.lg,
-    },
-    interestCount: {
-        fontSize: FontSize.sm,
-        fontWeight: FontWeight.medium,
-        color: Colors.textTertiary,
-        textAlign: 'center',
-    },
-    interestGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.sm,
-    },
 
     // Error
     error: {
@@ -478,7 +408,7 @@ const styles = StyleSheet.create({
     backBtnText: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.semibold,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     nextBtn: {
         flex: 0.6,
@@ -520,30 +450,8 @@ const styles = StyleSheet.create({
     },
     previewMeta: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginTop: 2,
-    },
-    previewInterests: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.xs,
-        marginTop: Spacing.sm,
-    },
-    previewInterestText: {
-        fontSize: FontSize.xs,
-        color: Colors.textSecondary,
-        backgroundColor: Colors.background,
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: 3,
-        borderRadius: Radius.sm,
-        overflow: 'hidden',
-    },
-    previewInterestMore: {
-        fontSize: FontSize.xs,
-        color: Colors.textTertiary,
-        fontWeight: FontWeight.medium,
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: 3,
     },
     // Building Overlay
     buildingOverlay: {
@@ -565,7 +473,7 @@ const styles = StyleSheet.create({
     },
     buildingSubtitle: {
         fontSize: FontSize.md,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
     },
 });

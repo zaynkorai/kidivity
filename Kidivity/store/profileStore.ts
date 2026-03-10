@@ -8,6 +8,7 @@ interface ProfileState {
     profiles: KidProfile[];
     activeProfileId: string | null;
     isLoading: boolean;
+    hasLoadedProfiles: boolean;
 }
 
 interface ProfileActions {
@@ -17,6 +18,7 @@ interface ProfileActions {
     deleteProfile: (id: string) => Promise<{ error: string | null }>;
     setActiveProfile: (id: string) => void;
     getActiveProfile: () => KidProfile | undefined;
+    clearProfiles: () => void;
 }
 
 type ProfileStore = ProfileState & ProfileActions;
@@ -37,11 +39,18 @@ export const useProfileStore = create<ProfileStore>()(
             profiles: [],
             activeProfileId: null,
             isLoading: false,
+            hasLoadedProfiles: false,
 
             // Actions
             fetchProfiles: async () => {
                 set({ isLoading: true });
                 try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
+                        set({ isLoading: false, hasLoadedProfiles: true, profiles: [] });
+                        return;
+                    }
+
                     const { data, error } = await supabase
                         .from('kid_profiles')
                         .select('*')
@@ -49,7 +58,7 @@ export const useProfileStore = create<ProfileStore>()(
 
                     if (error) {
                         console.error('Failed to fetch profiles:', error);
-                        set({ isLoading: false });
+                        set({ isLoading: false, hasLoadedProfiles: true });
                         return;
                     }
 
@@ -59,13 +68,14 @@ export const useProfileStore = create<ProfileStore>()(
                     set({
                         profiles,
                         isLoading: false,
+                        hasLoadedProfiles: true,
                         // Auto-select first profile if none selected
                         activeProfileId: activeProfileId && profiles.find(p => p.id === activeProfileId)
                             ? activeProfileId
                             : profiles[0]?.id ?? null,
                     });
                 } catch {
-                    set({ isLoading: false });
+                    set({ isLoading: false, hasLoadedProfiles: true });
                 }
             },
 
@@ -171,6 +181,10 @@ export const useProfileStore = create<ProfileStore>()(
             getActiveProfile: () => {
                 const { profiles, activeProfileId } = get();
                 return profiles.find(p => p.id === activeProfileId);
+            },
+            
+            clearProfiles: () => {
+                set({ profiles: [], activeProfileId: null, hasLoadedProfiles: false });
             },
         }),
         {

@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
-import { Home, Wand2, Bookmark, Settings } from 'lucide-react-native';
+import { Home, Wand2, History, Settings } from 'lucide-react-native';
 import { Colors, Shadows, Spacing, Radius } from '@/constants/theme';
 import { HapticTab } from '@/components/haptic-tab';
 export default function TabLayout() {
@@ -9,7 +9,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarInactiveTintColor: Colors.textPrimary,
         tabBarStyle: {
           position: 'absolute',
           bottom: Platform.OS === 'ios' ? 24 : 16,
@@ -58,12 +58,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="activities"
         options={{
-          title: 'Saved',
+          title: 'Activities',
           tabBarIcon: ({ color, size, focused }) => (
             <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
-              <Bookmark size={22} color={color} />
+              <History size={22} color={color} />
             </View>
           ),
         }}

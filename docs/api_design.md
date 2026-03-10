@@ -120,7 +120,6 @@ Child Profile:
 - Name: {name}
 - Age: {age}
 - Grade: {grade_level}
-- Interests: {interests}
 
 Style: {style === 'bw' ? 'Black and white, optimized for printing' : 'Colorful and visually engaging'}
 Difficulty: {difficulty}
@@ -181,7 +180,7 @@ These operations use the Supabase JS client directly (no Edge Function needed). 
 // Create
 const { data } = await supabase
   .from('kid_profiles')
-  .insert({ user_id, name, age, grade_level, interests, avatar_color })
+  .insert({ user_id, name, age, grade_level, avatar_color })
   .select()
   .single()
 
@@ -194,7 +193,7 @@ const { data } = await supabase
 // Update
 const { data } = await supabase
   .from('kid_profiles')
-  .update({ name, age, grade_level, interests })
+  .update({ name, age, grade_level })
   .eq('id', profileId)
   .select()
   .single()

@@ -36,7 +36,7 @@ export function PaywallModal({ visible, used, limit, onClose }: Props) {
             <View style={styles.sheet}>
                 {/* Close */}
                 <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                    <X size={20} color={Colors.textSecondary} />
+                    <X size={20} color={Colors.textPrimary} />
                 </TouchableOpacity>
 
                 {/* Icon */}
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xl,
         lineHeight: 20,
@@ -146,6 +146,6 @@ const styles = StyleSheet.create({
     },
     resetNote: {
         fontSize: FontSize.xs,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
     },
 });

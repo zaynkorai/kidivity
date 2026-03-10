@@ -25,26 +25,28 @@ export default function RootLayout() {
   const session = useAuthStore((s) => s.session);
   const isInitialized = useAuthStore((s) => s.isInitialized);
 
-  const profiles = useProfileStore((s) => s.profiles);
-  const fetchProfiles = useProfileStore((s) => s.fetchProfiles);
-
   const router = useRouter();
   const segments = useSegments();
 
+  // STABLE SELECTORS
+  const profiles = useProfileStore((s) => s.profiles);
+  const hasLoadedProfiles = useProfileStore((s) => s.hasLoadedProfiles);
+  const fetchProfiles = useProfileStore((s) => s.fetchProfiles);
+
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
-  // Fetch profiles whenever user signs in
+  // Fetch profiles only when initialized or when session changes
   useEffect(() => {
-    if (session) {
+    if (isInitialized) {
       fetchProfiles();
     }
-  }, [session]);
+  }, [isInitialized, session?.user?.id, fetchProfiles]);
 
   // Auth + onboarding routing guard
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || !hasLoadedProfiles) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -71,7 +73,7 @@ export default function RootLayout() {
   }, [session, isInitialized, segments, profiles.length]);
 
   // Show loading spinner until auth state is resolved or fonts load
-  if (!isInitialized || !fontsLoaded) {
+  if (!isInitialized || !hasLoadedProfiles) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.primary} />

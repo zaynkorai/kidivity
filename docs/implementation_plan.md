@@ -36,7 +36,6 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] Create `types/profile.ts` — `KidProfile`, `CreateKidProfileInput`, `UpdateKidProfileInput`
 - [X] Create `types/activity.ts` — `Activity`, `GenerateActivityInput`, difficulty/style types
 - [X] Create `constants/grades.ts` — Pre-K through 12th grade enum
-- [X] Create `constants/interests.ts` — 20 interests with emoji labels
 - [X] Create `constants/categories.ts` — 6 activity categories with colors
 
 ### 0.4 Design System
@@ -51,10 +50,10 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 ### 0.5 Screens Built (ahead of schedule)
 
 - [X] `(tabs)/index.tsx` — Home dashboard: kid profile switcher, generate CTA card, category grid, recent activities list with empty state
-- [X] `(tabs)/generate.tsx` — 3-step activity generator: category cards → topic input with interest chips → difficulty/style options → generate button with result display
+- [X] `(tabs)/generate.tsx` — 3-step activity generator: category cards → topic input with category chips → difficulty/style options → generate button with result display
 - [X] `(tabs)/saved.tsx` — Saved activities list with bookmark/delete actions and empty state
 - [X] `(tabs)/settings.tsx` — Profile management (edit/delete), account info, about section, sign out with confirmation
-- [X] `profile/create.tsx` — Create kid profile modal: avatar color picker, name/age inputs, grade selector, multi-select interests grid with validation
+- [X] `profile/create.tsx` — Create kid profile modal: avatar color picker, name/age inputs, grade selector with validation
 - [X] `_layout.tsx` — Root layout with auth initialization
 - [X] `(tabs)/_layout.tsx` — Tab bar with 4 tabs using Lucide icons
 
@@ -104,7 +103,7 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 ### 2.1 Profile Screens
 
 - [X] `(onboarding)/_layout.tsx` — Onboarding group stack navigator
-- [X] `(onboarding)/create-profile.tsx` — 3-step wizard (Name/Avatar → Age/Grade → Interests) with progress dots + preview card
+- [X] `(onboarding)/create-profile.tsx` — 2-step wizard (Name/Avatar → Age/Grade) with progress dots + preview card
 - [X] `profile/create.tsx` — Add additional kid (modal) *(built in Phase 0)*
 - [X] `profile/[id]/edit.tsx` — Edit existing kid (modal) with pre-filled fields + delete option
 
@@ -143,7 +142,7 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 
 - [X] `(tabs)/generate.tsx` — Category selection → customization → result *(built in Phase 0)*
 - [X] Category cards UI (Logic, Tracing, Educational, Screen-Free) *(built in Phase 0)*
-- [X] Topic input (pre-filled from kid's interests) *(built in Phase 0)*
+- [X] Topic input (pre-filled from category defaults) *(built in Phase 0)*
 - [X] Difficulty picker and style toggle (B&W / Colorful) *(built in Phase 0)*
 - [x] Loading state with fun animation during generation
 
@@ -212,7 +211,7 @@ Ship a working MVP of Kidivity: a React Native (Expo) app where parents create k
 - [X] Updated backend prompt builder (`activities.ts`) to strictly enforce all constraints
 
 ### 6.3 Premium Visual-First Activities ✅ COMPLETE
-- [X] Hyper-personalized Banana API image prompt — injects kid's top interests
+- [X] Image prompt uses strict topic fidelity rules for visual accuracy
 - [X] `activity/[id].tsx` renders `image_url` above markdown content
 
 ### 6.4 Workbook Generation

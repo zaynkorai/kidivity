@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     },
     message: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
         marginTop: Spacing.sm,
         lineHeight: 20,

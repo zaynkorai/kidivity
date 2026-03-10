@@ -69,7 +69,7 @@ kidivity/
 │   ├── components/          ← Reusable UI components
 │   ├── store/               ← Zustand state management
 │   ├── lib/                 ← Utilities & clients
-│   ├── constants/           ← Theme, grades, interests
+│   ├── constants/           ← Theme, grades
 │   ├── types/               ← TypeScript types
 │   └── hooks/               ← Custom React hooks
 └── supabase/                ← Database & Edge Functions

@@ -49,7 +49,7 @@ Root (Stack Navigator)
 | Name input | Text field |
 | Age picker | Scroll wheel or counter (2-18) |
 | Grade selector | Dropdown: Pre-K through 12th |
-| Interest chips | Tappable tags: Space, Dinosaurs, Animals, Art, Music, Sports, Nature, Cars, Cooking, Science, Math, Reading |
+| Topic chips | Category-based topic suggestions |
 | Avatar color | Color circle picker |
 | Save button | Creates profile → navigates to Home |
 
@@ -84,7 +84,7 @@ Root (Stack Navigator)
 **Step 2: Customize**
 | Element | Description |
 |---|---|
-| Topic input | "What topic?" — pre-filled from kid's interests, editable |
+| Topic input | "What topic?" — pre-filled from category defaults, editable |
 | Difficulty | Easy / Medium / Hard slider |
 | Style toggle | B&W (printer) vs Colorful |
 | Generate button | Calls AI, shows loading animation |

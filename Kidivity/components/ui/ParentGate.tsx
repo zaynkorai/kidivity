@@ -78,7 +78,7 @@ export function ParentGate({
                                 <Text style={styles.title}>{title}</Text>
                             </View>
                             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                                <X size={20} color={Colors.textSecondary} />
+                                <X size={20} color={Colors.textPrimary} />
                             </TouchableOpacity>
                         </View>
 
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginBottom: Spacing.xl,
         lineHeight: 20,
     },

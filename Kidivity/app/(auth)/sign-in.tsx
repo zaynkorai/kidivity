@@ -25,7 +25,7 @@ const ScreenColors = {
     blueHeader: Colors.pastelBlue,
     blueText: Colors.textPrimary,
     textMain: Colors.textPrimary,
-    textSecondary: Colors.textSecondary,
+    textSecondary: Colors.textPrimary,
 };
 
 export default function SignInScreen() {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.sm,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing['3xl'],
     },
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     },
     switchLinkText: {
         fontSize: FontSize.sm,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
     },
     switchLinkBold: {
         color: ScreenColors.textMain,

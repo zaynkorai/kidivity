@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { randomUUID } from 'crypto';
 import authPlugin from './plugins/auth.js';
 import activityRoutes from './routes/activities.js';
 
@@ -8,13 +9,50 @@ const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
 async function main() {
+    const isDev = process.env.NODE_ENV !== 'production';
+
     const fastify = Fastify({
+        // Override fastify default auto-incrementing id with a UUID
+        genReqId: () => randomUUID(),
         logger: {
-            transport: {
-                target: 'pino-pretty',
-                options: { colorize: true },
+            level: 'info',
+            // Detailed custom serializers to keep logs readable but informative
+            serializers: {
+                req(request) {
+                    return {
+                        method: request.method,
+                        url: request.url,
+                        routeUrl: request.routeOptions.url,
+                        pathParams: request.params,
+                        queryParams: request.query,
+                        ip: request.ip,
+                    };
+                },
+                res(reply) {
+                    return {
+                        statusCode: reply.statusCode,
+                    };
+                },
             },
+            ...(isDev
+                ? {
+                      transport: {
+                          target: 'pino-pretty',
+                          options: {
+                              colorize: true,
+                              translateTime: 'HH:MM:ss Z',
+                              ignore: 'pid,hostname',
+                          },
+                      },
+                  }
+                : {}), // In production, default to structured JSON logs
         },
+    });
+
+    // ── Pre-handler: Inject request ID into response  ──
+    fastify.addHook('onSend', async (request, reply, payload) => {
+        reply.header('x-request-id', request.id);
+        return payload;
     });
 
     // ── Plugins ──────────────────────────────────────────

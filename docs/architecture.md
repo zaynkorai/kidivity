@@ -90,7 +90,6 @@ kidivity/
 │   │   ├── theme.ts               ← Colors, fonts, spacing, shadows
 │   │   ├── categories.ts          ← Activity category definitions
 │   │   ├── grades.ts              ← Grade level enum
-│   │   └── interests.ts           ← Interest options
 │   │
 │   ├── types/                     ← TypeScript type definitions
 │   │   ├── profile.ts

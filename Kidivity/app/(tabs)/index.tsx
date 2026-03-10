@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, Wand2, Sun, Sunset, Moon, Bookmark, Clock } from 'lucide-react-native';
+import { Plus, Wand2, Sun, Sunset, Moon, Bookmark, Clock, History } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -34,17 +34,26 @@ function formatShortDate(dateIso: string): string {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { profiles, activeProfileId, setActiveProfile, fetchProfiles } = useProfileStore();
-  const { recentActivities, kidStats, fetchRecent, fetchKidStats } = useActivityStore();
+  
+  // Stable action selectors
+  const fetchProfiles = useProfileStore((state) => state.fetchProfiles);
+  const setActiveProfile = useProfileStore((state) => state.setActiveProfile);
+  const fetchRecent = useActivityStore((state) => state.fetchRecent);
+  const fetchKidStats = useActivityStore((state) => state.fetchKidStats);
+
+  // State selectors
+  const profiles = useProfileStore((state) => state.profiles);
+  const activeProfileId = useProfileStore((state) => state.activeProfileId);
+  const recentActivities = useActivityStore((state) => state.recentActivities);
+  const stats = useActivityStore((state) => activeProfileId ? state.kidStats[activeProfileId] : undefined);
+
   const [refreshing, setRefreshing] = useState(false);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
-  const stats = activeProfileId ? kidStats[activeProfileId] : undefined;
 
   useEffect(() => {
-    fetchProfiles();
     fetchRecent();
-  }, [fetchProfiles, fetchRecent]);
+  }, [fetchRecent]);
 
   useEffect(() => {
     if (!activeProfileId) return;
@@ -101,7 +110,7 @@ export default function HomeScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.profileList}>
           <TouchableOpacity onPress={() => router.push('/profile/create')} style={styles.addKidChip} activeOpacity={0.85}>
             <View style={styles.addKidIcon}>
-              <Plus size={16} color={Colors.primary} />
+              <Plus size={16} color={Colors.textPrimary} />
             </View>
             <Text style={styles.addKidText}>Add Kid</Text>
           </TouchableOpacity>
@@ -147,10 +156,10 @@ export default function HomeScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }}
         >
-          <Card variant="elevated" style={styles.heroCard}>
+          <Card variant="elevated" style={styles.heroCard} color={Colors.primary}>
             <View style={styles.heroHeader}>
               <View style={styles.heroIcon}>
-                <Wand2 size={20} color={Colors.white} />
+                <Wand2 size={24} color={Colors.primary} />
               </View>
               <View style={styles.heroText}>
                 <Text style={styles.heroTitle}>Generate an activity</Text>
@@ -162,10 +171,10 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.heroAction}
                 activeOpacity={0.85}
-                onPress={() => router.push('/(tabs)/saved')}
+                onPress={() => router.push('/(tabs)/activities')}
               >
-                <Bookmark size={16} color={Colors.primary} />
-                <Text style={styles.heroActionText}>Saved</Text>
+                <History size={18} color={Colors.primary} />
+                <Text style={styles.heroActionText}>Activities</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.heroAction, !lastActivity && styles.heroActionDisabled]}
@@ -176,7 +185,7 @@ export default function HomeScreen() {
                   router.push(`/activity/${lastActivity.id}` as any);
                 }}
               >
-                <Clock size={16} color={Colors.primary} />
+                <Clock size={18} color={Colors.primary} />
                 <Text style={styles.heroActionText}>Open last</Text>
               </TouchableOpacity>
             </View>
@@ -187,21 +196,21 @@ export default function HomeScreen() {
           <View style={styles.snapshot}>
             <Text style={styles.sectionTitle}>Snapshot</Text>
             <View style={styles.snapshotRow}>
-              <View style={styles.metricCard}>
+              <View style={[styles.metricCard, { backgroundColor: Colors.pastelPurple, borderColor: Colors.purple }]}>
                 <Text style={styles.metricValue}>{stats ? stats.total : '—'}</Text>
                 <Text style={styles.metricLabel}>Activities</Text>
               </View>
-              <View style={styles.metricCard}>
+              <View style={[styles.metricCard, { backgroundColor: Colors.pastelMint, borderColor: Colors.green }]}>
                 <Text style={styles.metricValue}>{stats ? stats.weekCount : '—'}</Text>
                 <Text style={styles.metricLabel}>This week</Text>
               </View>
-              <View style={styles.metricCard}>
+              <View style={[styles.metricCard, { backgroundColor: Colors.pastelYellow, borderColor: Colors.yellow }]}>
                 <Text style={styles.metricValue}>{stats ? stats.saved : '—'}</Text>
                 <Text style={styles.metricLabel}>Saved</Text>
               </View>
             </View>
             <View style={styles.lastMadeRow}>
-              <Clock size={14} color={Colors.textTertiary} />
+              <Clock size={14} color={Colors.textPrimary} />
               <Text style={styles.lastMadeText}>
                 {stats?.lastCreatedAt ? `Last generated: ${formatShortDate(stats.lastCreatedAt)}` : 'No activities yet'}
               </Text>
@@ -218,7 +227,7 @@ export default function HomeScreen() {
                 key={cat.id}
                 style={[
                   styles.categoryTile,
-                  { borderColor: cat.color + '33', backgroundColor: cat.color + '12' },
+                  { borderColor: cat.color + '26', backgroundColor: cat.color + '0B' },
                 ]}
                 activeOpacity={0.85}
                 onPress={() => {
@@ -242,75 +251,7 @@ export default function HomeScreen() {
           })}
         </View>
 
-        <Text style={styles.sectionTitle}>Recent activities</Text>
-        {visibleActivities.length === 0 ? (
-          <Card variant="outlined" style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Wand2 size={20} color={Colors.primary} />
-            </View>
-            <Text style={styles.emptyTitle}>Nothing here yet</Text>
-            <Text style={styles.emptySubtitle}>Generate an activity and it will appear here for quick reprint.</Text>
-            <Button
-              title="Generate activity"
-              onPress={() => router.push('/(tabs)/generate')}
-              variant="primary"
-              size="sm"
-              style={{ marginTop: Spacing.md }}
-            />
-          </Card>
-        ) : (
-          visibleActivities.slice(0, 5).map((activity) => {
-            const cat = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
-            const catColor = cat?.color ?? Colors.primaryLight;
-            const Icon = cat?.icon ?? Wand2;
 
-            return (
-              <TouchableOpacity
-                key={activity.id}
-                activeOpacity={0.85}
-                onPress={() => router.push(`/activity/${activity.id}` as any)}
-              >
-                <Card variant="outlined" style={[styles.activityCard, { borderColor: catColor + '26' }]}>
-                  <View style={styles.activityContent}>
-                    <View style={styles.activityTextContent}>
-                      <View style={styles.activityMetaRow}>
-                        <View style={[styles.activityDot, { backgroundColor: catColor }]} />
-                        <Text style={styles.activityMetaText} numberOfLines={1}>
-                          {cat?.label ?? 'Activity'} · {formatShortDate(activity.created_at)}
-                        </Text>
-                      </View>
-                      <Text style={styles.activityTopic} numberOfLines={1}>
-                        {activity.topic || 'Activity'}
-                      </Text>
-                      <Text style={styles.activityPreview} numberOfLines={2}>
-                        {activity.content.replace(/[#*_~]/g, '').trim()}
-                      </Text>
-                    </View>
-
-                    {activity.image_url ? (
-                      <Image
-                        source={{ uri: activity.image_url }}
-                        style={styles.activityThumbnail}
-                        contentFit="cover"
-                        transition={300}
-                      />
-                    ) : (
-                      <View
-                        style={[
-                          styles.activityThumbnail,
-                          styles.activityThumbnailPlaceholder,
-                          { backgroundColor: catColor + '10', borderColor: catColor + '20' },
-                        ]}
-                      >
-                        <Icon size={20} color={catColor} />
-                      </View>
-                    )}
-                  </View>
-                </Card>
-              </TouchableOpacity>
-            );
-          })
-        )}
 
         <View style={{ height: Spacing['3xl'] }} />
       </ScrollView>
@@ -354,7 +295,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: FontSize.md,
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
     marginTop: Spacing.xs,
     lineHeight: 22,
   },
@@ -376,7 +317,8 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   profileChipActive: {
-    borderColor: Colors.primary + '55',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '0A',
   },
   profileAvatar: {
     width: 34,
@@ -387,7 +329,7 @@ const styles = StyleSheet.create({
   },
   profileAvatarActive: {
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: Colors.white,
   },
   profileInitial: {
     fontSize: FontSize.sm,
@@ -396,12 +338,12 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold, // increased weight
     color: Colors.textPrimary,
   },
   profileMeta: {
     fontSize: FontSize.xs,
-    color: Colors.textTertiary,
+    color: Colors.textPrimary,
     marginTop: 1,
   },
 
@@ -413,7 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderRadius: Radius.full,
     borderWidth: 1.5,
-    borderColor: Colors.primary + '40',
+    borderColor: Colors.border,
     borderStyle: 'dashed',
     backgroundColor: Colors.surface,
   },
@@ -423,19 +365,22 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary + '15',
+    backgroundColor: Colors.background,
   },
   addKidText: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color: Colors.primary,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
   },
 
   heroCard: {
     borderRadius: Radius['2xl'],
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 0,
     marginBottom: Spacing.xl,
+    padding: Spacing.xl, // Custom padding over the default logic
+    backgroundColor: Colors.primary,
+    ...Shadows.md,
+    shadowColor: Colors.primary,
   },
   heroHeader: {
     flexDirection: 'row',
@@ -443,10 +388,10 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   heroIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.sm,
@@ -457,12 +402,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
+    color: Colors.white,
   },
   heroSubtitle: {
     fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
+    lineHeight: 20,
   },
   heroActions: {
     flexDirection: 'row',
@@ -475,18 +421,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary + '10',
-    borderWidth: 1,
-    borderColor: Colors.primary + '22',
+    backgroundColor: Colors.white,
+    ...Shadows.sm,
   },
   heroActionDisabled: {
-    opacity: 0.55,
+    opacity: 0.85,
   },
   heroActionText: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold, // changed to bold
     color: Colors.primaryDark,
   },
 
@@ -505,7 +450,7 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     backgroundColor: Colors.surface,
@@ -515,13 +460,13 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
     color: Colors.textPrimary,
   },
   metricLabel: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
-    fontWeight: FontWeight.medium,
+    color: Colors.textPrimary,
+    fontWeight: FontWeight.semibold,
     marginTop: 2,
   },
   lastMadeRow: {
@@ -532,7 +477,7 @@ const styles = StyleSheet.create({
   },
   lastMadeText: {
     fontSize: FontSize.xs,
-    color: Colors.textTertiary,
+    color: Colors.textPrimary,
     fontWeight: FontWeight.medium,
   },
 
@@ -567,85 +512,10 @@ const styles = StyleSheet.create({
   },
   categoryTileSub: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
     marginTop: 2,
   },
 
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: Spacing['3xl'],
-  },
-  emptyIcon: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.primary + '12',
-    borderWidth: 1,
-    borderColor: Colors.primary + '22',
-    marginBottom: Spacing.md,
-  },
-  emptyTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary,
-  },
-  emptySubtitle: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
-  },
 
-  activityCard: {
-    marginBottom: Spacing.md,
-  },
-  activityContent: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-    alignItems: 'center',
-  },
-  activityTextContent: {
-    flex: 1,
-  },
-  activityMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  activityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  activityMetaText: {
-    fontSize: FontSize.xs,
-    color: Colors.textTertiary,
-    fontWeight: FontWeight.medium,
-  },
-  activityTopic: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  activityPreview: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  activityThumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  activityThumbnailPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
 });

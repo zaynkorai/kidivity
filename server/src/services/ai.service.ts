@@ -1,5 +1,6 @@
 import { GoogleGenAI, Modality, Type, Schema } from '@google/genai';
 import type { FastifyBaseLogger } from 'fastify';
+import { uploadBase64Image } from '../lib/r2.js';
 
 interface GenerateActivityParams {
     geminiKey: string;
@@ -197,6 +198,18 @@ export async function generateActivityContent({
         } catch (err: any) {
             logger.error(err, 'Error calling image generation API');
             // We don't throw here to still return the content even if image fails
+        }
+        
+        // 3. Upload to Cloudflare R2 if we successfully generated an image
+        if (image_url) {
+            try {
+                const r2Url = await uploadBase64Image(image_url, logger);
+                if (r2Url) {
+                    image_url = r2Url; // Overwrite the base64 string with the public URL
+                }
+            } catch (r2Err: any) {
+                logger.error({ err: r2Err }, 'Failed to upload image to R2');
+            }
         }
     }
 

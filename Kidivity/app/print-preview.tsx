@@ -159,7 +159,7 @@ export default function PrintPreviewScreen() {
         return (
             <SafeAreaView style={styles.safe}>
                 <View style={styles.centered}>
-                    <Search size={48} color={Colors.textSecondary} style={{ marginBottom: Spacing.md }} />
+                    <Search size={48} color={Colors.textPrimary} style={{ marginBottom: Spacing.md }} />
                     <Text style={styles.emptyTitle}>Activity not found</Text>
                     <Button
                         title="Go Back"
@@ -222,7 +222,7 @@ export default function PrintPreviewScreen() {
                     {/* Header */}
                     <View style={styles.previewHeader}>
                         <View style={[styles.badge, { backgroundColor: (category?.color ?? Colors.primary) + '15' }]}>
-                            <Text style={[styles.badgeText, { color: category?.color ?? Colors.primary }]}>
+                            <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                 {category?.label}
                             </Text>
                         </View>
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     },
     previewMeta: {
         fontSize: FontSize.xs,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
     },
     previewImage: {
         width: '100%',
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     },
     previewContent: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         lineHeight: 22,
     },
     previewFooter: {
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     },
     footerText: {
         fontSize: FontSize.xs,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
     },
     actionRow: {
         flexDirection: 'row',

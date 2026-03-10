@@ -28,7 +28,7 @@ export function Input({ label, error, containerStyle, style, ...props }: InputPr
                     error && styles.inputError,
                     style,
                 ]}
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor={Colors.textPrimary}
                 onFocus={(e) => {
                     setIsFocused(true);
                     props.onFocus?.(e);
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginLeft: Spacing.xs,
     },
     input: {

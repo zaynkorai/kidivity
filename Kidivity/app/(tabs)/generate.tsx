@@ -68,29 +68,16 @@ export default function GenerateScreen() {
 
         const categoryDefaults: Record<ActivityCategory, string[]> = {
             puzzles: ['Mazes', 'Patterns', 'Find the Difference', 'Matching', 'Sequences', 'Sorting', 'Shadows', 'Odd One Out', 'Sudoku', 'Logic Grids', 'Symmetry'],
-            tracing: ['Alphabet', 'Numbers', 'Shapes', 'Lines', 'Cursive', 'Names', 'Animals', 'Vehicles', 'Spelling', 'Sight Words', 'My Family'],
-            science: ['Space', 'Animals', 'Dinosaurs', 'Ocean', 'Geography', 'Human Body', 'Weather', 'Plants', 'Insects', 'Volcanoes', 'Recycling', 'Solar System'],
+            tracing: ['Alphabet', 'Numbers', 'Shapes', 'Lines', 'Cursive', 'Names', 'Animal', 'Vehicles', 'Spelling', 'Sight Words', 'My Family'],
+            science: ['Space', 'Animal', 'Dinosaurs', 'Ocean', 'Geography', 'Human Body', 'Weather', 'Plants', 'Insects', 'Volcanoes', 'Recycling', 'Solar System'],
             art: ['Coloring Pages', 'Step-by-step Drawing', 'Origami', 'Crafts', 'Mandala', 'Pixel Art', 'Paper Airplanes', 'Finger Painting', 'Mask Making'],
             math: ['Addition', 'Counting', 'Subtraction', 'Shapes', 'Money', 'Time', 'Fractions', 'Multiplication', 'Measuring', 'Graphs', 'Word Problems'],
             reading: ['Bedtime Stories', 'Sight Words', 'Reading Comprehension', 'Phonics', 'Adventure Tales', 'Fairy Tales', 'Poetry', 'Myths & Legends', 'Rhyming', 'Vocabulary'],
         };
 
-        const topics = (activeProfile?.interests ?? []).map((t) => String(t));
-
-        // If no profile interests, or not enough, pad with category defaults.
-        // We shuffle the defaults so they get different options every time they come to the screen
         const defaults = [...(categoryDefaults[selectedCategory] || [])].sort(() => 0.5 - Math.random());
-
-        if (topics.length < 6) {
-            for (const def of defaults) {
-                if (!topics.some((t) => t.toLowerCase() === def.toLowerCase())) topics.push(def);
-                if (topics.length >= 6) break;
-            }
-        }
-
-        return topics.slice(0, 6);
-
-    }, [activeProfile?.interests, selectedCategory]);
+        return defaults.slice(0, 6);
+    }, [selectedCategory]);
 
     const handleGenerate = async () => {
         if (!activeProfile || !selectedCategory || !topic.trim()) return;
@@ -242,7 +229,7 @@ export default function GenerateScreen() {
                                             </View>
                                         )}
                                     </View>
-                                    <Text style={[styles.categoryLabel, isSelected && { color: cat.color }]}>
+                                    <Text style={[styles.categoryLabel, isSelected && { color: Colors.textPrimary }]}>
                                         {cat.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -255,7 +242,7 @@ export default function GenerateScreen() {
                 <Card variant="elevated" style={styles.stepCard}>
                     <View style={styles.stepHeader}>
                         <View style={[styles.stepBadge, { backgroundColor: accentColor + '16' }]}>
-                            <Text style={[styles.stepBadgeText, { color: accentColor }]}>2</Text>
+                            <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>2</Text>
                         </View>
                         <Text style={styles.stepTitle}>Pick a topic</Text>
                     </View>
@@ -291,7 +278,7 @@ export default function GenerateScreen() {
                 <Card variant="elevated" style={styles.stepCard}>
                     <View style={styles.stepHeader}>
                         <View style={[styles.stepBadge, { backgroundColor: Colors.categoryScience + '16' }]}>
-                            <Text style={[styles.stepBadgeText, { color: Colors.categoryScience }]}>3</Text>
+                            <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>3</Text>
                         </View>
                         <Text style={styles.stepTitle}>Choose options</Text>
                     </View>
@@ -411,7 +398,7 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.sans,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         lineHeight: 20,
     },
 
@@ -430,11 +417,11 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
     },
     kidTitle: { fontSize: FontSize.md, fontFamily: Fonts.bold, color: Colors.textPrimary },
-    kidMeta: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textSecondary },
-    kidHint: { fontSize: FontSize.xs, fontFamily: Fonts.medium, color: Colors.textTertiary },
+    kidMeta: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary },
+    kidHint: { fontSize: FontSize.xs, fontFamily: Fonts.medium, color: Colors.textPrimary },
 
     warningCard: { borderColor: Colors.warning },
-    warningText: { flex: 1, fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textSecondary },
+    warningText: { flex: 1, fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary },
 
     rateBanner: {
         flexDirection: 'row',
@@ -471,10 +458,10 @@ const styles = StyleSheet.create({
     },
     stepHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
     stepBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    stepBadgeText: { fontSize: FontSize.sm, fontFamily: Fonts.bold, color: Colors.primaryPurple },
+    stepBadgeText: { fontSize: FontSize.sm, fontFamily: Fonts.bold, color: Colors.textPrimary },
     stepTitle: { fontSize: FontSize.lg, fontFamily: Fonts.bold, color: Colors.textPrimary },
-    helperText: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textSecondary, marginBottom: Spacing.md },
-    emptyHint: { fontSize: FontSize.sm, fontFamily: Fonts.medium, color: Colors.textTertiary },
+    helperText: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary, marginBottom: Spacing.md },
+    emptyHint: { fontSize: FontSize.sm, fontFamily: Fonts.medium, color: Colors.textPrimary },
 
     categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
     categoryCard: {
@@ -513,13 +500,13 @@ const styles = StyleSheet.create({
     optionLabel: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },
     optionHelper: {
         fontSize: FontSize.xs,
         fontFamily: Fonts.medium,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
         marginTop: Spacing.sm,
         marginLeft: Spacing.xs,
     },
@@ -529,7 +516,7 @@ const styles = StyleSheet.create({
     ctaHint: {
         fontSize: FontSize.xs,
         fontFamily: Fonts.medium,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
         marginTop: -Spacing.sm,
         marginLeft: Spacing.xs,
     },

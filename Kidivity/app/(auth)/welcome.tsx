@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     authSubtitle: {
         fontSize: 14,
         fontWeight: FontWeight.medium,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing['3xl'],
         lineHeight: 22,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     emailButtonLabel: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
     },
     signUpLink: {
         position: 'absolute',
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     },
     signUpText: {
         fontSize: FontSize.sm,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
     },
     signUpBold: {
         color: ScreenColors.textMain,

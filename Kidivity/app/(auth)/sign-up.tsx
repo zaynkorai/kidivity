@@ -23,7 +23,7 @@ const ScreenColors = {
     purpleHeader: Colors.pastelPurple,
     purpleText: Colors.textPrimary,
     textMain: Colors.textPrimary,
-    textSecondary: Colors.textSecondary,
+    textSecondary: Colors.textPrimary,
 };
 
 export default function SignUpScreen() {
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.sm,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing['3xl'],
     },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     },
     checkText: {
         fontSize: FontSize.sm,
-        color: Colors.textTertiary,
+        color: Colors.textPrimary,
         fontWeight: FontWeight.medium,
     },
     checkTextActive: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     },
     switchLinkText: {
         fontSize: FontSize.sm,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
     },
     switchLinkBold: {
         color: ScreenColors.textMain,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     },
     successSubtitle: {
         fontSize: FontSize.md,
-        color: ScreenColors.textSecondary,
+        color: ScreenColors.textPrimary,
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: Spacing['3xl'],

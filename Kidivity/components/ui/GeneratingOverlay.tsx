@@ -112,7 +112,7 @@ const loadingStyles = StyleSheet.create({
     },
     message: {
         fontSize: FontSize.sm,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xl,
         minHeight: 20,

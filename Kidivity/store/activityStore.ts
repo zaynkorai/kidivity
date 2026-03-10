@@ -55,7 +55,7 @@ export const useActivityStore = create<ActivityStore>()(
                         .from('activities')
                         .select('*, kid_profiles(name)')
                         .order('created_at', { ascending: false })
-                        .limit(10);
+                        .limit(50);
 
                     if (!error && data) {
                         const activities: Activity[] = data.map((row: any) => ({
@@ -186,7 +186,7 @@ export const useActivityStore = create<ActivityStore>()(
                     const activity = data as Activity;
                     const { recentActivities } = get();
                     set({
-                        recentActivities: [activity, ...recentActivities].slice(0, 10),
+                        recentActivities: [activity, ...recentActivities].slice(0, 50),
                         isGenerating: false,
                     });
 

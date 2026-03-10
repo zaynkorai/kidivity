@@ -11,7 +11,7 @@ const SLIDES = [
     {
         id: '1',
         title: 'Personalized Learning',
-        subtitle: 'AI-crafted quests that adapt to your child&apos;s pace and interests.',
+        subtitle: 'AI-crafted quests that adapt to your child&apos;s pace and grade level.',
         Icon: Wand2,
         color: Colors.categoryMath,
     },
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.lg,
-        color: Colors.textSecondary,
+        color: Colors.textPrimary,
         textAlign: 'center',
         lineHeight: 28,
         paddingHorizontal: Spacing.xl,
