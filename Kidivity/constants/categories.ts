@@ -8,6 +8,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: Puzzle,
         description: 'Mazes, matching & sorting',
         color: Colors.categoryPuzzles,
+        accent: '#9B72DA',
     },
     {
         id: 'tracing' as const,
@@ -15,6 +16,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: PenTool,
         description: 'Alphabet, shapes & writing',
         color: Colors.categoryTracing,
+        accent: '#E8757A',
     },
     {
         id: 'science' as const,
@@ -22,6 +24,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: FlaskConical,
         description: 'Animals, space & facts',
         color: Colors.categoryScience,
+        accent: '#31A87A',
     },
     {
         id: 'art' as const,
@@ -29,6 +32,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: Palette,
         description: 'Drawing, coloring & crafts',
         color: Colors.categoryArt,
+        accent: '#D4920A',
     },
     {
         id: 'math' as const,
@@ -36,6 +40,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: Calculator,
         description: 'Counting, addition & logic',
         color: Colors.categoryMath,
+        accent: '#0EAAD4',
     },
     {
         id: 'reading' as const,
@@ -43,6 +48,7 @@ export const ACTIVITY_CATEGORIES = [
         icon: BookOpen,
         description: 'Stories & reading skills',
         color: Colors.categoryReading,
+        accent: '#D46300',
     },
 ] as const;
 

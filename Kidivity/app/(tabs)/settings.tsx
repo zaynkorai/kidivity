@@ -8,12 +8,28 @@ import {
     Alert,
     Share,
     Linking,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as LinkingApi from 'expo-linking';
 import * as Haptics from 'expo-haptics';
-import { Settings as SettingsIcon, LogOut, Plus, Trash2, Edit3, ChevronRight, Share as ShareIcon, HelpCircle, Star, Shield, KeyRound } from 'lucide-react-native';
+import {
+    Settings as SettingsIcon,
+    LogOut,
+    Plus,
+    Trash2,
+    Edit3,
+    ChevronRight,
+    Share as ShareIcon,
+    HelpCircle,
+    Star,
+    Shield,
+    KeyRound,
+    Mail,
+    UserX,
+    Info,
+} from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { useProfileStore } from '@/store/profileStore';
 import { Card } from '@/components/ui/Card';
@@ -22,7 +38,6 @@ import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
-import { Platform } from 'react-native';
 
 type GateAction = 'delete' | 'add' | 'signout' | 'delete_account' | null;
 
@@ -103,7 +118,7 @@ export default function SettingsScreen() {
 
     const handleResetPassword = async () => {
         if (!user?.email) return;
-        
+
         Alert.alert(
             'Reset Password',
             `Send a password reset email to ${user.email}?`,
@@ -167,7 +182,9 @@ export default function SettingsScreen() {
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <SettingsIcon size={24} color={Colors.primary} />
+                    <View style={styles.headerIconContainer}>
+                        <SettingsIcon size={28} color={Colors.white} />
+                    </View>
                     <Text style={styles.title}>Settings</Text>
                 </View>
 
@@ -197,14 +214,16 @@ export default function SettingsScreen() {
                                 </View>
                                 <View style={styles.profileActions}>
                                     <TouchableOpacity
+                                        style={[styles.actionIconBtn, { backgroundColor: Colors.yellow }]}
                                         onPress={() => router.push(`/profile/${profile.id}/edit`)}
                                     >
-                                        <Edit3 size={18} color={Colors.textPrimary} />
+                                        <Edit3 size={16} color={Colors.textPrimary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
+                                        style={[styles.actionIconBtn, { backgroundColor: Colors.rad }]}
                                         onPress={() => openGate('delete', profile.id)}
                                     >
-                                        <Trash2 size={18} color={Colors.accent} />
+                                        <Trash2 size={16} color={Colors.textPrimary} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -216,7 +235,9 @@ export default function SettingsScreen() {
                         style={styles.addProfileBtn}
                         onPress={() => openGate('add')}
                     >
-                        <Plus size={18} color={Colors.primary} />
+                        <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
+                            <Plus size={18} color={Colors.textPrimary} />
+                        </View>
                         <Text style={styles.addProfileText}>Add Kid Profile</Text>
                     </TouchableOpacity>
                 </Card>
@@ -226,29 +247,37 @@ export default function SettingsScreen() {
                 <Card variant="elevated">
                     <View style={styles.settingRow}>
                         <View style={styles.settingLabelGroup}>
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.blue }]}>
+                                <Mail size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Email</Text>
                         </View>
                         <Text style={styles.settingValue}>{user?.email ?? 'Not signed in'}</Text>
                     </View>
                     <View style={styles.divider} />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.settingRow}
                         onPress={handleResetPassword}
                         disabled={!user?.email}
                     >
                         <View style={styles.settingLabelGroup}>
-                            <KeyRound size={18} color={Colors.primary} />
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.green }]}>
+                                <KeyRound size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Reset Password</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.settingRow}
                         onPress={() => openGate('delete_account')}
                     >
                         <View style={styles.settingLabelGroup}>
-                            <Text style={[styles.settingLabel, { color: Colors.accent }]}>Delete Account</Text>
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.rad }]}>
+                                <UserX size={18} color={Colors.textPrimary} />
+                            </View>
+                            <Text style={[styles.settingLabel, { color: Colors.textPrimary }]}>Delete Account</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
                     </TouchableOpacity>
@@ -259,7 +288,9 @@ export default function SettingsScreen() {
                 <Card variant="elevated">
                     <TouchableOpacity style={styles.settingRow} onPress={handleHelpSupport}>
                         <View style={styles.settingLabelGroup}>
-                            <HelpCircle size={18} color={Colors.primary} />
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
+                                <HelpCircle size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Help & Support</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
@@ -267,7 +298,9 @@ export default function SettingsScreen() {
                     <View style={styles.divider} />
                     <TouchableOpacity style={styles.settingRow} onPress={handleRateApp}>
                         <View style={styles.settingLabelGroup}>
-                            <Star size={18} color={Colors.primary} />
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.yellow }]}>
+                                <Star size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Rate App</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
@@ -275,7 +308,9 @@ export default function SettingsScreen() {
                     <View style={styles.divider} />
                     <TouchableOpacity style={styles.settingRow} onPress={handleShare}>
                         <View style={styles.settingLabelGroup}>
-                            <ShareIcon size={18} color={Colors.primary} />
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.blue }]}>
+                                <ShareIcon size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Share App</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
@@ -283,14 +318,21 @@ export default function SettingsScreen() {
                     <View style={styles.divider} />
                     <TouchableOpacity style={styles.settingRow} onPress={handlePrivacyTerms}>
                         <View style={styles.settingLabelGroup}>
-                            <Shield size={18} color={Colors.primary} />
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.green }]}>
+                                <Shield size={18} color={Colors.textPrimary} />
+                            </View>
                             <Text style={styles.settingLabel}>Privacy & Terms</Text>
                         </View>
                         <ChevronRight size={18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
                     <View style={styles.settingRow}>
-                        <Text style={styles.settingLabel}>App Version</Text>
+                        <View style={styles.settingLabelGroup}>
+                            <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
+                                <Info size={18} color={Colors.textPrimary} />
+                            </View>
+                            <Text style={styles.settingLabel}>App Version</Text>
+                        </View>
                         <Text style={styles.settingValue}>1.0.0</Text>
                     </View>
                 </Card>
@@ -299,9 +341,8 @@ export default function SettingsScreen() {
                 <Button
                     title="Sign Out"
                     onPress={() => openGate('signout')}
-                    variant="outline"
                     size="lg"
-                    icon={<LogOut size={18} color={Colors.primary} />}
+                    icon={<LogOut size={18} color={Colors.white} />}
                     style={styles.signOutBtn}
                 />
 
@@ -327,11 +368,24 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.sm,
+        gap: Spacing.md,
         marginBottom: Spacing.xl,
     },
+    headerIconContainer: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: Colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
     title: {
-        fontSize: FontSize['2xl'],
+        fontSize: FontSize['3xl'],
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
@@ -359,30 +413,45 @@ const styles = StyleSheet.create({
         gap: Spacing.md,
     },
     avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: Colors.surface,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     avatarText: {
-        fontSize: FontSize.md,
+        fontSize: FontSize.lg,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     profileName: {
-        fontSize: FontSize.md,
-        fontWeight: FontWeight.semibold,
+        fontSize: FontSize.lg,
+        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     profileMeta: {
-        fontSize: FontSize.xs,
-        color: Colors.textPrimary,
+        fontSize: FontSize.sm,
+        color: Colors.textSecondary,
         marginTop: 2,
+        fontWeight: FontWeight.medium,
     },
     profileActions: {
         flexDirection: 'row',
-        gap: Spacing.lg,
+        gap: Spacing.sm,
+    },
+    actionIconBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     addProfileBtn: {
@@ -396,9 +465,9 @@ const styles = StyleSheet.create({
         borderTopColor: Colors.border,
     },
     addProfileText: {
-        fontSize: FontSize.sm,
+        fontSize: FontSize.md,
         fontWeight: FontWeight.semibold,
-        color: Colors.primary,
+        color: Colors.textPrimary,
     },
 
     settingRow: {
@@ -410,25 +479,40 @@ const styles = StyleSheet.create({
     settingLabelGroup: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.sm,
+        gap: Spacing.md,
+    },
+    iconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     settingLabel: {
         fontSize: FontSize.md,
         color: Colors.textPrimary,
-        fontWeight: FontWeight.medium,
+        fontWeight: FontWeight.semibold,
     },
     settingValue: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
+        fontWeight: FontWeight.medium,
     },
 
     divider: {
         height: 1,
         backgroundColor: Colors.border,
+        marginLeft: 52, // Align with text
     },
 
     signOutBtn: {
-        marginTop: Spacing['2xl'],
+        marginTop: Spacing['3xl'],
+        backgroundColor: Colors.primary,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
     },
     bottomSpacer: {
         height: Spacing['3xl'],

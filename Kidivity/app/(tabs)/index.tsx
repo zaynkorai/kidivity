@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, Wand2, Sun, Sunset, Moon, Bookmark, Clock, History, ChevronDown, FileText, Calendar } from 'lucide-react-native';
+import { Plus, Wand2, Sun, Sunset, Moon, Flame, Clock, History, ChevronDown, ChevronRight, FileText, Calendar } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
@@ -240,6 +239,14 @@ export default function HomeScreen() {
 
             <View style={styles.statsGrid}>
               <View style={styles.statCard}>
+                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelYellow }]}>
+                  <Flame size={22} color={Colors.primary} />
+                </View>
+                <Text style={styles.statValue}>{stats ? stats.streak : '—'}</Text>
+                <Text style={styles.statLabel}>Day Streak</Text>
+              </View>
+
+              <View style={styles.statCard}>
                 <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPurple }]}>
                   <FileText size={22} color={Colors.primaryPurple} />
                 </View>
@@ -255,13 +262,6 @@ export default function HomeScreen() {
                 <Text style={styles.statLabel}>This Week</Text>
               </View>
 
-              <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelMint }]}>
-                  <Bookmark size={22} color={Colors.success} />
-                </View>
-                <Text style={styles.statValue}>{stats ? stats.saved : '—'}</Text>
-                <Text style={styles.statLabel}>Saved</Text>
-              </View>
             </View>
           </View>
         )}
@@ -270,59 +270,43 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Explore Categories</Text>
         </View>
         <View style={styles.categoryGrid}>
-          {ACTIVITY_CATEGORIES.map((cat, index) => {
+          {ACTIVITY_CATEGORIES.map((cat) => {
             const Icon = cat.icon;
-            // Polished Bento Box layout dynamic sizing:
-            // Index 0 (Puzzles) and Index 3 (Art) are full width, rest are half width
-            const isFullWidth = index === 0 || index === 3;
-            // Make index 3 a pill shape to break up the rhythm
-            const isPill = index === 3;
-
             return (
               <TouchableOpacity
                 key={cat.id}
                 style={[
                   styles.categoryCard,
-                  isFullWidth && styles.categoryCardFull,
-                  isPill && styles.categoryCardPill,
-                  { backgroundColor: cat.color + '10', borderColor: cat.color + '30' }
+                  {
+                    backgroundColor: cat.color + '50',
+                    borderColor: cat.color,
+                    shadowColor: cat.accent,
+                  }
                 ]}
-                activeOpacity={0.85}
+                activeOpacity={0.82}
                 onPress={() => {
                   router.push({ pathname: '/(tabs)/generate', params: { category: cat.id } } as any);
                   Haptics.selectionAsync();
                 }}
               >
-                {/* Decorative Watermark Icon */}
-                <View style={styles.watermarkContainer}>
-                  <Icon size={isFullWidth ? 110 : 90} color={cat.color} />
+
+                {/* Chevron */}
+                <View style={[styles.categoryChevron, { backgroundColor: cat.accent + '20' }]}>
+                  <ChevronRight size={13} color={cat.accent} strokeWidth={2.5} />
                 </View>
 
-                <View style={[
-                  styles.categoryCardContent,
-                  isFullWidth && styles.categoryCardContentFull
-                ]}>
-                  <View style={[
-                    styles.categoryIconWrapper,
-                    isFullWidth && styles.categoryIconWrapperFull,
-                    { backgroundColor: Colors.white, shadowColor: cat.color }
-                  ]}>
-                    <Icon size={isFullWidth ? 26 : 22} color={cat.color} />
+                <View style={styles.categoryCardContent}>
+                  {/* Icon Block */}
+                  <View style={styles.categoryIconWrapper}>
+                    <Icon size={30} color={cat.accent} />
                   </View>
-                  <View style={[
-                    styles.categoryTextWrapper,
-                    isFullWidth && styles.categoryTextWrapperFull
-                  ]}>
-                    <Text
-                      style={[styles.categoryName, isFullWidth && styles.categoryNameFull]}
-                      numberOfLines={1}
-                    >
+
+                  {/* Text */}
+                  <View style={styles.categoryTextWrapper}>
+                    <Text style={styles.categoryName} numberOfLines={1}>
                       {cat.label}
                     </Text>
-                    <Text
-                      style={[styles.categorySub, isFullWidth && styles.categorySubFull]}
-                      numberOfLines={2}
-                    >
+                    <Text style={styles.categorySub} numberOfLines={2}>
                       {cat.description}
                     </Text>
                   </View>
@@ -490,7 +474,7 @@ const styles = StyleSheet.create({
 
   magicCard: {
     backgroundColor: Colors.primary,
-    borderRadius: Radius['2xl'],
+    borderRadius: Radius.xl,
     padding: Spacing.xl,
     marginBottom: Spacing.lg,
     ...Shadows.md,
@@ -631,80 +615,58 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.md,
     justifyContent: 'space-between',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   categoryCard: {
     width: '47.5%',
-    height: 160,
-    borderRadius: Radius['2xl'],
-    padding: Spacing.lg,
+    height: 152,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
     borderWidth: 1.5,
     overflow: 'hidden',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 4,
   },
-  categoryCardFull: {
-    width: '100%',
-    height: 120,
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing.xl,
-  },
-  categoryCardPill: {
-    borderRadius: 60,
-  },
-  watermarkContainer: {
+  categoryChevron: {
     position: 'absolute',
-    right: -20,
-    bottom: -20,
-    opacity: 0.1,
-    transform: [{ rotate: '-15deg' }],
+    top: Spacing.md,
+    right: Spacing.md,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryCardContent: {
     flex: 1,
     alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  categoryCardContentFull: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: Spacing.lg,
-  },
   categoryIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Shadows.md,
-  },
-  categoryIconWrapperFull: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
   },
   categoryTextWrapper: {
     alignItems: 'flex-start',
     width: '100%',
   },
-  categoryTextWrapperFull: {
-    flex: 1,
-  },
   categoryName: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     width: '100%',
-  },
-  categoryNameFull: {
-    fontSize: FontSize.lg,
+    letterSpacing: -0.2,
   },
   categorySub: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
     width: '100%',
-  },
-  categorySubFull: {
-    fontSize: FontSize.sm,
+    lineHeight: 17,
   },
   bottomSpacer: {
     height: Spacing['3xl'],

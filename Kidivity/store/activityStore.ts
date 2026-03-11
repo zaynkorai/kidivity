@@ -17,7 +17,7 @@ interface ActivityState {
     savedActivities: Activity[];
     kidStats: Record<
         string,
-        { total: number; saved: number; weekCount: number; lastCreatedAt: string | null }
+        { total: number; streak: number; weekCount: number; lastCreatedAt: string | null }
     >;
     isGenerating: boolean;
     isLoading: boolean;
@@ -96,16 +96,16 @@ export const useActivityStore = create<ActivityStore>()(
                 try {
                     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-                    const [totalRes, savedRes, weekRes, lastRes] = await Promise.all([
+                    const [totalRes, datesRes, weekRes, lastRes] = await Promise.all([
                         supabase
                             .from('activities')
                             .select('id', { count: 'exact', head: true })
                             .eq('kid_profile_id', kidProfileId),
                         supabase
                             .from('activities')
-                            .select('id', { count: 'exact', head: true })
+                            .select('created_at')
                             .eq('kid_profile_id', kidProfileId)
-                            .eq('is_saved', true),
+                            .order('created_at', { ascending: false }),
                         supabase
                             .from('activities')
                             .select('id', { count: 'exact', head: true })
@@ -120,14 +120,46 @@ export const useActivityStore = create<ActivityStore>()(
                     ]);
 
                     const total = totalRes.count ?? 0;
-                    const saved = savedRes.count ?? 0;
                     const weekCount = weekRes.count ?? 0;
                     const lastCreatedAt = lastRes.data?.[0]?.created_at ?? null;
+
+                    // Calculate streak
+                    let streak = 0;
+                    if (datesRes.data && datesRes.data.length > 0) {
+                        const formatDateLocal = (date: Date) => {
+                            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                        };
+                        const dates = datesRes.data.map((d: any) => formatDateLocal(new Date(d.created_at)));
+                        const uniqueDates = [...new Set(dates)].sort((a, b) => b.localeCompare(a));
+                        
+                        const today = new Date();
+                        const todayStr = formatDateLocal(today);
+                        
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = formatDateLocal(yesterday);
+                        
+                        if (uniqueDates[0] === todayStr || uniqueDates[0] === yesterdayStr) {
+                            streak = 1;
+                            const [y, m, d] = uniqueDates[0].split('-').map(Number);
+                            let currentDate = new Date(y, m - 1, d);
+                            
+                            for (let i = 1; i < uniqueDates.length; i++) {
+                                currentDate.setDate(currentDate.getDate() - 1);
+                                const expectedStr = formatDateLocal(currentDate);
+                                if (uniqueDates[i] === expectedStr) {
+                                    streak++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     set({
                         kidStats: {
                             ...get().kidStats,
-                            [kidProfileId]: { total, saved, weekCount, lastCreatedAt },
+                            [kidProfileId]: { total, streak, weekCount, lastCreatedAt },
                         },
                     });
                 } catch {

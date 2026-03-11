@@ -5,6 +5,8 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
+    Modal,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,6 +19,8 @@ import {
     XCircle,
     Zap,
     Check,
+    ChevronDown,
+    Plus,
 } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
@@ -26,7 +30,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Input } from '@/components/ui/Input';
 import { PaywallModal } from '@/components/ui/PaywallModal';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, Fonts, Shadows, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import type {
     ActivityDifficulty,
@@ -37,9 +41,14 @@ import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
     const { category } = useLocalSearchParams<{ category?: ActivityCategory }>();
-    const activeProfile = useProfileStore((s) => s.getActiveProfile());
+    const profiles = useProfileStore((state) => state.profiles);
+    const activeProfileId = useProfileStore((state) => state.activeProfileId);
+    const setActiveProfile = useProfileStore((state) => state.setActiveProfile);
+    const activeProfile = profiles.find((p) => p.id === activeProfileId);
+
     const { generateActivity, isGenerating, rateLimitState, clearRateLimit } = useActivityStore();
 
+    const [dropdownVisible, setDropdownVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | null>(null);
     const [topic, setTopic] = useState('');
     const [difficulty, setDifficulty] = useState<ActivityDifficulty>('medium');
@@ -51,7 +60,7 @@ export default function GenerateScreen() {
         () => ACTIVITY_CATEGORIES.find((c) => c.id === selectedCategory) ?? null,
         [selectedCategory]
     );
-    const accentColor = selectedCategoryData?.color ?? Colors.primaryPurple;
+    const accentColor = selectedCategoryData?.accent ?? Colors.primaryPurple;
 
     useEffect(() => {
         setTopic('');
@@ -68,10 +77,10 @@ export default function GenerateScreen() {
 
         const categoryDefaults: Record<ActivityCategory, string[]> = {
             puzzles: ['Mazes', 'Patterns', 'Find the Difference', 'Matching', 'Sequences', 'Sorting', 'Shadows', 'Odd One Out', 'Sudoku', 'Logic Grids', 'Symmetry'],
-            tracing: ['Alphabet', 'Numbers', 'Shapes', 'Lines', 'Cursive', 'Names', 'Animal', 'Vehicles', 'Spelling', 'Sight Words', 'My Family'],
+            tracing: ['Alphabet', 'Numbers', 'Shapes', 'Lines', 'Animal', 'Vehicles', 'Sight Words'],
             science: ['Space', 'Animal', 'Dinosaurs', 'Ocean', 'Geography', 'Human Body', 'Weather', 'Plants', 'Insects', 'Volcanoes', 'Recycling', 'Solar System'],
             art: ['Coloring Pages', 'Step-by-step Drawing', 'Origami', 'Crafts', 'Mandala', 'Pixel Art', 'Paper Airplanes', 'Finger Painting', 'Mask Making'],
-            math: ['Addition', 'Counting', 'Subtraction', 'Shapes', 'Money', 'Time', 'Fractions', 'Multiplication', 'Measuring', 'Graphs', 'Word Problems'],
+            math: ['Addition', 'Counting', 'Subtraction', 'Shapes', 'Money', 'Time', 'Fractions', 'Multiplication', 'Measuring', 'Finance', 'Word Problems'],
             reading: ['Bedtime Stories', 'Sight Words', 'Reading Comprehension', 'Phonics', 'Adventure Tales', 'Fairy Tales', 'Poetry', 'Myths & Legends', 'Rhyming', 'Vocabulary'],
         };
 
@@ -126,37 +135,98 @@ export default function GenerateScreen() {
                 contentContainerStyle={styles.content}
                 keyboardShouldPersistTaps="handled"
             >
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerIconWrap}>
-                        <Wand2 size={22} color={Colors.surface} />
+                {/* Header & Top Row */}
+                <View style={styles.topRow}>
+                    <View style={styles.header}>
+                        <View style={styles.headerIconWrap}>
+                            <Wand2 size={22} color={Colors.surface} />
+                        </View>
+                        <View style={styles.headerText}>
+                            <Text style={styles.title}>Generate an activity</Text>
+                            <Text style={styles.subtitle}>
+                                Pick a category and topic.
+                            </Text>
+                        </View>
                     </View>
-                    <View style={styles.headerText}>
-                        <Text style={styles.title}>Generate an activity</Text>
-                        <Text style={styles.subtitle}>
-                            Pick a category and topic. We’ll create a ready-to-print worksheet.
-                        </Text>
-                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => setDropdownVisible(true)}
+                        style={styles.profileDropdownBtn}
+                        activeOpacity={0.85}
+                    >
+                        {activeProfile ? (
+                            <View style={styles.dropdownBtnContent}>
+                                <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color }]}>
+                                    <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
+                                </View>
+                                <View style={styles.profileTextContainer}>
+                                    <Text style={styles.profileName} numberOfLines={1}>
+                                        {activeProfile.name}
+                                    </Text>
+                                    <Text style={styles.profileMeta} numberOfLines={1}>
+                                        {activeProfile.age}yo · {activeProfile.grade_level}
+                                    </Text>
+                                </View>
+                            </View>
+                        ) : (
+                            <Text style={styles.dropdownBtnText} numberOfLines={1}>
+                                Select Kid
+                            </Text>
+                        )}
+                        <ChevronDown size={16} color={Colors.textPrimary} />
+                    </TouchableOpacity>
                 </View>
 
-                {activeProfile ? (
-                    <Card variant="outlined" padding="md" style={styles.kidCard}>
-                        <View style={styles.kidRow}>
-                            <View style={[styles.kidAvatar, { backgroundColor: activeProfile.avatar_color }]}>
-                                <Text style={styles.kidInitial}>
-                                    {activeProfile.name.charAt(0).toUpperCase()}
-                                </Text>
-                            </View>
-                            <View style={styles.flex1}>
-                                <Text style={styles.kidTitle}>{activeProfile.name}</Text>
-                                <Text style={styles.kidMeta}>
-                                    {activeProfile.age}yo · {activeProfile.grade_level}
-                                </Text>
-                            </View>
-                            <Text style={styles.kidHint}>Change in Home</Text>
+                {/* Dropdown Menu Modal */}
+                <Modal visible={dropdownVisible} transparent animationType="fade">
+                    <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+                        <View style={styles.dropdownOverlay}>
+                            <TouchableWithoutFeedback>
+                                <View style={styles.dropdownMenu}>
+                                    <ScrollView style={{ maxHeight: 300 }} bounces={false} showsVerticalScrollIndicator={false}>
+                                        {profiles.map(p => (
+                                            <TouchableOpacity
+                                                key={p.id}
+                                                style={[styles.dropdownItem, p.id === activeProfileId && styles.dropdownItemActive]}
+                                                onPress={() => {
+                                                    setActiveProfile(p.id);
+                                                    setDropdownVisible(false);
+                                                    Haptics.selectionAsync();
+                                                }}
+                                            >
+                                                <View style={[styles.profileAvatar, { backgroundColor: p.avatar_color }]}>
+                                                    <Text style={styles.profileInitial}>{p.name.charAt(0).toUpperCase()}</Text>
+                                                </View>
+                                                <View style={styles.profileTextContainerDropdown}>
+                                                    <Text style={[styles.profileNameDrop, p.id === activeProfileId && styles.dropdownItemTextActive]} numberOfLines={1}>
+                                                        {p.name}
+                                                    </Text>
+                                                    <Text style={styles.profileMetaDrop} numberOfLines={1}>
+                                                        {p.age}yo · {p.grade_level}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                    <TouchableOpacity
+                                        style={styles.dropdownAddBtn}
+                                        onPress={() => {
+                                            setDropdownVisible(false);
+                                            router.push('/profile/create');
+                                        }}
+                                    >
+                                        <View style={styles.dropdownAddIcon}>
+                                            <Plus size={16} color={Colors.textPrimary} />
+                                        </View>
+                                        <Text style={styles.profileNameDrop}>Add Kid</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </TouchableWithoutFeedback>
                         </View>
-                    </Card>
-                ) : (
+                    </TouchableWithoutFeedback>
+                </Modal>
+
+                {!activeProfile && (
                     <Card variant="outlined" style={styles.warningCard}>
                         <View style={styles.inlineRow}>
                             <AlertTriangle size={16} color={Colors.warning} />
@@ -213,23 +283,30 @@ export default function GenerateScreen() {
                                     activeOpacity={0.85}
                                     style={[
                                         styles.categoryCard,
+                                        { backgroundColor: cat.color + '40', borderColor: cat.color },
                                         isSelected && {
-                                            borderColor: cat.color,
-                                            backgroundColor: cat.color + '10',
+                                            borderColor: cat.accent,
+                                            borderWidth: 2.5,
+                                            backgroundColor: cat.accent + '18',
+                                            shadowColor: cat.accent,
+                                            shadowOpacity: 0.3,
+                                            shadowRadius: 10,
+                                            shadowOffset: { width: 0, height: 4 },
+                                            elevation: 6,
                                         },
                                     ]}
                                 >
                                     <View style={styles.categoryTopRow}>
-                                        <View style={[styles.categoryIconWrap, { backgroundColor: cat.color + '14' }]}>
-                                            <Icon size={22} color={isSelected ? cat.color : Colors.textPrimary} />
+                                        <View style={[styles.categoryIconWrap, { backgroundColor: isSelected ? cat.accent : cat.color }]}>
+                                            <Icon size={22} color={isSelected ? Colors.white : Colors.textPrimary} />
                                         </View>
                                         {isSelected && (
-                                            <View style={[styles.selectedPip, { backgroundColor: cat.color }]}>
-                                                <Check size={14} color={Colors.surface} />
+                                            <View style={[styles.selectedPip, { backgroundColor: cat.accent }]}>
+                                                <Check size={13} color={Colors.white} strokeWidth={3} />
                                             </View>
                                         )}
                                     </View>
-                                    <Text style={[styles.categoryLabel, isSelected && { color: Colors.textPrimary }]}>
+                                    <Text style={[styles.categoryLabel, isSelected && { color: cat.accent }]}>
                                         {cat.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -255,6 +332,7 @@ export default function GenerateScreen() {
                                         key={t}
                                         label={t}
                                         color={accentColor}
+                                        style={topic.trim().toLowerCase() !== t.toLowerCase() ? { backgroundColor: accentColor + '08' } : undefined}
                                         selected={topic.trim().toLowerCase() === t.toLowerCase()}
                                         onPress={() => setTopic(t)}
                                     />
@@ -290,6 +368,7 @@ export default function GenerateScreen() {
                                 key={d}
                                 label={d.charAt(0).toUpperCase() + d.slice(1)}
                                 color={accentColor}
+                                style={difficulty !== d ? { backgroundColor: accentColor + '08' } : undefined}
                                 selected={difficulty === d}
                                 onPress={() => setDifficulty(d)}
                             />
@@ -302,6 +381,7 @@ export default function GenerateScreen() {
                             label="Colorful"
                             icon={Palette}
                             color={accentColor}
+                            style={style !== 'colorful' ? { backgroundColor: accentColor + '08' } : undefined}
                             selected={style === 'colorful'}
                             onPress={() => setStyle('colorful')}
                         />
@@ -309,6 +389,7 @@ export default function GenerateScreen() {
                             label="Print (B&W)"
                             icon={Printer}
                             color={accentColor}
+                            style={style !== 'bw' ? { backgroundColor: accentColor + '08' } : undefined}
                             selected={style === 'bw'}
                             onPress={() => setStyle('bw')}
                         />
@@ -373,11 +454,18 @@ const styles = StyleSheet.create({
 
     inlineRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
 
+    topRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: Spacing.sm,
+    },
     header: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         gap: Spacing.md,
-        marginBottom: Spacing.xs,
+        paddingRight: Spacing.sm,
     },
     headerIconWrap: {
         width: 44,
@@ -402,23 +490,116 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 
-    kidCard: { borderColor: Colors.border },
-    kidRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    kidAvatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 18,
+    profileDropdownBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        backgroundColor: Colors.white,
+        borderRadius: Radius.full,
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.8)',
+        ...Shadows.sm,
+    },
+    dropdownBtnContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+    },
+    profileAvatar: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    kidInitial: {
-        fontSize: FontSize.lg,
-        fontFamily: Fonts.bold,
+    profileInitial: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+    },
+    profileTextContainer: {
+        flexShrink: 1,
+        maxWidth: 90,
+    },
+    profileTextContainerDropdown: {
+        flexShrink: 1,
+    },
+    profileName: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
-    kidTitle: { fontSize: FontSize.md, fontFamily: Fonts.bold, color: Colors.textPrimary },
-    kidMeta: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary },
-    kidHint: { fontSize: FontSize.xs, fontFamily: Fonts.medium, color: Colors.textPrimary },
+    profileMeta: {
+        fontSize: FontSize.xs,
+        color: Colors.textPrimary,
+        marginTop: 1,
+    },
+    profileNameDrop: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.bold,
+        color: Colors.textPrimary,
+    },
+    profileMetaDrop: {
+        fontSize: FontSize.xs,
+        color: Colors.textPrimary,
+        marginTop: 1,
+    },
+    dropdownBtnText: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.semibold,
+        color: Colors.textPrimary,
+    },
+    dropdownOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.15)',
+    },
+    dropdownMenu: {
+        position: 'absolute',
+        top: 80,
+        right: Spacing.xl,
+        width: 220,
+        backgroundColor: Colors.white,
+        borderRadius: Radius.xl,
+        padding: Spacing.xs,
+        ...Shadows.md,
+        borderWidth: 1,
+        borderColor: Colors.pastelPurple,
+    },
+    dropdownItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        padding: Spacing.sm,
+        borderRadius: Radius.lg,
+    },
+    dropdownItemActive: {
+        backgroundColor: Colors.primary + '0A',
+    },
+    dropdownItemTextActive: {
+        color: Colors.primaryDark,
+    },
+    dropdownAddBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        padding: Spacing.sm,
+        marginTop: Spacing.xs,
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+    },
+    dropdownAddIcon: {
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.background,
+        borderWidth: 1.5,
+        borderColor: Colors.border,
+        borderStyle: 'dashed',
+    },
 
     warningCard: { borderColor: Colors.warning },
     warningText: { flex: 1, fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary },

@@ -5,19 +5,19 @@ import {
     FlatList,
     TouchableOpacity,
     StyleSheet,
-
     RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Filter, X, Search, History } from 'lucide-react-native';
+import { Filter, X, Search, History, Star } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 
 import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { WeeklyCalendar } from '@/components/ui/WeeklyCalendar';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import type { Activity } from '@/types/activity';
@@ -39,6 +39,7 @@ export default function ActivitiesScreen() {
     const [showFilters, setShowFilters] = useState(false);
     const [filterCategory, setFilterCategory] = useState<ActivityCategory | null>(null);
     const [filterKidId, setFilterKidId] = useState<string | null>(null);
+    const [filterDate, setFilterDate] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const [refreshing, setRefreshing] = useState(false);
 
@@ -56,6 +57,16 @@ export default function ActivitiesScreen() {
         .filter((a) => {
             if (filterCategory && a.category !== filterCategory) return false;
             if (filterKidId && a.kid_profile_id !== filterKidId) return false;
+            if (filterDate) {
+                const d = new Date(a.created_at);
+                const ds =
+                    d.getFullYear() +
+                    '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') +
+                    '-' +
+                    String(d.getDate()).padStart(2, '0');
+                if (ds !== filterDate) return false;
+            }
             return true;
         })
         .sort((a, b) => {
@@ -64,11 +75,12 @@ export default function ActivitiesScreen() {
             return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
         });
 
-    const hasActiveFilters = filterCategory !== null || filterKidId !== null;
+    const hasActiveFilters = filterCategory !== null || filterKidId !== null || filterDate !== null;
 
     const clearFilters = () => {
         setFilterCategory(null);
         setFilterKidId(null);
+        setFilterDate(null);
     };
 
     const handleToggleSaved = async (id: string) => {
@@ -81,58 +93,120 @@ export default function ActivitiesScreen() {
         await deleteActivity(id);
     };
 
+    const ACCENT_COLORS: Record<string, string> = {
+        puzzles: '#9B72DA',
+        tracing: '#E8757A',
+        science: '#31A87A',
+        art: '#D4920A',
+        math: '#0EAAD4',
+        reading: '#D46300',
+    };
+
+    const BG_COLORS: Record<string, string> = {
+        puzzles: Colors.pastelPurple,
+        tracing: Colors.pastelPink,
+        science: Colors.pastelMint,
+        art: Colors.pastelYellow,
+        math: Colors.pastelBlue,
+        reading: Colors.pastelPeach,
+    };
+
+    const DIFFICULTY_COLORS: Record<string, string> = {
+        easy: '#31A87A',
+        medium: '#D4920A',
+        hard: '#E8757A',
+    };
+
+    function relativeDate(iso: string): string {
+        const diff = Date.now() - new Date(iso).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 60) return `${mins}m ago`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `${hrs}h ago`;
+        const days = Math.floor(hrs / 24);
+        if (days < 7) return `${days}d ago`;
+        return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
     const renderItem = ({ item }: { item: Activity }) => {
         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
-        const cardColor = category?.color ?? Colors.primary;
-        
-        // Use solid pastel colors instead of alpha hex to prevent Android shadow bleeding
-        let bgColor: string = Colors.pastelYellow;
-        switch(item.category) {
-            case 'puzzles': bgColor = Colors.pastelPurple; break;
-            case 'tracing': bgColor = Colors.pastelPink; break;
-            case 'science': bgColor = Colors.pastelMint; break;
-            case 'art': bgColor = Colors.pastelYellow; break;
-            case 'math': bgColor = Colors.pastelBlue; break;
-            case 'reading': bgColor = Colors.pastelPeach; break;
-        }
+        const accent = ACCENT_COLORS[item.category] ?? Colors.primary;
+        const bgColor = BG_COLORS[item.category] ?? Colors.pastelYellow;
+        const diffColor = DIFFICULTY_COLORS[item.difficulty] ?? Colors.primary;
 
         return (
             <TouchableOpacity
-                activeOpacity={0.85}
+                activeOpacity={0.88}
                 onPress={() => router.push(`/activity/${item.id}` as any)}
                 style={styles.gridItemWrapper}
             >
                 <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
-                    {/* Inner highlight for completely rounded sticker/book effect */}
-                    <View style={styles.gridCardInnerHighlight} />
+                    {/* Inner border glow */}
+                    <View style={[styles.gridCardBorder, { borderColor: accent + '40' }]} />
 
-                    <View style={styles.gridCardContent}>
-                        <View style={styles.gridTextContainer}>
-                            <Text style={[styles.gridTopic, { color: Colors.textPrimary }]} numberOfLines={2}>
-                                {item.topic}
+                    {/* TOP ROW: category chip + save star */}
+                    <View style={styles.gridTopRow}>
+                        <View style={[styles.catChip, { backgroundColor: accent + '20' }]}>
+                            {category?.icon && React.createElement(category.icon, { size: 10, color: accent, strokeWidth: 2.5 })}
+                            <Text style={[styles.catChipText, { color: accent }]}>
+                                {category?.label.split(' ')[0]}
                             </Text>
-                            {item.kid_name && (
-                                <Text style={[styles.gridKidName, { color: Colors.textPrimary }]} numberOfLines={1}>
-                                    For {item.kid_name}
-                                </Text>
-                            )}
                         </View>
-
-                        <View style={styles.gridImageContainer}>
-                            {item.image_url ? (
-                                <Image
-                                    source={{ uri: item.image_url }}
-                                    style={styles.gridImage}
-                                    contentFit="cover"
-                                    transition={300}
-                                />
-                            ) : (
-                                <View style={[styles.gridImage, styles.gridImagePlaceholder, { backgroundColor: cardColor + '10' }]}>
-                                    {category?.icon ? React.createElement(category.icon, { size: 40, color: cardColor }) : <Search size={40} color={Colors.textPrimary} />}
-                                </View>
-                            )}
-                        </View>
+                        <TouchableOpacity
+                            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                            onPress={(e) => { e.stopPropagation(); handleToggleSaved(item.id); }}
+                        >
+                            <Star
+                                size={16}
+                                color={item.is_saved ? Colors.primary : Colors.textTertiary}
+                                fill={item.is_saved ? Colors.primary : 'transparent'}
+                            />
+                        </TouchableOpacity>
                     </View>
+
+                    {/* TITLE */}
+                    <Text style={styles.gridTopic} numberOfLines={3}>
+                        {item.topic}
+                    </Text>
+
+                    {/* IMAGE / ICON ZONE */}
+                    <View style={[styles.gridImageContainer, { backgroundColor: accent + '15' }]}>
+                        {item.image_url ? (
+                            <Image
+                                source={{ uri: item.image_url }}
+                                style={styles.gridImage}
+                                contentFit="cover"
+                                transition={250}
+                            />
+                        ) : (
+                            <View style={styles.gridIconFallback}>
+                                {category?.icon
+                                    ? React.createElement(category.icon, { size: 36, color: accent, strokeWidth: 1.5 })
+                                    : <Search size={36} color={accent} />}
+                            </View>
+                        )}
+                    </View>
+
+                    {/* BOTTOM ROW: difficulty dot + date */}
+                    <View style={styles.gridBottomRow}>
+                        <View style={styles.diffRow}>
+                            <View style={[styles.diffDot, { backgroundColor: diffColor }]} />
+                            <Text style={[styles.diffLabel, { color: diffColor }]}>
+                                {item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1)}
+                            </Text>
+                        </View>
+                        <Text style={styles.dateLabel}>{relativeDate(item.created_at)}</Text>
+                    </View>
+
+                    {/* Kid name badge if present */}
+                    {item.kid_name && (
+                        <View style={styles.kidBadge}>
+                            <View style={styles.kidDot} />
+                            <Text style={styles.kidBadgeText} numberOfLines={1}>
+                                {item.kid_name}
+                            </Text>
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -154,6 +228,13 @@ export default function ActivitiesScreen() {
                     <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
                 </TouchableOpacity>
             </View>
+
+            {/* Weekly Calendar */}
+            <WeeklyCalendar
+                activities={recentActivities}
+                selectedDate={filterDate}
+                onSelectDate={setFilterDate}
+            />
 
             {/* Filter bar */}
             {showFilters && (
@@ -351,64 +432,120 @@ const styles = StyleSheet.create({
     },
     gridItemWrapper: {
         flex: 1,
-        maxWidth: '48%', // Ensure 2 columns fit perfectly with gap
+        maxWidth: '48%',
     },
     gridCard: {
-        aspectRatio: 0.75, // 3:4 aspect ratio for book cover feel
         borderRadius: 24,
         overflow: 'hidden',
-        position: 'relative',
-        ...Shadows.sm,
+        padding: Spacing.md,
+        paddingBottom: Spacing.sm,
+        gap: Spacing.xs,
+        ...Shadows.md,
     },
-    gridCardInnerHighlight: {
+    // Absolute inner border glow
+    gridCardBorder: {
         ...StyleSheet.absoluteFillObject,
-        borderWidth: 4,
-        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderWidth: 2,
         borderRadius: 24,
         zIndex: 1,
         pointerEvents: 'none',
     },
-    gridCardContent: {
-        flex: 1,
-        padding: Spacing.md,
+
+    // Top row: category chip + star
+    gridTopRow: {
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        zIndex: 2,
     },
+    catChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderRadius: Radius.full,
+    },
+    catChipText: {
+        fontSize: 9,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.2,
+    },
+
+    // Title
     gridTopic: {
-        fontSize: FontSize.md,
-        fontWeight: '800', // Extra bold
-        textAlign: 'center',
-        marginTop: Spacing.xs,
-        marginBottom: 2,
-        lineHeight: 20,
+        fontSize: FontSize.sm,
+        fontWeight: '800',
+        color: Colors.textPrimary,
+        lineHeight: 18,
+        letterSpacing: -0.2,
     },
-    gridTextContainer: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    gridKidName: {
-        fontSize: FontSize.xs,
-        fontWeight: '600',
-        textAlign: 'center',
-        opacity: 0.8,
-        marginBottom: Spacing.xs,
-    },
+
+    // Image / icon area
     gridImageContainer: {
-        width: '100%',
-        flex: 1, // Take up remaining space below text
-        justifyContent: 'flex-end',
+        borderRadius: 16,
+        overflow: 'hidden',
+        aspectRatio: 1,
         alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: Spacing.xs,
     },
     gridImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 16,
     },
-    gridImagePlaceholder: {
+    gridIconFallback: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
         justifyContent: 'center',
     },
 
+    // Bottom row: difficulty + date
+    gridBottomRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 2,
+    },
+    diffRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    diffDot: {
+        width: 7,
+        height: 7,
+        borderRadius: 4,
+    },
+    diffLabel: {
+        fontSize: 9,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.2,
+    },
+    dateLabel: {
+        fontSize: 9,
+        fontWeight: FontWeight.medium,
+        color: Colors.textTertiary,
+    },
+
+    // Kid badge at bottom
+    kidBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+    },
+    kidDot: {
+        width: 5,
+        height: 5,
+        borderRadius: 3,
+        backgroundColor: Colors.textTertiary,
+    },
+    kidBadgeText: {
+        fontSize: 9,
+        fontWeight: FontWeight.semibold,
+        color: Colors.textSecondary,
+    },
 
     emptyContainer: {
         flex: 1,

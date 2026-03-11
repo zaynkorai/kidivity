@@ -28,7 +28,7 @@ export function Chip({
             activeOpacity={0.7}
             style={[
                 styles.chip,
-                selected && { backgroundColor: activeColor + '15', borderColor: activeColor },
+                selected && { backgroundColor: activeColor + '22', borderColor: activeColor, borderWidth: 2 },
                 style,
             ]}
         >
