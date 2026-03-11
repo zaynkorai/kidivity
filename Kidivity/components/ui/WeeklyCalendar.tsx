@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Animated, Pressable, useWindowDimensions } from 'react-native';
 import { Flame, Star, CheckCircle2, Zap } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import type { Activity } from '@/types/activity';
@@ -12,7 +12,6 @@ interface WeeklyCalendarProps {
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Category accent colors + vibrant day fill colors for "completed" days
 const CATEGORY_COLORS: Record<string, string> = {
     puzzles: '#9B72DA',
     tracing: '#E8757A',
@@ -22,7 +21,6 @@ const CATEGORY_COLORS: Record<string, string> = {
     reading: '#D46300',
 };
 
-// Soft card backgrounds per category when a day has activities from that category
 const CATEGORY_SOFT: Record<string, string> = {
     puzzles: '#EDE7FF',
     tracing: '#FFE0E2',
@@ -44,7 +42,7 @@ function toLocalDateStr(date: Date): string {
 
 function getWeekDates(): Date[] {
     const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sun
+    const dayOfWeek = today.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     const monday = new Date(today);
     monday.setDate(today.getDate() + mondayOffset);
@@ -55,7 +53,7 @@ function getWeekDates(): Date[] {
     });
 }
 
-// Animated day pill sub-component
+// ─── DayPill ─────────────────────────────────────────────────────────────────
 function DayPill({
     date,
     letter,
@@ -64,6 +62,7 @@ function DayPill({
     activityCount,
     dominantColor,
     softColor,
+    pillSize,
     onPress,
 }: {
     date: Date;
@@ -73,31 +72,21 @@ function DayPill({
     activityCount: number;
     dominantColor: string | null;
     softColor: string | null;
+    pillSize: number;  // computed width
     onPress: () => void;
 }) {
     const scale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = useCallback(() => {
-        Animated.spring(scale, {
-            toValue: 0.88,
-            useNativeDriver: true,
-            tension: 300,
-            friction: 10,
-        }).start();
+        Animated.spring(scale, { toValue: 0.87, useNativeDriver: true, tension: 300, friction: 10 }).start();
     }, [scale]);
 
     const handlePressOut = useCallback(() => {
-        Animated.spring(scale, {
-            toValue: 1,
-            useNativeDriver: true,
-            tension: 200,
-            friction: 7,
-        }).start();
+        Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 200, friction: 7 }).start();
     }, [scale]);
 
     const hasActivity = activityCount > 0;
 
-    // Determine background
     let pillBg: string = Colors.pastelPurple;
     if (isSelected) pillBg = Colors.primaryPurple;
     else if (isToday) pillBg = Colors.primary;
@@ -105,35 +94,52 @@ function DayPill({
 
     const isActiveState = isToday || isSelected;
 
+    // Proportional font + badge sizes
+    const letterFontSize = Math.max(8, pillSize * 0.22);
+    const numFontSize    = Math.max(10, pillSize * 0.28);
+    const badgeFontSize  = Math.max(8,  pillSize * 0.20);
+    const badgeSize      = Math.max(14, pillSize * 0.38);
+    const iconSize       = Math.max(11, pillSize * 0.30);
+
     return (
         <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
             <Animated.View
                 style={[
                     styles.dayPill,
-                    { backgroundColor: pillBg, transform: [{ scale }] },
-                    hasActivity && !isActiveState && styles.dayPillHasActivity,
-                    isActiveState && styles.dayPillActive,
+                    {
+                        backgroundColor: pillBg,
+                        width: pillSize,
+                        transform: [{ scale }],
+                        ...(isActiveState && {
+                            shadowColor: Colors.primary,
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.4,
+                            shadowRadius: 8,
+                            elevation: 6,
+                        }),
+                    },
                 ]}
             >
-                {/* Top: day letter */}
-                <Text style={[styles.dayLetter, isActiveState && styles.textWhite]}>
+                <Text style={[styles.dayLetter, { fontSize: letterFontSize }, isActiveState && styles.textWhite]}>
                     {letter}
                 </Text>
-
-                {/* Middle: date number */}
-                <Text style={[styles.dayNum, isActiveState && styles.textWhite]}>
+                <Text style={[styles.dayNum, { fontSize: numFontSize }, isActiveState && styles.textWhite]}>
                     {date.getDate()}
                 </Text>
 
-                {/* Bottom: indicator zone */}
                 {hasActivity ? (
                     isActiveState ? (
-                        // On active/today: show white check
-                        <CheckCircle2 size={14} color={Colors.white} strokeWidth={2.5} />
+                        <CheckCircle2 size={iconSize} color={Colors.white} strokeWidth={2.5} />
                     ) : (
-                        // On regular completed day: show colored count badge
-                        <View style={[styles.countBadge, { backgroundColor: dominantColor ?? Colors.primary }]}>
-                            <Text style={styles.countBadgeText}>{activityCount}</Text>
+                        <View style={[styles.countBadge, {
+                            backgroundColor: dominantColor ?? Colors.primary,
+                            minWidth: badgeSize,
+                            height: badgeSize,
+                            borderRadius: badgeSize / 2,
+                        }]}>
+                            <Text style={[styles.countBadgeText, { fontSize: badgeFontSize }]}>
+                                {activityCount}
+                            </Text>
                         </View>
                     )
                 ) : (
@@ -144,31 +150,36 @@ function DayPill({
     );
 }
 
+// ─── WeeklyCalendar ───────────────────────────────────────────────────────────
 export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: WeeklyCalendarProps) {
-    const weekDates = useMemo(() => getWeekDates(), []);
-    const todayStr = useMemo(() => toLocalDateStr(new Date()), []);
+    const { width: screenWidth } = useWindowDimensions();
 
-    // Build per-day stats
+    // Card metrics (mirrors activities.tsx paddingHorizontal: Spacing.xl = 20 each side)
+    // Card outer margin: Spacing.xl * 2 = 40, card padding: Spacing.md * 2 = 24
+    const cardInnerWidth = screenWidth - Spacing.xl * 2 - Spacing.md * 2;
+    const NUM_DAYS = 7;
+    const GAP = Math.max(3, Math.floor(cardInnerWidth * 0.012)); // ~1.2% of inner width
+    const pillSize = Math.floor((cardInnerWidth - GAP * (NUM_DAYS - 1)) / NUM_DAYS);
+
+    const weekDates = useMemo(() => getWeekDates(), []);
+    const todayStr  = useMemo(() => toLocalDateStr(new Date()), []);
+
     const dayStats = useMemo(() => {
         const map: Record<string, { count: number; categories: string[] }> = {};
         for (const a of activities) {
             const ds = toLocalDateStr(new Date(a.created_at));
             if (!map[ds]) map[ds] = { count: 0, categories: [] };
             map[ds].count++;
-            if (!map[ds].categories.includes(a.category)) {
-                map[ds].categories.push(a.category);
-            }
+            if (!map[ds].categories.includes(a.category)) map[ds].categories.push(a.category);
         }
         return map;
     }, [activities]);
 
-    // Week summary
     const activeDaysThisWeek = useMemo(
         () => weekDates.filter((d) => !!dayStats[toLocalDateStr(d)]).length,
         [weekDates, dayStats]
     );
 
-    // Streak from today backwards
     const streak = useMemo(() => {
         let s = 0;
         const today = new Date();
@@ -176,58 +187,61 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             if (dayStats[toLocalDateStr(d)]) s++;
-            else if (i > 0) break; // allow today to be empty only if i === 0
+            else if (i > 0) break;
         }
         return s;
     }, [dayStats]);
 
+    // Compact mode for narrow screens (< 360px)
+    const compact = screenWidth < 360;
+
     return (
         <View style={styles.card}>
-            {/* Header row */}
+            {/* Header */}
             <View style={styles.headerRow}>
-                <Text style={styles.headerTitle}>This Week</Text>
+                <Text style={[styles.headerTitle, compact && styles.headerTitleSm]}>This Week</Text>
                 <View style={styles.headerRight}>
                     {streak > 0 && (
                         <View style={styles.streakBadge}>
-                            <Flame size={12} color={Colors.primary} />
-                            <Text style={styles.streakText}>{streak} streak</Text>
+                            <Flame size={compact ? 10 : 12} color={Colors.primary} />
+                            <Text style={[styles.badgeText, { color: Colors.primary }]}>
+                                {streak}{compact ? '' : ' streak'}
+                            </Text>
                         </View>
                     )}
                     <View style={styles.xpBadge}>
-                        <Zap size={12} color={Colors.primaryPurple} />
-                        <Text style={styles.xpText}>{activeDaysThisWeek}/7 days</Text>
+                        <Zap size={compact ? 10 : 12} color={Colors.primaryPurple} />
+                        <Text style={[styles.badgeText, { color: Colors.primaryPurple }]}>
+                            {activeDaysThisWeek}/7{compact ? '' : ' days'}
+                        </Text>
                     </View>
                 </View>
             </View>
 
-            {/* Day pills */}
-            <View style={styles.pillRow}>
+            {/* Day pills — fixed computed widths, no flex */}
+            <View style={[styles.pillRow, { gap: GAP }]}>
                 {weekDates.map((date, i) => {
                     const ds = toLocalDateStr(date);
                     const stats = dayStats[ds];
-                    const isToday = ds === todayStr;
-                    const isSelected = ds === selectedDate;
                     const dominantCat = stats?.categories[0] ?? null;
-                    const dominantColor = dominantCat ? CATEGORY_COLORS[dominantCat] : null;
-                    const softColor = dominantCat ? CATEGORY_SOFT[dominantCat] : null;
-
                     return (
                         <DayPill
                             key={ds}
                             date={date}
                             letter={DAY_LETTERS[i]}
-                            isToday={isToday}
-                            isSelected={isSelected}
+                            isToday={ds === todayStr}
+                            isSelected={ds === selectedDate}
                             activityCount={stats?.count ?? 0}
-                            dominantColor={dominantColor}
-                            softColor={softColor}
-                            onPress={() => onSelectDate(isSelected ? null : ds)}
+                            dominantColor={dominantCat ? CATEGORY_COLORS[dominantCat] : null}
+                            softColor={dominantCat ? CATEGORY_SOFT[dominantCat] : null}
+                            pillSize={pillSize}
+                            onPress={() => onSelectDate(ds === selectedDate ? null : ds)}
                         />
                     );
                 })}
             </View>
 
-            {/* Week progress bar */}
+            {/* Progress bar */}
             <View style={styles.progressRow}>
                 <View style={styles.progressTrack}>
                     <View
@@ -242,12 +256,7 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
                         const ds = toLocalDateStr(weekDates[i]);
                         const done = !!dayStats[ds];
                         return (
-                            <Star
-                                key={i}
-                                size={10}
-                                color={done ? Colors.primary : Colors.border}
-                                fill={done ? Colors.primary : 'transparent'}
-                            />
+                            <Star key={i} size={9} color={done ? Colors.primary : Colors.border} fill={done ? Colors.primary : 'transparent'} />
                         );
                     })}
                 </View>
@@ -255,9 +264,9 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
 
             {activeDaysThisWeek === 7 && (
                 <View style={styles.perfectWeekBanner}>
-                    <Star size={13} color={Colors.primary} fill={Colors.primary} />
+                    <Star size={11} color={Colors.primary} fill={Colors.primary} />
                     <Text style={styles.perfectWeekText}>Perfect Week!</Text>
-                    <Star size={13} color={Colors.primary} fill={Colors.primary} />
+                    <Star size={11} color={Colors.primary} fill={Colors.primary} />
                 </View>
             )}
         </View>
@@ -270,25 +279,27 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.lg,
         backgroundColor: Colors.white,
         borderRadius: Radius.xl,
-        paddingVertical: Spacing.lg,
-        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.md,
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.9)',
         ...Shadows.md,
     },
 
-    // Header
     headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.sm,
     },
     headerTitle: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         letterSpacing: -0.3,
+    },
+    headerTitleSm: {
+        fontSize: FontSize.sm,
     },
     headerRight: {
         flexDirection: 'row',
@@ -304,11 +315,6 @@ const styles = StyleSheet.create({
         paddingVertical: 3,
         borderRadius: Radius.full,
     },
-    streakText: {
-        fontSize: FontSize.xs,
-        fontWeight: FontWeight.bold,
-        color: Colors.primary,
-    },
     xpBadge: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -318,47 +324,30 @@ const styles = StyleSheet.create({
         paddingVertical: 3,
         borderRadius: Radius.full,
     },
-    xpText: {
+    badgeText: {
         fontSize: FontSize.xs,
         fontWeight: FontWeight.bold,
-        color: Colors.primaryPurple,
     },
 
-    // Pills
     pillRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: Spacing.xs,
+        alignItems: 'center',
     },
+
     dayPill: {
-        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: Spacing.sm,
         borderRadius: Radius.md,
         backgroundColor: Colors.pastelPurple,
-        gap: 3,
-        minWidth: 36,
-    },
-    dayPillHasActivity: {
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    dayPillActive: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
-        elevation: 6,
+        gap: 2,
     },
     dayLetter: {
-        fontSize: 10,
         fontWeight: FontWeight.bold,
         color: Colors.textSecondary,
         letterSpacing: 0.3,
     },
     dayNum: {
-        fontSize: FontSize.sm,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
@@ -366,15 +355,11 @@ const styles = StyleSheet.create({
         color: Colors.white,
     },
     countBadge: {
-        minWidth: 16,
-        height: 16,
-        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 4,
+        paddingHorizontal: 3,
     },
     countBadgeText: {
-        fontSize: 10,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -385,13 +370,12 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.border,
     },
 
-    // Progress bar
     progressRow: {
-        marginTop: Spacing.md,
-        gap: Spacing.xs,
+        marginTop: Spacing.sm,
+        gap: 3,
     },
     progressTrack: {
-        height: 6,
+        height: 5,
         borderRadius: 3,
         backgroundColor: Colors.border,
         overflow: 'hidden',
@@ -404,20 +388,19 @@ const styles = StyleSheet.create({
     starsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 2,
+        paddingHorizontal: 1,
         marginTop: 2,
     },
 
-    // Perfect week
     perfectWeekBanner: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: Spacing.xs,
-        marginTop: Spacing.md,
+        marginTop: Spacing.sm,
         backgroundColor: Colors.pastelYellow,
         borderRadius: Radius.full,
-        paddingVertical: 6,
+        paddingVertical: 5,
     },
     perfectWeekText: {
         fontSize: FontSize.xs,

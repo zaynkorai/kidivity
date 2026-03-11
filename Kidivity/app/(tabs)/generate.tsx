@@ -7,6 +7,7 @@ import {
     StyleSheet,
     Modal,
     TouchableWithoutFeedback,
+    useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -40,6 +41,11 @@ import type {
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
+    const { width: sw } = useWindowDimensions();
+    // sw breakpoints
+    const compact = sw < 380;   // SE, older small iPhones
+    const sm      = sw < 415;   // all non-Plus/Pro-Max iPhones
+
     const { category } = useLocalSearchParams<{ category?: ActivityCategory }>();
     const profiles = useProfileStore((state) => state.profiles);
     const activeProfileId = useProfileStore((state) => state.activeProfileId);
@@ -138,20 +144,33 @@ export default function GenerateScreen() {
                 {/* Header & Top Row */}
                 <View style={styles.topRow}>
                     <View style={styles.header}>
-                        <View style={styles.headerIconWrap}>
-                            <Wand2 size={22} color={Colors.surface} />
+                        <View style={[
+                            styles.headerIconWrap,
+                            compact && { width: 36, height: 36, borderRadius: 12 },
+                        ]}>
+                            <Wand2 size={compact ? 18 : 22} color={Colors.surface} />
                         </View>
                         <View style={styles.headerText}>
-                            <Text style={styles.title}>Generate an activity</Text>
-                            <Text style={styles.subtitle}>
-                                Pick a category and topic.
+                            <Text style={[
+                                styles.title,
+                                { fontSize: compact ? FontSize.xl : sm ? FontSize['2xl'] - 2 : FontSize['2xl'] },
+                            ]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+                                Generate an activity
                             </Text>
+                            {!compact && (
+                                <Text style={styles.subtitle} numberOfLines={1}>
+                                    Pick a category and topic.
+                                </Text>
+                            )}
                         </View>
                     </View>
 
                     <TouchableOpacity
                         onPress={() => setDropdownVisible(true)}
-                        style={styles.profileDropdownBtn}
+                        style={[
+                            styles.profileDropdownBtn,
+                            compact && { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs },
+                        ]}
                         activeOpacity={0.85}
                     >
                         {activeProfile ? (
@@ -159,18 +178,20 @@ export default function GenerateScreen() {
                                 <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color }]}>
                                     <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
                                 </View>
-                                <View style={styles.profileTextContainer}>
-                                    <Text style={styles.profileName} numberOfLines={1}>
-                                        {activeProfile.name}
-                                    </Text>
-                                    <Text style={styles.profileMeta} numberOfLines={1}>
-                                        {activeProfile.age}yo · {activeProfile.grade_level}
-                                    </Text>
-                                </View>
+                                {!compact && (
+                                    <View style={styles.profileTextContainer}>
+                                        <Text style={styles.profileName} numberOfLines={1}>
+                                            {activeProfile.name}
+                                        </Text>
+                                        <Text style={styles.profileMeta} numberOfLines={1}>
+                                            {activeProfile.age}yo · {activeProfile.grade_level}
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
                         ) : (
                             <Text style={styles.dropdownBtnText} numberOfLines={1}>
-                                Select Kid
+                                {compact ? 'Kid' : 'Select Kid'}
                             </Text>
                         )}
                         <ChevronDown size={16} color={Colors.textPrimary} />
@@ -273,6 +294,10 @@ export default function GenerateScreen() {
                         {ACTIVITY_CATEGORIES.map((cat) => {
                             const Icon = cat.icon;
                             const isSelected = selectedCategory === cat.id;
+                            const cardPad = compact ? Spacing.sm : sm ? Spacing.md : Spacing.lg;
+                            const iconSz  = compact ? 32 : 40;
+                            const iconBr  = compact ? 12 : 16;
+                            const labelSz = compact ? FontSize.sm : FontSize.md;
                             return (
                                 <TouchableOpacity
                                     key={cat.id}
@@ -283,7 +308,7 @@ export default function GenerateScreen() {
                                     activeOpacity={0.85}
                                     style={[
                                         styles.categoryCard,
-                                        { backgroundColor: cat.color + '40', borderColor: cat.color },
+                                        { backgroundColor: cat.color + '40', borderColor: cat.color, padding: cardPad },
                                         isSelected && {
                                             borderColor: cat.accent,
                                             borderWidth: 2.5,
@@ -297,8 +322,11 @@ export default function GenerateScreen() {
                                     ]}
                                 >
                                     <View style={styles.categoryTopRow}>
-                                        <View style={[styles.categoryIconWrap, { backgroundColor: isSelected ? cat.accent : cat.color }]}>
-                                            <Icon size={22} color={isSelected ? Colors.white : Colors.textPrimary} />
+                                        <View style={[styles.categoryIconWrap, {
+                                            backgroundColor: isSelected ? cat.accent : cat.color,
+                                            width: iconSz, height: iconSz, borderRadius: iconBr,
+                                        }]}>
+                                            <Icon size={compact ? 18 : 22} color={isSelected ? Colors.white : Colors.textPrimary} />
                                         </View>
                                         {isSelected && (
                                             <View style={[styles.selectedPip, { backgroundColor: cat.accent }]}>
@@ -306,7 +334,7 @@ export default function GenerateScreen() {
                                             </View>
                                         )}
                                     </View>
-                                    <Text style={[styles.categoryLabel, isSelected && { color: cat.accent }]}>
+                                    <Text style={[styles.categoryLabel, { fontSize: labelSz }, isSelected && { color: cat.accent }]}>
                                         {cat.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -446,10 +474,10 @@ const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: Colors.background },
     container: { flex: 1 },
     content: {
-        paddingHorizontal: Spacing.xl,
-        paddingTop: Spacing['3xl'],
+        paddingHorizontal: Spacing.lg,
+        paddingTop: Spacing['2xl'],
         paddingBottom: Spacing.xl,
-        gap: Spacing.lg,
+        gap: Spacing.md,
     },
 
     inlineRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
