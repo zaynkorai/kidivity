@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { useResponsive } from '@/hooks/useResponsive';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -33,6 +34,7 @@ function formatShortDate(dateIso: string): string {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { isCompact, isSmallMobile, isShort } = useResponsive();
 
   // Stable action selectors
   const fetchProfiles = useProfileStore((state) => state.fetchProfiles);
@@ -82,7 +84,11 @@ export default function HomeScreen() {
       <ScreenBackground />
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          isCompact && { paddingHorizontal: Spacing.lg },
+          isShort && { paddingTop: Spacing.xl, paddingBottom: Spacing.md }
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -92,7 +98,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={styles.header}>
+        <View style={[styles.header, isShort && { marginBottom: Spacing.md }]}>
           <View style={styles.topRow}>
             <View style={styles.greetingRow}>
               {getGreetingIcon()}
@@ -125,7 +131,7 @@ export default function HomeScreen() {
               <ChevronDown size={16} color={Colors.textPrimary} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.title}>
+          <Text style={[styles.title, isCompact && { fontSize: FontSize['2xl'] }]}>
             {activeProfile ? `Today for ${activeProfile.name}` : 'Start with a kid profile'}
           </Text>
           <Text style={styles.subtitle}>
@@ -140,7 +146,7 @@ export default function HomeScreen() {
           <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
             <View style={styles.dropdownOverlay}>
               <TouchableWithoutFeedback>
-                <View style={styles.dropdownMenu}>
+                <View style={[styles.dropdownMenu, isCompact && { width: 190 }]}>
                   <ScrollView style={{ maxHeight: 300 }} bounces={false} showsVerticalScrollIndicator={false}>
                     {profiles.map(p => (
                       <TouchableOpacity
@@ -190,7 +196,11 @@ export default function HomeScreen() {
             router.push('/(tabs)/generate');
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }}
-          style={styles.magicCard}
+          style={[
+            styles.magicCard,
+            isCompact && { padding: Spacing.lg },
+            isShort && { paddingVertical: Spacing.md, marginBottom: Spacing.md }
+          ]}
         >
           <View style={styles.magicCardContent}>
             <View style={styles.magicCardText}>
@@ -227,8 +237,8 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         {activeProfile && (
-          <View style={styles.statsContainer}>
-            <View style={styles.statsHeader}>
+          <View style={[styles.statsContainer, isShort && { marginBottom: Spacing.md }]}>
+            <View style={[styles.statsHeader, isShort && { marginBottom: Spacing.xs }]}>
               <Text style={styles.sectionTitle}>Snapshot</Text>
               {stats?.lastCreatedAt ? (
                 <Text style={styles.statsDate}>Last: {formatShortDate(stats.lastCreatedAt)}</Text>
@@ -238,27 +248,27 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelYellow }]}>
-                  <Flame size={22} color={Colors.primary} />
+              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
+                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelYellow }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
+                  <Flame size={isCompact ? 18 : 22} color={Colors.primary} />
                 </View>
-                <Text style={styles.statValue}>{stats ? stats.streak : '—'}</Text>
+                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.streak : '—'}</Text>
                 <Text style={styles.statLabel}>Day Streak</Text>
               </View>
 
-              <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPurple }]}>
-                  <FileText size={22} color={Colors.primaryPurple} />
+              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
+                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPurple }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
+                  <FileText size={isCompact ? 18 : 22} color={Colors.primaryPurple} />
                 </View>
-                <Text style={styles.statValue}>{stats ? stats.total : '—'}</Text>
+                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.total : '—'}</Text>
                 <Text style={styles.statLabel}>Printables</Text>
               </View>
 
-              <View style={styles.statCard}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPeach }]}>
-                  <Calendar size={22} color={Colors.primary} />
+              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
+                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPeach }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
+                  <Calendar size={isCompact ? 18 : 22} color={Colors.primary} />
                 </View>
-                <Text style={styles.statValue}>{stats ? stats.weekCount : '—'}</Text>
+                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.weekCount : '—'}</Text>
                 <Text style={styles.statLabel}>This Week</Text>
               </View>
 
@@ -277,6 +287,8 @@ export default function HomeScreen() {
                 key={cat.id}
                 style={[
                   styles.categoryCard,
+                  isCompact && { height: 132 },
+                  isShort && { height: 110 },
                   {
                     backgroundColor: cat.color + '50',
                     borderColor: cat.color,
@@ -291,14 +303,14 @@ export default function HomeScreen() {
               >
 
                 {/* Chevron */}
-                <View style={[styles.categoryChevron, { backgroundColor: cat.accent + '20' }]}>
+                <View style={[styles.categoryChevron, { backgroundColor: cat.accent + '20' }, isShort && { top: Spacing.sm, right: Spacing.sm }]}>
                   <ChevronRight size={13} color={cat.accent} strokeWidth={2.5} />
                 </View>
 
                 <View style={styles.categoryCardContent}>
                   {/* Icon Block */}
-                  <View style={styles.categoryIconWrapper}>
-                    <Icon size={30} color={cat.accent} />
+                  <View style={[styles.categoryIconWrapper, isShort && { width: 28, height: 28 }]}>
+                    <Icon size={isShort ? 24 : 30} color={cat.accent} />
                   </View>
 
                   {/* Text */}
@@ -325,7 +337,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.pastelPink, // Switched generic white to pastel pink
+    backgroundColor: Colors.background,
   },
   container: {
     flex: 1,

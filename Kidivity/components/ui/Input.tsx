@@ -8,6 +8,7 @@ import {
     type ViewStyle,
 } from 'react-native';
 import { Colors, Radius, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface InputProps extends TextInputProps {
     label?: string;
@@ -17,6 +18,7 @@ interface InputProps extends TextInputProps {
 
 export function Input({ label, error, containerStyle, style, ...props }: InputProps) {
     const [isFocused, setIsFocused] = useState(false);
+    const { isShort } = useResponsive();
 
     return (
         <View style={[styles.container, containerStyle]}>
@@ -24,6 +26,7 @@ export function Input({ label, error, containerStyle, style, ...props }: InputPr
             <TextInput
                 style={[
                     styles.input,
+                    isShort && styles.inputShort,
                     isFocused && styles.inputFocused,
                     error && styles.inputError,
                     style,
@@ -63,6 +66,10 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
         fontSize: FontSize.md,
         color: Colors.textPrimary,
+    },
+    inputShort: {
+        paddingVertical: 12,
+        fontSize: FontSize.sm,
     },
     inputFocused: {
         borderColor: Colors.primary,

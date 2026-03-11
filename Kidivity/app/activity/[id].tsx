@@ -33,165 +33,16 @@ import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
+import { useResponsive } from '@/hooks/useResponsive';
+import { MarkdownContent } from '@/components/ui/MarkdownContent';
 
 const VISUAL_CATEGORIES = new Set(['tracing', 'drawings', 'logic', 'educational', 'math', 'coloring', 'story']);
-
-function normalizeActivityContent(raw: string) {
-    let text = raw ?? '';
-    const trimmed = text.trim();
-
-    try {
-        if (
-            (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-            trimmed.startsWith('{') ||
-            trimmed.startsWith('[')
-        ) {
-            const parsed = JSON.parse(trimmed);
-            if (typeof parsed === 'string') {
-                text = parsed;
-            } else if (parsed && typeof parsed === 'object') {
-                const obj = parsed as Record<string, unknown>;
-                const title = typeof obj.title === 'string' ? obj.title : '';
-                const instructions = typeof obj.instructions === 'string' ? obj.instructions : '';
-                const content = typeof obj.content === 'string' ? obj.content : '';
-                if (title || instructions || content) {
-                    text = `${title ? `# ${title}\n\n` : ''}${instructions ? `${instructions}\n\n` : ''}${content}`;
-                }
-            }
-        }
-    } catch {
-        // ignore
-    }
-
-    // Handle double-escaped newlines coming from storage/API (e.g. "\\n" instead of "\n").
-    // Keep this narrow to avoid unexpectedly changing other escape sequences.
-    if (text.includes('\\n') || text.includes('\\r\\n')) {
-        text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
-    }
-
-    return text;
-}
-
-/** Simple markdown-ish renderer: handles #, ##, ###, **, *, -, numbered lists */
-function MarkdownContent({ content }: { content: string }) {
-    const elements = useMemo(() => {
-        const safeContent = normalizeActivityContent(content);
-        const lines = safeContent.split('\n');
-        const result: React.ReactElement[] = [];
-
-        lines.forEach((line, idx) => {
-            const trimmed = line.trim();
-            if (!trimmed) {
-                result.push(<View key={idx} style={styles.spacer} />);
-                return;
-            }
-
-            const boldLine = trimmed.match(/^\*\*(.+)\*\*$/)?.[1]?.trim();
-
-            // Headings
-            if (trimmed.startsWith('### ')) {
-                result.push(
-                    <Text key={idx} style={mdStyles.h3}>
-                        {trimmed.slice(4)}
-                    </Text>
-                );
-            } else if (trimmed.startsWith('## ')) {
-                result.push(
-                    <Text key={idx} style={mdStyles.h2}>
-                        {trimmed.slice(3)}
-                    </Text>
-                );
-            } else if (trimmed.startsWith('# ')) {
-                result.push(
-                    <Text key={idx} style={mdStyles.h1}>
-                        {trimmed.slice(2)}
-                    </Text>
-                );
-            }
-            // Blockquote
-            else if (trimmed.startsWith('>')) {
-                const quote = trimmed.replace(/^>\s?/, '').trim();
-                result.push(
-                    <View key={idx} style={mdStyles.blockquote}>
-                        <Text style={mdStyles.blockquoteText}>{renderInline(quote)}</Text>
-                    </View>
-                );
-            }
-            // Fully-bold line (common for prompt sections)
-            else if (boldLine) {
-                const isShort = boldLine.length <= 60;
-                const isNumbered = /^\d+\.\s/.test(boldLine);
-                result.push(
-                    <Text key={idx} style={(isNumbered || isShort) ? mdStyles.h3 : mdStyles.paragraph}>
-                        {renderInline(trimmed)}
-                    </Text>
-                );
-            }
-            // Bullet list
-            else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-                result.push(
-                    <View key={idx} style={mdStyles.listItem}>
-                        <Text style={mdStyles.bullet}>•</Text>
-                        <Text style={mdStyles.listText}>
-                            {renderInline(trimmed.slice(2))}
-                        </Text>
-                    </View>
-                );
-            }
-            // Numbered list
-            else if (/^\d+\.\s/.test(trimmed)) {
-                const match = trimmed.match(/^(\d+)\.\s(.*)$/);
-                if (match) {
-                    result.push(
-                        <View key={idx} style={mdStyles.listItem}>
-                            <Text style={mdStyles.number}>{match[1]}.</Text>
-                            <Text style={mdStyles.listText}>
-                                {renderInline(match[2])}
-                            </Text>
-                        </View>
-                    );
-                }
-            }
-            // Horizontal rule
-            else if (trimmed === '---' || trimmed === '***') {
-                result.push(<View key={idx} style={mdStyles.hr} />);
-            }
-            // Normal paragraph
-            else {
-                result.push(
-                    <Text key={idx} style={mdStyles.paragraph}>
-                        {renderInline(trimmed)}
-                    </Text>
-                );
-            }
-        });
-
-        return result;
-    }, [content]);
-
-    return <View>{elements}</View>;
-}
-
-/** Render bold and italic inline */
-function renderInline(text: string): React.ReactNode {
-    // Split by **bold** markers
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-            return (
-                <Text key={i} style={styles.inlineBold}>
-                    {part.slice(2, -2)}
-                </Text>
-            );
-        }
-        return part;
-    });
-}
 
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { recentActivities, savedActivities, toggleSaved, generateActivity, isGenerating } = useActivityStore();
+    const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
@@ -269,7 +120,10 @@ export default function ActivityDetailScreen() {
                             Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate activity');
                         } else if (data) {
                             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                            router.push(`/activity/${data.id}`);
+                            router.push({
+                                pathname: '/activity/[id]',
+                                params: { id: data.id },
+                            });
                         }
                     },
                 },
@@ -277,32 +131,42 @@ export default function ActivityDetailScreen() {
         );
     };
 
+    // Responsive values
+    const horizontalPad = isCompact ? Spacing.md : isSmallMobile ? Spacing.lg : Spacing.xl;
+
     return (
         <SafeAreaView style={styles.safe}>
             <ScreenBackground />
             <GeneratingOverlay visible={isGenerating} />
             {/* Top bar */}
-            <View style={styles.topBar}>
+            <View style={[styles.topBar, isSmallMobile && { paddingHorizontal: horizontalPad }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={22} color={Colors.textPrimary} />
+                    <ArrowLeft size={isSmallMobile ? 20 : 22} color={Colors.textPrimary} />
                 </TouchableOpacity>
                 <View style={styles.topBarActions}>
                     <TouchableOpacity onPress={handleToggleSave} style={styles.iconBtn}>
                         {activity.is_saved ? (
-                            <BookmarkCheck size={22} color={Colors.primary} />
+                            <BookmarkCheck size={isSmallMobile ? 20 : 22} color={Colors.primary} />
                         ) : (
-                            <Bookmark size={22} color={Colors.textPrimary} />
+                            <Bookmark size={isSmallMobile ? 20 : 22} color={Colors.textPrimary} />
                         )}
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleShare} style={styles.iconBtn}>
-                        <Share2 size={20} color={Colors.textPrimary} />
+                        <Share2 size={isSmallMobile ? 18 : 20} color={Colors.textPrimary} />
                     </TouchableOpacity>
                 </View>
             </View>
 
-            <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-                {/* Category badge + meta */}
-                <View style={styles.metaRow}>
+            <ScrollView 
+                style={styles.container} 
+                contentContainerStyle={[
+                    styles.content,
+                    isSmallMobile && { paddingHorizontal: horizontalPad, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
+                    isTablet && { maxWidth: 600, alignSelf: 'center', width: '100%' }
+                ]}
+            >
+                {/* Category badge + date */}
+                <View style={[styles.metaRow, isSmallMobile && { marginBottom: Spacing.sm }]}>
                     <View style={[styles.badge, {
                         backgroundColor: (category?.color ?? Colors.primary) + '15',
                         flexDirection: 'row',
@@ -313,55 +177,50 @@ export default function ActivityDetailScreen() {
                             const Icon = category?.icon;
                             return (
                                 <>
-                                    {Icon && <Icon size={14} color={Colors.textPrimary} />}
-                                    <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
+                                    {Icon && <Icon size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />}
+                                    <Text style={[styles.badgeText, { color: Colors.textPrimary }, isSmallMobile && { fontSize: FontSize.xs }]}>
                                         {category?.label}
                                     </Text>
                                 </>
                             );
                         })()}
                     </View>
-                </View>
 
-                {/* Meta chips */}
-                <View style={styles.chipRow}>
-                    <View style={styles.metaChip}>
-                        <Tag size={14} color={Colors.textPrimary} />
-                        <Text style={styles.metaChipText}>
-                            {activity.topic}
-                        </Text>
-                    </View>
-                    <View style={styles.metaChip}>
-                        <Zap size={14} color={Colors.textPrimary} />
-                        <Text style={styles.metaChipText}>
-                            {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
-                        </Text>
-                    </View>
-                    <View style={styles.metaChip}>
-                        <Palette size={14} color={Colors.textPrimary} />
-                        <Text style={styles.metaChipText}>
-                            {activity.style === 'colorful' ? 'Colorful' : 'B&W'}
-                        </Text>
-                    </View>
-                    <View style={styles.metaChip}>
-                        <Clock size={14} color={Colors.textPrimary} />
-                        <Text style={styles.metaChipText}>
+                    <View style={styles.dateWrapper}>
+                        <Clock size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
+                        <Text style={[styles.dateText, isSmallMobile && { fontSize: FontSize.xs }]}>
                             {new Date(activity.created_at).toLocaleDateString()}
                         </Text>
                     </View>
                 </View>
 
-                {activity.kid_name && (
-                    <Text style={styles.kidLabel}>
-                        Created for <Text style={styles.createdForKid}>{activity.kid_name}</Text>
-                    </Text>
-                )}
+                {/* Meta chips */}
+                <View style={[styles.chipRow, isSmallMobile && { gap: Spacing.xs, marginBottom: Spacing.sm }]}>
+                    <View style={[styles.metaChip, isSmallMobile && { paddingHorizontal: Spacing.xs, paddingVertical: 3 }]}>
+                        <Tag size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
+                        <Text style={[styles.metaChipText, isSmallMobile && { fontSize: 11 }]}>
+                            {activity.topic}
+                        </Text>
+                    </View>
+                    <View style={[styles.metaChip, isSmallMobile && { paddingHorizontal: Spacing.xs, paddingVertical: 3 }]}>
+                        <Zap size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
+                        <Text style={[styles.metaChipText, isSmallMobile && { fontSize: 11 }]}>
+                            {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
+                        </Text>
+                    </View>
+                    <View style={[styles.metaChip, isSmallMobile && { paddingHorizontal: Spacing.xs, paddingVertical: 3 }]}>
+                        <Palette size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
+                        <Text style={[styles.metaChipText, isSmallMobile && { fontSize: 11 }]}>
+                            {activity.style === 'colorful' ? 'Colorful' : 'B&W'}
+                        </Text>
+                    </View>
+                </View>
 
                 {/* Visual Hero — shown for tracing/screen-free categories */}
                 {VISUAL_CATEGORIES.has(activity.category) && (
-                    <View style={styles.visualHero}>
+                    <View style={[styles.visualHero, isSmallMobile && { marginBottom: Spacing.lg }]}>
                         {activity.image_url ? (
-                            <View style={styles.tracingContainer}>
+                            <View style={[styles.tracingContainer, isSmallMobile && { aspectRatio: 4 / 3 }]}>
                                 <Image
                                     source={{ uri: activity.image_url }}
                                     style={styles.heroImage}
@@ -370,9 +229,9 @@ export default function ActivityDetailScreen() {
                                 />
                             </View>
                         ) : (
-                            <View style={styles.heroPlaceholder}>
-                                <ImageIcon size={48} color={Colors.textPrimary} />
-                                <Text style={[styles.heroPlaceholderText, { color: Colors.textPrimary }]}>
+                            <View style={[styles.heroPlaceholder, isSmallMobile && { height: 140 }]}>
+                                <ImageIcon size={isSmallMobile ? 36 : 48} color={Colors.textPrimary} />
+                                <Text style={[styles.heroPlaceholderText, { color: Colors.textPrimary }, isSmallMobile && { fontSize: FontSize.md }]}>
                                     Visual Activity
                                 </Text>
                                 <Text style={styles.heroPlaceholderSub}>
@@ -380,9 +239,9 @@ export default function ActivityDetailScreen() {
                                 </Text>
                             </View>
                         )}
-                        <View style={[styles.visualBadge, { backgroundColor: (category?.color ?? Colors.primary) + '20' }]}>
-                            <ImageIcon size={12} color={Colors.textPrimary} />
-                            <Text style={[styles.visualBadgeText, { color: Colors.textPrimary }]}>
+                        <View style={[styles.visualBadge, { backgroundColor: (category?.color ?? Colors.primary) + '20' }, isSmallMobile && { padding: Spacing.xs }]}>
+                            <ImageIcon size={isSmallMobile ? 10 : 12} color={Colors.textPrimary} />
+                            <Text style={[styles.visualBadgeText, { color: Colors.textPrimary }, isSmallMobile && { fontSize: 11 }]}>
                                 Visual Activity
                             </Text>
                         </View>
@@ -390,39 +249,48 @@ export default function ActivityDetailScreen() {
                 )}
 
                 {/* Content */}
-                <Card variant="elevated" style={styles.contentCard}>
+                <Card variant="elevated" style={[styles.contentCard, isSmallMobile && { marginBottom: Spacing.lg }]} padding={isSmallMobile ? 'md' : 'xl'}>
                     {!VISUAL_CATEGORIES.has(activity.category) && activity.image_url && (
                         <Image
                             source={{ uri: activity.image_url }}
-                            style={styles.generatedImage}
+                            style={[styles.generatedImage, isSmallMobile && { marginBottom: Spacing.lg }]}
                             contentFit="contain"
                             transition={250}
                         />
                     )}
-                    <MarkdownContent content={activity.content} />
+                    <View style={[styles.contentHeaderRow, isSmallMobile && { marginBottom: Spacing.md }]}>
+                        {activity.kid_name ? (
+                            <Text style={[styles.kidLabel, isSmallMobile && { fontSize: FontSize.xs }]}>
+                                Created for <Text style={styles.createdForKid}>{activity.kid_name}</Text>
+                            </Text>
+                        ) : <View style={{ flex: 1 }} />}
+
+                        <Button
+                            title={isSmallMobile ? "Print" : "Print Activity"}
+                            onPress={handlePrint}
+                            variant="primary"
+                            size="sm"
+                            icon={<Printer size={isSmallMobile ? 14 : 16} color={Colors.white} />}
+                        />
+                    </View>
+                    <MarkdownContent content={activity.content} compact={isSmallMobile} />
                 </Card>
 
                 {/* Action buttons */}
                 <View style={styles.actionRow}>
                     <Button
-                        title="Print / PDF"
-                        onPress={handlePrint}
-                        variant="primary"
-                        size="md"
-                        icon={<Printer size={18} color={Colors.white} />}
-                        style={styles.flex1}
-                    />
-                    <Button
                         title="Regenerate"
                         onPress={handleRegenerate}
                         variant="outline"
-                        size="md"
-                        icon={<RefreshCw size={18} color={Colors.primary} />}
+                        size={isSmallMobile ? "md" : "lg"}
+                        disabled={isGenerating}
+                        loading={isGenerating}
+                        icon={<RefreshCw size={isSmallMobile ? 16 : 18} color={Colors.primary} />}
                         style={styles.flex1}
                     />
                 </View>
 
-                <View style={styles.bottomSpacer} />
+                <View style={[styles.bottomSpacer, isSmallMobile && { height: Spacing['3xl'] }]} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -453,8 +321,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: Spacing.xl,
-        paddingTop: Spacing.xl,
-        paddingBottom: Spacing.sm,
+        paddingTop: Spacing.md,
+        paddingBottom: Spacing.xs,
     },
     backBtn: {
         padding: Spacing.sm,
@@ -478,7 +346,19 @@ const styles = StyleSheet.create({
     },
     metaRow: {
         flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: Spacing.md,
+    },
+    dateWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    dateText: {
+        fontFamily: Fonts.sans,
+        fontSize: FontSize.sm,
+        color: Colors.textPrimary,
     },
     badge: {
         paddingHorizontal: Spacing.md,
@@ -512,11 +392,17 @@ const styles = StyleSheet.create({
         fontSize: FontSize.xs,
         color: Colors.textPrimary,
     },
+    contentHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: Spacing.lg,
+    },
     kidLabel: {
+        flex: 1,
         fontFamily: Fonts.sans,
         fontSize: FontSize.sm,
         color: Colors.textPrimary,
-        marginBottom: Spacing.lg,
     },
     generatedImage: {
         width: '100%',
@@ -624,8 +510,8 @@ const styles = StyleSheet.create({
         marginTop: Spacing.lg,
     },
     createdForKid: {
-        fontFamily: Fonts.medium, 
-        color: Colors.textPrimary, 
+        fontFamily: Fonts.medium,
+        color: Colors.textPrimary,
         fontWeight: FontWeight.semibold,
     },
     flex1: {
@@ -633,94 +519,5 @@ const styles = StyleSheet.create({
     },
     bottomSpacer: {
         height: Spacing['5xl'],
-    },
-    spacer: {
-        height: 8,
-    },
-    inlineBold: {
-        fontFamily: Fonts.bold, 
-        fontWeight: FontWeight.bold,
-    },
-});
-
-const mdStyles = StyleSheet.create({
-    h1: {
-        fontFamily: Fonts.bold,
-        fontSize: FontSize['3xl'],
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginTop: Spacing.sm,
-        marginBottom: Spacing.md,
-    },
-    h2: {
-        fontFamily: Fonts.bold,
-        fontSize: FontSize.xl,
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-        marginTop: Spacing.md,
-        marginBottom: Spacing.xs,
-    },
-    h3: {
-        fontFamily: Fonts.medium,
-        fontSize: FontSize.lg,
-        fontWeight: FontWeight.semibold,
-        color: Colors.textPrimary,
-        marginTop: Spacing.md,
-        marginBottom: Spacing.xs,
-    },
-    paragraph: {
-        fontFamily: Fonts.sans,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        lineHeight: 24,
-        marginBottom: Spacing.xs,
-    },
-    listItem: {
-        flexDirection: 'row',
-        paddingLeft: Spacing.sm,
-        marginBottom: 4,
-    },
-    bullet: {
-        fontFamily: Fonts.bold,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        marginRight: Spacing.sm,
-        width: 16,
-    },
-    number: {
-        fontFamily: Fonts.medium,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        fontWeight: FontWeight.semibold,
-        marginRight: Spacing.sm,
-        width: 20,
-    },
-    listText: {
-        flex: 1,
-        fontFamily: Fonts.sans,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        lineHeight: 24,
-    },
-    hr: {
-        height: 1,
-        backgroundColor: Colors.border,
-        marginVertical: Spacing.md,
-    },
-    blockquote: {
-        backgroundColor: Colors.primaryLight + '55',
-        borderLeftWidth: 3,
-        borderLeftColor: Colors.primaryPurple,
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        borderRadius: Radius.sm,
-        marginBottom: Spacing.sm,
-    },
-    blockquoteText: {
-        fontFamily: Fonts.sans,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        lineHeight: 24,
-        fontStyle: 'italic',
     },
 });

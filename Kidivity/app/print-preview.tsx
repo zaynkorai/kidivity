@@ -7,17 +7,19 @@ import {
     SafeAreaView,
     Alert,
     TouchableOpacity,
+    useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
-import { ArrowLeft, Printer, FileDown, Search } from 'lucide-react-native';
+import { ArrowLeft, Printer, FileDown, Search, Heart } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
+import { MarkdownContent, normalizeActivityContent } from '@/components/ui/MarkdownContent';
 
 /** Convert markdown-ish content to simple HTML for printing */
 function markdownToHtml(md: string): string {
@@ -54,7 +56,7 @@ function buildPrintHtml(activity: {
     created_at: string;
 }): string {
     const category = ACTIVITY_CATEGORIES.find((c) => c.id === activity.category);
-    const htmlContent = markdownToHtml(activity.content);
+    const htmlContent = markdownToHtml(normalizeActivityContent(activity.content));
     const isBW = activity.style === 'bw';
 
     return `
@@ -66,6 +68,7 @@ function buildPrintHtml(activity: {
   <style>
     @page { margin: 0.75in; size: letter; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
       font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
       color: #1E1E2E;
@@ -74,6 +77,7 @@ function buildPrintHtml(activity: {
       ${isBW ? '' : 'background: #FAFAFE;'}
     }
     .header {
+      width: 100%;
       text-align: center;
       padding-bottom: 16px;
       margin-bottom: 20px;
@@ -114,6 +118,17 @@ function buildPrintHtml(activity: {
       margin-left: auto;
       margin-right: auto;
     }
+    .cover-page {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      page-break-after: always;
+      break-after: page;
+    }
     .footer {
       margin-top: 24px;
       padding-top: 12px;
@@ -125,18 +140,24 @@ function buildPrintHtml(activity: {
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="badge">${category?.label ?? activity.category}</div>
-    <h1>${activity.topic}</h1>
-    <div class="meta">
-      ${activity.kid_name ? `For ${activity.kid_name} · ` : ''}
-      ${activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)} · 
-      ${new Date(activity.created_at).toLocaleDateString()}
-    </div>
+  ${activity.image_url ? `
+  <div class="cover-page">
+    <img src="${activity.image_url}" class="generated-image" />
   </div>
-  ${activity.image_url ? `<img src="${activity.image_url}" class="generated-image" />` : ''}
-  ${htmlContent}
-  <div class="footer">Generated with ❤️ by Kidivity</div>
+  ` : ''}
+  <div class="content-page">
+    <div class="header">
+      <div class="badge">${category?.label ?? activity.category}</div>
+      <h1>${activity.topic}</h1>
+      <div class="meta">
+        ${activity.kid_name ? `For ${activity.kid_name} · ` : ''}
+        ${activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)} · 
+        ${new Date(activity.created_at).toLocaleDateString()}
+      </div>
+    </div>
+    ${htmlContent}
+    <div class="footer">Generated with ❤️ by Kidivity</div>
+  </div>
 </body>
 </html>`;
 }
@@ -145,6 +166,10 @@ export default function PrintPreviewScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { recentActivities, savedActivities } = useActivityStore();
+    const { width } = useWindowDimensions();
+
+    const isSmallScreen = width < 380;
+    const isTablet = width > 768;
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
@@ -209,24 +234,61 @@ export default function PrintPreviewScreen() {
         <SafeAreaView style={styles.safe}>
             {/* Top bar */}
             <View style={styles.topBar}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={22} color={Colors.textPrimary} />
-                </TouchableOpacity>
-                <Text style={styles.topTitle}>Print Preview</Text>
-                <View style={styles.topBarSpacer} />
+                <View style={styles.topBarLeft}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                        <ArrowLeft size={isSmallScreen ? 20 : 22} color={Colors.textPrimary} />
+                    </TouchableOpacity>
+                    {!isSmallScreen && <Text style={styles.topTitle}>Preview</Text>}
+                </View>
+
+                <View style={styles.topBarActions}>
+                    <Button
+                        title={isSmallScreen ? "PDF" : "Export PDF"}
+                        onPress={handleSavePdf}
+                        variant="secondary"
+                        size={isSmallScreen ? "sm" : "md"}
+                        icon={<FileDown size={16} color={Colors.textPrimary} />}
+                        textStyle={{ color: Colors.textPrimary }}
+                    />
+                    <Button
+                        title={isSmallScreen ? "Print" : "Print Now"}
+                        onPress={handlePrint}
+                        variant="secondary"
+                        size={isSmallScreen ? "sm" : "md"}
+                        icon={<Printer size={16} color={Colors.textPrimary} />}
+                        textStyle={{ color: Colors.textPrimary }}
+                    />
+                </View>
             </View>
 
-            <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-                {/* Preview card mimicking the printed output */}
-                <View style={styles.previewCard}>
+            <ScrollView 
+                style={styles.container} 
+                contentContainerStyle={[
+                    styles.content,
+                    isSmallScreen && { padding: Spacing.md },
+                    isTablet && { maxWidth: 600, alignSelf: 'center', width: '100%' }
+                ]}
+            >
+                {/* Page 1: Cover */}
+                <View style={[
+                    styles.previewCard,
+                    isSmallScreen && { padding: Spacing.lg, borderRadius: Radius.md }
+                ]}>
                     {/* Header */}
-                    <View style={styles.previewHeader}>
+                    <View style={[
+                        styles.previewHeader, 
+                        !activity.image_url && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
+                        isSmallScreen && { paddingBottom: Spacing.md, marginBottom: Spacing.md }
+                    ]}>
                         <View style={[styles.badge, { backgroundColor: (category?.color ?? Colors.primary) + '15' }]}>
                             <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                 {category?.label}
                             </Text>
                         </View>
-                        <Text style={styles.previewTitle}>{activity.topic}</Text>
+                        <Text style={[
+                            styles.previewTitle,
+                            isSmallScreen && { fontSize: FontSize.xl }
+                        ]}>{activity.topic}</Text>
                         <Text style={styles.previewMeta}>
                             {activity.kid_name ? `For ${activity.kid_name} · ` : ''}
                             {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)} ·{' '}
@@ -234,43 +296,32 @@ export default function PrintPreviewScreen() {
                         </Text>
                     </View>
 
-                    {/* Content preview (truncated) */}
-                    <View style={styles.previewBody}>
-                        {activity.image_url && (
+                    {activity.image_url && (
+                        <View style={[styles.previewBody, { marginBottom: 0 }]}>
                             <Image
                                 source={{ uri: activity.image_url }}
-                                style={styles.previewImage}
+                                style={[styles.previewImage, { marginBottom: 0 }]}
                                 contentFit="cover"
                             />
-                        )}
-                        <Text style={styles.previewContent} numberOfLines={20}>
-                            {activity.content}
-                        </Text>
+                        </View>
+                    )}
+                </View>
+
+                {/* Page 2: Content */}
+                <View style={[
+                    styles.previewCard, 
+                    { minHeight: 300 },
+                    isSmallScreen && { padding: Spacing.lg, borderRadius: Radius.md }
+                ]}>
+                    <View style={styles.previewBody}>
+                        <MarkdownContent content={activity.content} />
                     </View>
 
                     <View style={styles.previewFooter}>
-                        <Text style={styles.footerText}>Generated with ❤️ by Kidivity</Text>
+                        <Text style={styles.footerText}>
+                            Generated with <Heart size={16} color={Colors.primary} fill={Colors.primary} /> by Kidivity
+                        </Text>
                     </View>
-                </View>
-
-                {/* Action buttons */}
-                <View style={styles.actionRow}>
-                    <Button
-                        title="Print"
-                        onPress={handlePrint}
-                        variant="primary"
-                        size="lg"
-                        icon={<Printer size={20} color={Colors.white} />}
-                        style={styles.flex1}
-                    />
-                    <Button
-                        title="Save PDF"
-                        onPress={handleSavePdf}
-                        variant="outline"
-                        size="lg"
-                        icon={<FileDown size={20} color={Colors.primary} />}
-                        style={styles.flex1}
-                    />
                 </View>
 
                 <View style={styles.bottomSpacer} />
@@ -300,13 +351,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: Spacing.lg,
+        paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
         borderBottomWidth: 1,
         borderBottomColor: Colors.border,
+        backgroundColor: Colors.white,
+    },
+    topBarLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
+    },
+    topBarActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
     },
     backBtn: {
-        padding: Spacing.sm,
+        padding: Spacing.xs,
     },
     topTitle: {
         fontSize: FontSize.lg,
@@ -383,7 +445,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     footerText: {
-        fontSize: FontSize.xs,
+        fontSize: FontSize.md,
         color: Colors.textPrimary,
     },
     actionRow: {

@@ -8,6 +8,7 @@ import {
     type TextStyle,
 } from 'react-native';
 import { Colors, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface ButtonProps {
     title: string;
@@ -32,7 +33,11 @@ export function Button({
     style,
     textStyle,
 }: ButtonProps) {
+    const { isShort } = useResponsive();
     const isDisabled = disabled || loading;
+
+    // On short devices, step the size down visually to avoid taking up too much vertical space
+    const effectiveSize = isShort && size === 'lg' ? 'md' : isShort && size === 'md' ? 'sm' : size;
 
     return (
         <TouchableOpacity
@@ -42,7 +47,7 @@ export function Button({
             style={[
                 styles.base,
                 styles[variant],
-                styles[`size_${size}`],
+                styles[`size_${effectiveSize}`],
                 isDisabled && styles.disabled,
                 style,
             ]}
@@ -59,7 +64,7 @@ export function Button({
                         style={[
                             styles.text,
                             styles[`text_${variant}`],
-                            styles[`textSize_${size}`],
+                            styles[`textSize_${effectiveSize}`],
                             isDisabled && styles.textDisabled,
                             textStyle,
                         ]}

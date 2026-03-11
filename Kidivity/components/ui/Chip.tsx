@@ -10,6 +10,7 @@ interface ChipProps {
     onPress?: () => void;
     color?: string;
     style?: ViewStyle;
+    size?: 'sm' | 'md';
 }
 
 export function Chip({
@@ -19,8 +20,11 @@ export function Chip({
     onPress,
     color,
     style,
+    size = 'md',
 }: ChipProps) {
     const activeColor = color ?? Colors.primary;
+
+    const isSmall = size === 'sm';
 
     return (
         <TouchableOpacity
@@ -28,13 +32,14 @@ export function Chip({
             activeOpacity={0.7}
             style={[
                 styles.chip,
+                isSmall && styles.chipSmall,
                 selected && { backgroundColor: activeColor + '22', borderColor: activeColor, borderWidth: 2 },
                 style,
             ]}
         >
             {Icon && (
                 <Icon
-                    size={16}
+                    size={isSmall ? 14 : 16}
                     color={selected ? activeColor : Colors.textPrimary}
                     style={styles.icon}
                 />
@@ -42,6 +47,7 @@ export function Chip({
             <Text
                 style={[
                     styles.label,
+                    isSmall && styles.labelSmall,
                     selected && { color: activeColor, fontWeight: FontWeight.bold },
                 ]}
             >
@@ -62,6 +68,11 @@ const styles = StyleSheet.create({
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
     },
+    chipSmall: {
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: Spacing.xs,
+        borderWidth: 1,
+    },
     icon: {
         marginRight: Spacing.xs,
     },
@@ -69,6 +80,9 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
+    },
+    labelSmall: {
+        fontSize: FontSize.sm,
     },
     labelSelected: {
         // Will be overwritten inline

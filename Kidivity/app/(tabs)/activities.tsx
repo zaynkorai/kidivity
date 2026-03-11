@@ -26,12 +26,12 @@ type SortOption = 'newest' | 'oldest';
 
 export default function ActivitiesScreen() {
     const router = useRouter();
-    
+
     // Stable action selectors
     const fetchRecent = useActivityStore((state) => state.fetchRecent);
     const toggleSaved = useActivityStore((state) => state.toggleSaved);
     const deleteActivity = useActivityStore((state) => state.deleteActivity);
-    
+
     // State selectors
     const recentActivities = useActivityStore((state) => state.recentActivities);
     const profiles = useProfileStore((state) => state.profiles);
@@ -221,12 +221,6 @@ export default function ActivitiesScreen() {
                     <History size={24} color={Colors.primary} />
                     <Text style={styles.title}>Activities</Text>
                 </View>
-                <TouchableOpacity
-                    onPress={() => setShowFilters(!showFilters)}
-                    style={[styles.filterBtn, hasActiveFilters && styles.filterBtnActive]}
-                >
-                    <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
-                </TouchableOpacity>
             </View>
 
             {/* Weekly Calendar */}
@@ -236,6 +230,15 @@ export default function ActivitiesScreen() {
                 onSelectDate={setFilterDate}
             />
 
+            <View style={styles.filterToggleContainer}>
+                <TouchableOpacity
+                    onPress={() => setShowFilters(!showFilters)}
+                    style={[styles.filterBtn, hasActiveFilters && styles.filterBtnActive]}
+                >
+                    <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
+                </TouchableOpacity>
+            </View>
+
             {/* Filter bar */}
             {showFilters && (
                 <View style={styles.filterBar}>
@@ -244,6 +247,7 @@ export default function ActivitiesScreen() {
                     <View style={styles.filterRow}>
                         <Chip
                             label="All"
+                            size="sm"
                             selected={filterCategory === null}
                             onPress={() => setFilterCategory(null)}
                         />
@@ -252,6 +256,7 @@ export default function ActivitiesScreen() {
                                 key={cat.id}
                                 label={cat.label}
                                 icon={cat.icon}
+                                size="sm"
                                 selected={filterCategory === cat.id}
                                 onPress={() =>
                                     setFilterCategory(filterCategory === cat.id ? null : cat.id)
@@ -267,6 +272,7 @@ export default function ActivitiesScreen() {
                             <View style={styles.filterRow}>
                                 <Chip
                                     label="All Kids"
+                                    size="sm"
                                     selected={filterKidId === null}
                                     onPress={() => setFilterKidId(null)}
                                 />
@@ -274,6 +280,7 @@ export default function ActivitiesScreen() {
                                     <Chip
                                         key={p.id}
                                         label={p.name}
+                                        size="sm"
                                         selected={filterKidId === p.id}
                                         onPress={() =>
                                             setFilterKidId(filterKidId === p.id ? null : p.id)
@@ -287,8 +294,8 @@ export default function ActivitiesScreen() {
                     {/* Sort */}
                     <Text style={styles.filterLabel}>Sort</Text>
                     <View style={styles.filterRow}>
-                        <Chip label="Newest" selected={sortBy === 'newest'} onPress={() => setSortBy('newest')} />
-                        <Chip label="Oldest" selected={sortBy === 'oldest'} onPress={() => setSortBy('oldest')} />
+                        <Chip label="Newest" size="sm" selected={sortBy === 'newest'} onPress={() => setSortBy('newest')} />
+                        <Chip label="Oldest" size="sm" selected={sortBy === 'oldest'} onPress={() => setSortBy('oldest')} />
                     </View>
 
                     {hasActiveFilters && (
@@ -375,11 +382,18 @@ const styles = StyleSheet.create({
         borderRadius: Radius.sm,
         backgroundColor: Colors.surface,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.primary,
     },
     filterBtnActive: {
         backgroundColor: Colors.primary,
         borderColor: Colors.primary,
+    },
+    filterToggleContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        paddingHorizontal: Spacing.xl,
+        marginTop: Spacing.sm,
+        marginBottom: Spacing.sm,
     },
     filterBar: {
         paddingHorizontal: Spacing.xl,

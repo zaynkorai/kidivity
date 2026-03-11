@@ -10,8 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
-
-import { useWindowDimensions } from 'react-native';
+import { useResponsive } from '@/hooks/useResponsive';
 // Refined colors based on standard design philosophy from the screenshots
 const ScreenColors = {
     background: '#FDFBF7', // Very pale cream background matching screenshot
@@ -22,7 +21,7 @@ const ScreenColors = {
 };
 
 export default function WelcomeScreen() {
-    const { height } = useWindowDimensions();
+    const { height, isCompact } = useResponsive();
     const router = useRouter();
 
     const handleGoogleAuth = () => {
@@ -60,7 +59,7 @@ export default function WelcomeScreen() {
                 </View>
 
                 {/* Bottom Auth Section */}
-                <View style={styles.authBottomContainer}>
+                <View style={[styles.authBottomContainer, isCompact && { paddingHorizontal: Spacing.xl }]}>
                     <Text style={styles.authTitle}>Welcome</Text>
                     <Text style={styles.authSubtitle}>
                         You&apos;re just one click away from{'\n'}finding the expertise and knowledge

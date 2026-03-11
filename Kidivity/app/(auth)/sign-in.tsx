@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
+import { useResponsive } from '@/hooks/useResponsive';
 
 
 const ScreenColors = {
@@ -30,7 +31,7 @@ const ScreenColors = {
 };
 
 export default function SignInScreen() {
-    const { height } = useWindowDimensions();
+    const { height, isCompact } = useResponsive();
     const router = useRouter();
     const { signIn, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -84,8 +85,8 @@ export default function SignInScreen() {
                         </View>
 
                         {/* 2. Elevated Form Surface - Overlapping the Header */}
-                        <View style={styles.formSurface}>
-                            <View style={styles.formCard}>
+                        <View style={[styles.formSurface, isCompact && { paddingHorizontal: Spacing.lg }]}>
+                            <View style={[styles.formCard, isCompact && { padding: Spacing.xl }]}>
                                 <Text style={styles.title}>Sign In</Text>
                                 <Text style={styles.subtitle}>
                                     Pick up right where you left off.

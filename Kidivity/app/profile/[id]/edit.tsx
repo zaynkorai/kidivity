@@ -22,6 +22,7 @@ import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
 
 const AVATAR_COLORS = [
@@ -34,6 +35,7 @@ export default function EditProfileScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { profiles, updateProfile, deleteProfile } = useProfileStore();
     const { user } = useAuthStore();
+    const { isCompact } = useResponsive();
 
     const profile = profiles.find((p) => p.id === id);
 
@@ -151,13 +153,13 @@ export default function EditProfileScreen() {
             >
                 <ScrollView
                     style={styles.container}
-                    contentContainerStyle={styles.content}
+                    contentContainerStyle={[styles.content, isCompact && { padding: Spacing.lg }]}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Avatar Preview */}
                     <View style={styles.avatarSection}>
-                        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-                            <Text style={styles.avatarInitial}>
+                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && { width: 64, height: 64, borderRadius: 32 }]}>
+                            <Text style={[styles.avatarInitial, isCompact && { fontSize: FontSize['3xl'] }]}>
                                 {name ? name.charAt(0).toUpperCase() : '?'}
                             </Text>
                         </View>

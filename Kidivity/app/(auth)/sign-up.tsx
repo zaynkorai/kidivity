@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
+import { useResponsive } from '@/hooks/useResponsive';
 const ScreenColors = {
     background: Colors.background,
     formBg: Colors.surface,
@@ -28,7 +29,7 @@ const ScreenColors = {
 };
 
 export default function SignUpScreen() {
-    const { height } = useWindowDimensions();
+    const { height, isCompact } = useResponsive();
     const router = useRouter();
     const { signUp, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -125,8 +126,8 @@ export default function SignUpScreen() {
                         </View>
 
                         {/* 2. Elevated Form Surface - Overlapping Header */}
-                        <View style={styles.formSurface}>
-                            <View style={styles.formCard}>
+                        <View style={[styles.formSurface, isCompact && { paddingHorizontal: Spacing.lg }]}>
+                            <View style={[styles.formCard, isCompact && { padding: Spacing.xl }]}>
                                 <Text style={styles.title}>Create Account</Text>
                                 <Text style={styles.subtitle}>
                                     Sign up to save activities and sync across devices.

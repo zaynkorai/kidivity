@@ -18,6 +18,7 @@ import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
 
 const AVATAR_COLORS = [
@@ -28,6 +29,7 @@ const AVATAR_COLORS = [
 export default function CreateProfileScreen() {
     const router = useRouter();
     const addProfile = useProfileStore((s) => s.addProfile);
+    const { isCompact } = useResponsive();
 
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
@@ -81,13 +83,13 @@ export default function CreateProfileScreen() {
             >
                 <ScrollView
                     style={styles.container}
-                    contentContainerStyle={styles.content}
+                    contentContainerStyle={[styles.content, isCompact && { padding: Spacing.lg }]}
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Avatar Preview */}
                     <View style={styles.avatarSection}>
-                        <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-                            <Text style={styles.avatarInitial}>
+                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && { width: 64, height: 64, borderRadius: 32 }]}>
+                            <Text style={[styles.avatarInitial, isCompact && { fontSize: FontSize['3xl'] }]}>
                                 {name ? name.charAt(0).toUpperCase() : '?'}
                             </Text>
                         </View>

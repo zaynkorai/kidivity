@@ -38,6 +38,7 @@ import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { useResponsive } from '@/hooks/useResponsive';
 
 type GateAction = 'delete' | 'add' | 'signout' | 'delete_account' | null;
 
@@ -45,6 +46,8 @@ export default function SettingsScreen() {
     const router = useRouter();
     const { user, signOut } = useAuthStore();
     const { profiles, deleteProfile } = useProfileStore();
+    const { isTablet, isCompact } = useResponsive();
+    const isMobile = !isTablet;
 
     const [gateVisible, setGateVisible] = useState(false);
     const [pendingAction, setPendingAction] = useState<GateAction>(null);
@@ -179,13 +182,13 @@ export default function SettingsScreen() {
                 }
                 userEmail={user?.email}
             />
-            <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+            <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { paddingHorizontal: Spacing.lg, paddingTop: Spacing['xl'] }]}>
                 {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerIconContainer}>
-                        <SettingsIcon size={28} color={Colors.white} />
+                <View style={[styles.header, isMobile && { marginBottom: Spacing.lg }]}>
+                    <View style={[styles.headerIconContainer, isMobile && { width: 36, height: 36, borderRadius: 18 }]}>
+                        <SettingsIcon size={isMobile ? 20 : 28} color={Colors.white} />
                     </View>
-                    <Text style={styles.title}>Settings</Text>
+                    <Text style={[styles.title, isMobile && { fontSize: FontSize['2xl'] }]}>Settings</Text>
                 </View>
 
                 {/* Kid Profiles Section */}
@@ -198,32 +201,33 @@ export default function SettingsScreen() {
                                     <View
                                         style={[
                                             styles.avatar,
+                                            isMobile && { width: 48, height: 48, borderRadius: 24 },
                                             { backgroundColor: profile.avatar_color },
                                         ]}
                                     >
-                                        <Text style={styles.avatarText}>
+                                        <Text style={[styles.avatarText, isMobile && { fontSize: FontSize.md }]}>
                                             {profile.name.charAt(0).toUpperCase()}
                                         </Text>
                                     </View>
                                     <View>
-                                        <Text style={styles.profileName}>{profile.name}</Text>
-                                        <Text style={styles.profileMeta}>
+                                        <Text style={[styles.profileName, isMobile && { fontSize: FontSize.md }]}>{profile.name}</Text>
+                                        <Text style={[styles.profileMeta, isMobile && { fontSize: FontSize.xs }]}>
                                             {profile.age}yo · {profile.grade_level}
                                         </Text>
                                     </View>
                                 </View>
                                 <View style={styles.profileActions}>
                                     <TouchableOpacity
-                                        style={[styles.actionIconBtn, { backgroundColor: Colors.yellow }]}
+                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
                                         onPress={() => router.push(`/profile/${profile.id}/edit`)}
                                     >
-                                        <Edit3 size={16} color={Colors.textPrimary} />
+                                        <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        style={[styles.actionIconBtn, { backgroundColor: Colors.rad }]}
+                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
                                         onPress={() => openGate('delete', profile.id)}
                                     >
-                                        <Trash2 size={16} color={Colors.textPrimary} />
+                                        <Trash2 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -235,105 +239,105 @@ export default function SettingsScreen() {
                         style={styles.addProfileBtn}
                         onPress={() => openGate('add')}
                     >
-                        <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
-                            <Plus size={18} color={Colors.textPrimary} />
+                        <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                            <Plus size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                         </View>
-                        <Text style={styles.addProfileText}>Add Kid Profile</Text>
+                        <Text style={[styles.addProfileText, isMobile && { fontSize: FontSize.sm }]}>Add Kid Profile</Text>
                     </TouchableOpacity>
                 </Card>
 
                 {/* Account Section */}
                 <Text style={styles.sectionTitle}>Account</Text>
                 <Card variant="elevated">
-                    <View style={styles.settingRow}>
+                    <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.blue }]}>
-                                <Mail size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
+                                <Mail size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Email</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Email</Text>
                         </View>
-                        <Text style={styles.settingValue}>{user?.email ?? 'Not signed in'}</Text>
+                        <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>{user?.email ?? 'Not signed in'}</Text>
                     </View>
                     <View style={styles.divider} />
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
                         onPress={handleResetPassword}
                         disabled={!user?.email}
                     >
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.green }]}>
-                                <KeyRound size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
+                                <KeyRound size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Reset Password</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Reset Password</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
                     <TouchableOpacity
-                        style={styles.settingRow}
+                        style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
                         onPress={() => openGate('delete_account')}
                     >
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.rad }]}>
-                                <UserX size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.rad }]}>
+                                <UserX size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={[styles.settingLabel, { color: Colors.textPrimary }]}>Delete Account</Text>
+                            <Text style={[styles.settingLabel, { color: Colors.textPrimary }, isMobile && { fontSize: FontSize.sm }]}>Delete Account</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                 </Card>
 
                 {/* About Section */}
                 <Text style={styles.sectionTitle}>About & Support</Text>
                 <Card variant="elevated">
-                    <TouchableOpacity style={styles.settingRow} onPress={handleHelpSupport}>
+                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleHelpSupport}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
-                                <HelpCircle size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                                <HelpCircle size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Help & Support</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Help & Support</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
-                    <TouchableOpacity style={styles.settingRow} onPress={handleRateApp}>
+                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleRateApp}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.yellow }]}>
-                                <Star size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.yellow }]}>
+                                <Star size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Rate App</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Rate App</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
-                    <TouchableOpacity style={styles.settingRow} onPress={handleShare}>
+                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleShare}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.blue }]}>
-                                <ShareIcon size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
+                                <ShareIcon size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Share App</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Share App</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
-                    <TouchableOpacity style={styles.settingRow} onPress={handlePrivacyTerms}>
+                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handlePrivacyTerms}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.green }]}>
-                                <Shield size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
+                                <Shield size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>Privacy & Terms</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Privacy & Terms</Text>
                         </View>
-                        <ChevronRight size={18} color={Colors.textPrimary} />
+                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                     </TouchableOpacity>
                     <View style={styles.divider} />
-                    <View style={styles.settingRow}>
+                    <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
                         <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, { backgroundColor: Colors.purple }]}>
-                                <Info size={18} color={Colors.textPrimary} />
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                                <Info size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={styles.settingLabel}>App Version</Text>
+                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>App Version</Text>
                         </View>
-                        <Text style={styles.settingValue}>1.0.0</Text>
+                        <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>1.0.0</Text>
                     </View>
                 </Card>
 

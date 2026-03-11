@@ -33,6 +33,7 @@ import { PaywallModal } from '@/components/ui/PaywallModal';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Colors, Spacing, Radius, FontSize, Fonts, Shadows, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
+import { useResponsive } from '@/hooks/useResponsive';
 import type {
     ActivityDifficulty,
     ActivityStyle,
@@ -41,10 +42,7 @@ import type {
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
-    const { width: sw } = useWindowDimensions();
-    // sw breakpoints
-    const compact = sw < 380;   // SE, older small iPhones
-    const sm      = sw < 415;   // all non-Plus/Pro-Max iPhones
+    const { isCompact: compact, isSmallMobile: sm, isShort, isTablet } = useResponsive();
 
     const { category } = useLocalSearchParams<{ category?: ActivityCategory }>();
     const profiles = useProfileStore((state) => state.profiles);
@@ -138,7 +136,11 @@ export default function GenerateScreen() {
 
             <ScrollView
                 style={styles.container}
-                contentContainerStyle={styles.content}
+                contentContainerStyle={[
+                    styles.content,
+                    compact && { paddingHorizontal: Spacing.md },
+                    isShort && { paddingTop: Spacing.xl, paddingBottom: Spacing.md, gap: Spacing.sm }
+                ]}
                 keyboardShouldPersistTaps="handled"
             >
                 {/* Header & Top Row */}
@@ -294,10 +296,15 @@ export default function GenerateScreen() {
                         {ACTIVITY_CATEGORIES.map((cat) => {
                             const Icon = cat.icon;
                             const isSelected = selectedCategory === cat.id;
-                            const cardPad = compact ? Spacing.sm : sm ? Spacing.md : Spacing.lg;
-                            const iconSz  = compact ? 32 : 40;
-                            const iconBr  = compact ? 12 : 16;
-                            const labelSz = compact ? FontSize.sm : FontSize.md;
+
+                            // Aggressive responsive scaling for all mobile devices
+                            const isMobile = !isTablet; 
+                            const cardPadV = isMobile ? Spacing.sm : Spacing.lg;
+                            const cardPadH = isMobile ? Spacing.md : Spacing.lg;
+                            const iconSz  = isMobile ? 26 : 40; 
+                            const iconBr  = isMobile ? 10 : 16;
+                            const labelSz = isMobile ? FontSize.sm : FontSize.md;
+
                             return (
                                 <TouchableOpacity
                                     key={cat.id}
@@ -308,7 +315,7 @@ export default function GenerateScreen() {
                                     activeOpacity={0.85}
                                     style={[
                                         styles.categoryCard,
-                                        { backgroundColor: cat.color + '40', borderColor: cat.color, padding: cardPad },
+                                        { backgroundColor: cat.color + '40', borderColor: cat.color, paddingVertical: cardPadV, paddingHorizontal: cardPadH },
                                         isSelected && {
                                             borderColor: cat.accent,
                                             borderWidth: 2.5,
@@ -326,7 +333,7 @@ export default function GenerateScreen() {
                                             backgroundColor: isSelected ? cat.accent : cat.color,
                                             width: iconSz, height: iconSz, borderRadius: iconBr,
                                         }]}>
-                                            <Icon size={compact ? 18 : 22} color={isSelected ? Colors.white : Colors.textPrimary} />
+                                            <Icon size={isMobile ? 16 : 22} color={isSelected ? Colors.white : Colors.textPrimary} />
                                         </View>
                                         {isSelected && (
                                             <View style={[styles.selectedPip, { backgroundColor: cat.accent }]}>
@@ -698,7 +705,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     categoryLabel: {
-        marginTop: Spacing.md,
+        marginTop: Spacing.sm,
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
         color: Colors.textPrimary,
