@@ -43,5 +43,5 @@ export function resolveLocalhostUrl(rawUrl: string): string {
 
 export function getApiUrl(): string {
     const rawUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
-    return resolveLocalhostUrl(rawUrl);
+    return resolveLocalhostUrl(rawUrl).replace(/\/$/, '');
 }

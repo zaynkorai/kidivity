@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'crypto';
 import authPlugin from './plugins/auth.js';
 import activityRoutes from './routes/activities.js';
+import onboardingRoutes from './routes/onboarding.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -71,6 +72,7 @@ async function main() {
 
     // ── Routes ───────────────────────────────────────────
     await fastify.register(activityRoutes);
+    await fastify.register(onboardingRoutes);
 
     // Health check (skips auth via plugin logic)
     fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
