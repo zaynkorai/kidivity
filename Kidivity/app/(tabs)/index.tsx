@@ -4,11 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, Wand2, Sun, Sunset, Moon, Flame, Clock, History, ChevronDown, ChevronRight, FileText, Calendar } from 'lucide-react-native';
+import { Plus, Sun, Sunset, Moon, Clock, ChevronDown, ChevronRight } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { JourneyMap } from '@/components/ui/JourneyMap';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -29,14 +28,9 @@ function getGreetingIcon() {
   return <Moon size={18} color={Colors.primary} />;
 }
 
-function formatShortDate(dateIso: string): string {
-  const d = new Date(dateIso);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
 export default function HomeScreen() {
   const router = useRouter();
-  const { isCompact, isSmallMobile, isShort } = useResponsive();
+  const { isCompact, isShort } = useResponsive();
   const tabBarHeight = useBottomTabBarHeight();
   const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
   const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
@@ -212,28 +206,25 @@ export default function HomeScreen() {
             isShort && { paddingVertical: Spacing.md, marginBottom: Spacing.md }
           ]}
         >
-          <View style={styles.magicCardContent}>
-            <View style={styles.magicCardText}>
-              <Text style={styles.magicCardTitle}>Create Activity!</Text>
-              <Text style={styles.magicCardSubtitle}>
-                {activeProfile
-                  ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
-                  : 'Add a profile to generate your first printable activity.'}
-              </Text>
+          <View style={styles.magicBackdrop} />
+          <View style={styles.magicBackdropSoft} />
+          <View style={styles.magicEdgeGlow} />
 
-              <View style={styles.magicCardBadge}>
-                <Text style={styles.magicCardBadgeText}>Tap to create</Text>
+          <View style={styles.magicContent}>
+            <View style={styles.magicHeaderRow}>
+              <View style={styles.magicHeaderLeft}>
+                <View style={styles.magicHeaderText}>
+                  <Text style={styles.magicEyebrow}>Create Activity</Text>
+                  <Text style={styles.magicTitle}>Print-ready in minutes</Text>
+                </View>
               </View>
-            </View>
-
-            <View style={styles.magicRightColumn}>
 
               {lastActivity && (
                 <TouchableOpacity
                   style={styles.magicOpenLastBtn}
                   activeOpacity={0.85}
                   onPress={(e) => {
-                    e.stopPropagation(); // Prevent triggering the outer Generate card push
+                    e.stopPropagation();
                     router.push(`/activity/${lastActivity.id}` as any);
                   }}
                 >
@@ -242,48 +233,40 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               )}
             </View>
+
+            <Text style={styles.magicSubtitle}>
+              {activeProfile
+                ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
+                : 'Add a profile to generate your first printable activity.'}
+            </Text>
+
+            <View style={styles.magicFooterRow}>
+              <View style={styles.magicChipRow}>
+                <View style={styles.magicChip}>
+                  <Text style={styles.magicChipText}>Printable</Text>
+                </View>
+                <View style={styles.magicChip}>
+                  <Text style={styles.magicChipText}>Screen-free</Text>
+                </View>
+                <View style={styles.magicChip}>
+                  <Text style={styles.magicChipText}>5-10 min</Text>
+                </View>
+              </View>
+
+              <View style={styles.magicCTA}>
+                <Text style={styles.magicCTAText}>Generate</Text>
+                <ChevronRight size={18} color={Colors.primary} />
+              </View>
+            </View>
+
           </View>
         </TouchableOpacity>
 
-        {activeProfile && (
-          <View style={[styles.statsContainer, isShort && { marginBottom: Spacing.md }]}>
-            <View style={[styles.statsHeader, isShort && { marginBottom: Spacing.xs }]}>
-              <Text style={styles.sectionTitle}>Snapshot</Text>
-              {stats?.lastCreatedAt ? (
-                <Text style={styles.statsDate}>Last: {formatShortDate(stats.lastCreatedAt)}</Text>
-              ) : (
-                <Text style={styles.statsDate}>No activities yet</Text>
-              )}
-            </View>
-
-            <View style={styles.statsGrid}>
-              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelYellow }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
-                  <Flame size={isCompact ? 18 : 22} color={Colors.primary} />
-                </View>
-                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.streak : '—'}</Text>
-                <Text style={styles.statLabel}>Day Streak</Text>
-              </View>
-
-              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPurple }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
-                  <FileText size={isCompact ? 18 : 22} color={Colors.primaryPurple} />
-                </View>
-                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.total : '—'}</Text>
-                <Text style={styles.statLabel}>Printables</Text>
-              </View>
-
-              <View style={[styles.statCard, isCompact && { paddingVertical: Spacing.md }]}>
-                <View style={[styles.statIconWrapper, { backgroundColor: Colors.pastelPeach }, isCompact && { width: 36, height: 36, borderRadius: 18 }]}>
-                  <Calendar size={isCompact ? 18 : 22} color={Colors.primary} />
-                </View>
-                <Text style={[styles.statValue, isCompact && { fontSize: 20 }]}>{stats ? stats.weekCount : '—'}</Text>
-                <Text style={styles.statLabel}>This Week</Text>
-              </View>
-
-            </View>
-          </View>
-        )}
+        <JourneyMap
+          kidProfileId={activeProfileId ?? null}
+          activities={recentActivities}
+          activityStreak={stats?.streak ?? null}
+        />
 
         <View style={styles.statsHeader}>
           <Text style={styles.sectionTitle}>Explore Categories</Text>
@@ -503,80 +486,142 @@ const styles = StyleSheet.create({
 
   magicCard: {
     backgroundColor: Colors.primary,
-    borderRadius: Radius.xl,
+    borderRadius: Radius['2xl'],
     padding: Spacing.xl,
     marginBottom: Spacing.xl,
-    ...Shadows.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.35)',
+    overflow: 'hidden',
+    ...Shadows.lg,
     shadowColor: Colors.primary,
   },
-  magicCardContent: {
+  magicBackdrop: {
+    position: 'absolute',
+    top: -64,
+    right: -24,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  magicBackdropSoft: {
+    position: 'absolute',
+    bottom: -72,
+    left: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  magicEdgeGlow: {
+    position: 'absolute',
+    top: -8,
+    left: 18,
+    right: 18,
+    height: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  magicContent: {
+    gap: Spacing.md,
+  },
+  magicHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  magicCardText: {
+  magicHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
     flex: 1,
-    paddingRight: Spacing.lg,
   },
-  magicCardTitle: {
-    fontSize: FontSize.xl,
+  magicHeaderText: {
+    flex: 1,
+  },
+  magicIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  magicEyebrow: {
+    fontSize: FontSize.xs,
+    fontFamily: Fonts.medium,
+    fontWeight: FontWeight.medium,
+    color: 'rgba(255,255,255,0.9)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  magicTitle: {
+    marginTop: 2,
+    fontSize: FontSize['2xl'],
     fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.white,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
-  magicCardSubtitle: {
+  magicSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: Fonts.sans,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: Spacing.xs,
+    color: 'rgba(255, 255, 255, 0.92)',
     lineHeight: 20,
   },
-  magicCardBadge: {
-    marginTop: Spacing.md,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.md,
+  magicFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.md,
+  },
+  magicChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+    flex: 1,
+  },
+  magicChip: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
   },
-  magicCardBadgeText: {
+  magicChipText: {
     fontSize: FontSize.xs,
-    fontFamily: Fonts.bold,
-    fontWeight: FontWeight.bold,
+    fontFamily: Fonts.medium,
+    fontWeight: FontWeight.medium,
     color: Colors.white,
   },
-  magicIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  magicCTA: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: Colors.white,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: Radius.full,
+    ...Shadows.sm,
   },
-  magicIconGlow: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  magicRightColumn: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    minHeight: 110, // Gives enough space between icon and button
+  magicCTAText: {
+    fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
+    fontWeight: FontWeight.bold,
+    color: Colors.primary,
   },
   magicOpenLastBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: Radius.full,
-    marginTop: Spacing.md,
+    alignSelf: 'flex-start',
     ...Shadows.sm,
   },
   magicOpenLastText: {
@@ -586,15 +631,6 @@ const styles = StyleSheet.create({
     color: Colors.primaryDark,
   },
 
-  statsContainer: {
-    marginBottom: Spacing.xl,
-  },
-  statsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: Spacing.md,
-  },
   sectionTitle: {
     fontSize: FontSize.xl,
     fontFamily: Fonts.bold,
@@ -602,51 +638,12 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     letterSpacing: -0.3,
   },
-  statsDate: {
-    fontSize: FontSize.xs,
-    fontFamily: Fonts.medium,
-    fontWeight: FontWeight.medium,
-    color: Colors.textSecondary,
-  },
-  statsGrid: {
+  statsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: Spacing.sm,
+    alignItems: 'baseline',
+    marginBottom: Spacing.md,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.sm,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.8)',
-    ...Shadows.sm,
-  },
-  statIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.sm,
-  },
-  statValue: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-  },
-  statLabel: {
-    fontSize: FontSize.xs,
-    fontFamily: Fonts.medium,
-    color: Colors.textSecondary,
-    fontWeight: FontWeight.medium,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

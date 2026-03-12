@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable, useWindowDimensions } from 'react-native';
-import { Flame, Star, CheckCircle2, Zap } from 'lucide-react-native';
+import { Flame, Star, CheckCircle2, Zap, FileText } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import type { Activity } from '@/types/activity';
 
@@ -8,6 +8,7 @@ interface WeeklyCalendarProps {
     activities: Activity[];
     selectedDate: string | null;
     onSelectDate: (date: string | null) => void;
+    printablesCount?: number;
 }
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -151,7 +152,7 @@ function DayPill({
 }
 
 // ─── WeeklyCalendar ───────────────────────────────────────────────────────────
-export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: WeeklyCalendarProps) {
+export function WeeklyCalendar({ activities, selectedDate, onSelectDate, printablesCount }: WeeklyCalendarProps) {
     const { width: screenWidth } = useWindowDimensions();
 
     // Card metrics (mirrors activities.tsx paddingHorizontal: Spacing.xl = 20 each side)
@@ -206,6 +207,14 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
                             <Flame size={compact ? 10 : 12} color={Colors.primary} />
                             <Text style={[styles.badgeText, { color: Colors.primary }]}>
                                 {streak}{compact ? '' : ' streak'}
+                            </Text>
+                        </View>
+                    )}
+                    {typeof printablesCount === 'number' && (
+                        <View style={styles.printablesBadge}>
+                            <FileText size={compact ? 10 : 12} color={Colors.primaryPurple} />
+                            <Text style={[styles.badgeText, { color: Colors.primaryPurple }]}>
+                                {printablesCount}{compact ? '' : ' printables'}
                             </Text>
                         </View>
                     )}
@@ -317,6 +326,15 @@ const styles = StyleSheet.create({
         borderRadius: Radius.full,
     },
     xpBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        backgroundColor: Colors.pastelPurple,
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: 3,
+        borderRadius: Radius.full,
+    },
+    printablesBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,

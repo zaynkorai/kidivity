@@ -35,11 +35,14 @@ export default function ActivitiesScreen() {
 
     // Stable action selectors
     const fetchRecent = useActivityStore((state) => state.fetchRecent);
+    const fetchKidStats = useActivityStore((state) => state.fetchKidStats);
     const toggleSaved = useActivityStore((state) => state.toggleSaved);
     const deleteActivity = useActivityStore((state) => state.deleteActivity);
 
     // State selectors
     const recentActivities = useActivityStore((state) => state.recentActivities);
+    const activeProfileId = useProfileStore((state) => state.activeProfileId);
+    const stats = useActivityStore((state) => activeProfileId ? state.kidStats[activeProfileId] : undefined);
     const profiles = useProfileStore((state) => state.profiles);
 
     const [showFilters, setShowFilters] = useState(false);
@@ -48,12 +51,16 @@ export default function ActivitiesScreen() {
     const [filterDate, setFilterDate] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const [refreshing, setRefreshing] = useState(false);
-    const [workbookMode, setWorkbookMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         fetchRecent();
     }, [fetchRecent]);
+
+    useEffect(() => {
+        if (!activeProfileId) return;
+        fetchKidStats(activeProfileId);
+    }, [activeProfileId, fetchKidStats]);
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
@@ -92,19 +99,6 @@ export default function ActivitiesScreen() {
     };
 
     const selectedCount = selectedIds.size;
-
-    const exitWorkbookMode = () => {
-        setWorkbookMode(false);
-        setSelectedIds(new Set());
-    };
-
-    const toggleWorkbookMode = () => {
-        if (workbookMode) {
-            exitWorkbookMode();
-        } else {
-            setWorkbookMode(true);
-        }
-    };
 
     const handleToggleSaved = async (id: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -195,13 +189,6 @@ export default function ActivitiesScreen() {
         return (
             <TouchableOpacity
                 activeOpacity={0.88}
-                onPress={() => {
-                    if (workbookMode) {
-                        handleToggleSelect(item);
-                    } else {
-                        router.push(`/activity/${item.id}` as any);
-                    }
-                }}
                 style={styles.gridItemWrapper}
             >
                 <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
@@ -216,20 +203,6 @@ export default function ActivitiesScreen() {
                                 {category?.label.split(' ')[0]}
                             </Text>
                         </View>
-                        <TouchableOpacity
-                            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                            onPress={(e) => {
-                                e.stopPropagation();
-                                if (workbookMode) return;
-                                handleToggleSaved(item.id);
-                            }}
-                        >
-                            <Star
-                                size={16}
-                                color={item.is_saved ? Colors.primary : Colors.textTertiary}
-                                fill={item.is_saved ? Colors.primary : 'transparent'}
-                            />
-                        </TouchableOpacity>
                     </View>
 
                     {/* TITLE */}
@@ -275,16 +248,6 @@ export default function ActivitiesScreen() {
                             </Text>
                         </View>
                     )}
-
-                    {workbookMode && (
-                        <View style={styles.selectBadge}>
-                            {selectedIds.has(item.id) ? (
-                                <CheckCircle2 size={18} color={Colors.primary} />
-                            ) : (
-                                <Circle size={18} color={Colors.textTertiary} />
-                            )}
-                        </View>
-                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -299,15 +262,6 @@ export default function ActivitiesScreen() {
                     <History size={24} color={Colors.primary} />
                     <Text style={styles.title}>Activities</Text>
                 </View>
-                <TouchableOpacity
-                    onPress={toggleWorkbookMode}
-                    style={[styles.workbookBtn, workbookMode && styles.workbookBtnActive]}
-                >
-                    <BookOpen size={16} color={workbookMode ? Colors.white : Colors.textPrimary} />
-                    <Text style={[styles.workbookBtnText, workbookMode && styles.workbookBtnTextActive]}>
-                        Workbook
-                    </Text>
-                </TouchableOpacity>
             </View>
 
             {/* Weekly Calendar */}
@@ -315,6 +269,7 @@ export default function ActivitiesScreen() {
                 activities={recentActivities}
                 selectedDate={filterDate}
                 onSelectDate={setFilterDate}
+                printablesCount={activeProfileId ? stats?.total ?? 0 : recentActivities.length}
             />
 
             <View style={styles.filterToggleContainer}>
@@ -325,29 +280,6 @@ export default function ActivitiesScreen() {
                     <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
                 </TouchableOpacity>
             </View>
-
-            {workbookMode && (
-                <View style={styles.workbookBar}>
-                    <Text style={styles.workbookCount}>
-                        {selectedCount} selected
-                    </Text>
-                    <View style={styles.workbookActions}>
-                        <Button
-                            title="Cancel"
-                            onPress={exitWorkbookMode}
-                            variant="ghost"
-                            size="sm"
-                        />
-                        <Button
-                            title="Create Workbook"
-                            onPress={handleCreateWorkbook}
-                            variant="primary"
-                            size="sm"
-                            disabled={selectedCount < MIN_WORKBOOK_ITEMS}
-                        />
-                    </View>
-                </View>
-            )}
 
             {/* Filter bar */}
             {showFilters && (
@@ -660,7 +592,9 @@ const styles = StyleSheet.create({
     gridImageContainer: {
         borderRadius: 16,
         overflow: 'hidden',
-        aspectRatio: 1,
+        aspectRatio: 1.3,
+        width: '90%',
+        alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: Spacing.xs,

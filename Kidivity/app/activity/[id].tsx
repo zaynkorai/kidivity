@@ -20,6 +20,7 @@ import {
     Printer,
     RefreshCw,
     Share2,
+    CheckCircle2,
     Clock,
     Zap,
     Palette,
@@ -28,6 +29,7 @@ import {
     Tag,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
+import { useJourneyStore } from '@/store/journeyStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -43,6 +45,7 @@ export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { recentActivities, savedActivities, toggleSaved, generateActivity, isGenerating } = useActivityStore();
+    const completeActivityAdhoc = useJourneyStore((state) => state.completeActivityAdhoc);
     const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
     const insets = useSafeAreaInsets();
     const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['5xl']);
@@ -132,6 +135,18 @@ export default function ActivityDetailScreen() {
                 },
             ]
         );
+    };
+
+    const handleMarkCompleted = async () => {
+        if (!activity) return;
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        const res = await completeActivityAdhoc(activity.kid_profile_id, activity.id);
+        if (!res.completed) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            Alert.alert('Error', 'Could not mark as completed. Try again.');
+        } else {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
     };
 
     // Responsive values
@@ -281,6 +296,14 @@ export default function ActivityDetailScreen() {
 
                 {/* Action buttons */}
                 <View style={styles.actionRow}>
+                    <Button
+                        title="Mark Completed"
+                        onPress={handleMarkCompleted}
+                        variant="primary"
+                        size={isSmallMobile ? "md" : "lg"}
+                        icon={<CheckCircle2 size={isSmallMobile ? 16 : 18} color={Colors.white} />}
+                        style={styles.flex1}
+                    />
                     <Button
                         title="Regenerate"
                         onPress={handleRegenerate}
