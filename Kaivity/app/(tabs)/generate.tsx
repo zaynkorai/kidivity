@@ -55,7 +55,10 @@ export default function GenerateScreen() {
     const setActiveProfile = useProfileStore((state) => state.setActiveProfile);
     const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
-    const { generateActivity, isGenerating, rateLimitState, clearRateLimit } = useActivityStore();
+    const generateActivity = useActivityStore((s) => s.generateActivity);
+    const isGenerating = useActivityStore((s) => s.isGenerating);
+    const rateLimitState = useActivityStore((s) => s.rateLimitState);
+    const clearRateLimit = useActivityStore((s) => s.clearRateLimit);
 
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | null>(null);

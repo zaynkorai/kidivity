@@ -121,6 +121,8 @@ export const useProfileStore = create<ProfileStore>()(
             },
 
             updateProfile: async (id, updates) => {
+                if (get().isLoading) return { error: 'Action in progress' };
+                set({ isLoading: true });
                 try {
                     const { data, error } = await supabase
                         .from('kid_profiles')
@@ -131,22 +133,26 @@ export const useProfileStore = create<ProfileStore>()(
 
                     if (error) {
                         console.error('[profile] updateProfile error:', error.message);
+                        set({ isLoading: false });
                         return { error: 'Failed to update profile. Please try again.' };
                     }
 
                     const updated = data as KidProfile;
-                    const { profiles } = get();
-                    set({
-                        profiles: profiles.map(p => (p.id === id ? updated : p)),
-                    });
+                    set((state) => ({
+                        profiles: state.profiles.map(p => (p.id === id ? updated : p)),
+                        isLoading: false,
+                    }));
 
                     return { error: null };
                 } catch {
+                    set({ isLoading: false });
                     return { error: 'An unexpected error occurred' };
                 }
             },
 
             deleteProfile: async (id) => {
+                if (get().isLoading) return { error: 'Action in progress' };
+                set({ isLoading: true });
                 try {
                     const { error } = await supabase
                         .from('kid_profiles')
@@ -155,21 +161,24 @@ export const useProfileStore = create<ProfileStore>()(
 
                     if (error) {
                         console.error('[profile] deleteProfile error:', error.message);
+                        set({ isLoading: false });
                         return { error: 'Failed to delete profile. Please try again.' };
                     }
 
-                    const { profiles, activeProfileId } = get();
-                    const remaining = profiles.filter(p => p.id !== id);
-
-                    set({
-                        profiles: remaining,
-                        activeProfileId: activeProfileId === id
-                            ? remaining[0]?.id ?? null
-                            : activeProfileId,
+                    set((state) => {
+                        const remaining = state.profiles.filter(p => p.id !== id);
+                        return {
+                            profiles: remaining,
+                            activeProfileId: state.activeProfileId === id
+                                ? remaining[0]?.id ?? null
+                                : state.activeProfileId,
+                            isLoading: false,
+                        };
                     });
 
                     return { error: null };
                 } catch {
+                    set({ isLoading: false });
                     return { error: 'An unexpected error occurred' };
                 }
             },

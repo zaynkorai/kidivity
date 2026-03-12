@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from './profileStore';
+import { useActivityStore } from './activityStore';
+import { useOnboardingSessionStore } from './onboardingSession.store';
 
 interface AuthState {
     user: User | null;
@@ -189,8 +191,10 @@ export const useAuthStore = create<AuthStore>()(
                 } catch (err: unknown) {
                     console.warn('[auth] signOut failed:', err instanceof Error ? err.message : err);
                 } finally {
-                    // Clear profiles to prevent routing leaks for subsequent sign-ins
+                    // Clear all user-specific stores to prevent session leakage
                     useProfileStore.getState().clearProfiles();
+                    useOnboardingSessionStore.getState().reset();
+                    useActivityStore.getState().reset();
 
                     set({
                         user: null,

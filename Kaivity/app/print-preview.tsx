@@ -167,7 +167,8 @@ export default function PrintPreviewScreen() {
     const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['3xl']);
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { recentActivities, savedActivities } = useActivityStore();
+    const recentActivities = useActivityStore((s) => s.recentActivities);
+    const savedActivities = useActivityStore((s) => s.savedActivities);
     const { width } = useWindowDimensions();
 
     const isSmallScreen = width < 380;

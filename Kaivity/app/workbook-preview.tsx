@@ -148,7 +148,8 @@ export default function WorkbookPreviewScreen() {
 
     const fetchRecent = useActivityStore((state) => state.fetchRecent);
     const fetchSaved = useActivityStore((state) => state.fetchSaved);
-    const { recentActivities, savedActivities } = useActivityStore();
+    const recentActivities = useActivityStore((s) => s.recentActivities);
+    const savedActivities = useActivityStore((s) => s.savedActivities);
 
     useEffect(() => {
         fetchRecent();

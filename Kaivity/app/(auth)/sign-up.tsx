@@ -31,7 +31,8 @@ const ScreenColors = {
 export default function SignUpScreen() {
     const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
-    const { signUp, isLoading } = useAuthStore();
+    const signUp = useAuthStore((s) => s.signUp);
+    const isLoading = useAuthStore((s) => s.isLoading);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');

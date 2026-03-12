@@ -45,8 +45,10 @@ type GateAction = 'delete' | 'add' | 'edit' | 'delete_account' | null;
 
 export default function SettingsScreen() {
     const router = useRouter();
-    const { user, signOut } = useAuthStore();
-    const { profiles, deleteProfile } = useProfileStore();
+    const user = useAuthStore((s) => s.user);
+    const signOut = useAuthStore((s) => s.signOut);
+    const profiles = useProfileStore((s) => s.profiles);
+    const deleteProfile = useProfileStore((s) => s.deleteProfile);
     const { isTablet, isCompact } = useResponsive();
     const isMobile = !isTablet;
     const tabBarHeight = useBottomTabBarHeight();

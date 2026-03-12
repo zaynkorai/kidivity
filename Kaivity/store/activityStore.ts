@@ -31,6 +31,7 @@ interface ActivityActions {
     toggleSaved: (id: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
     clearRateLimit: () => void;
+    reset: () => void;
 }
 
 type ActivityStore = ActivityState & ActivityActions;
@@ -104,9 +105,9 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
                     }
 
                     if (data) {
-                        set({
+                        set((state) => ({
                             kidStats: {
-                                ...get().kidStats,
+                                ...state.kidStats,
                                 [kidProfileId]: {
                                     total: data.total ?? 0,
                                     streak: data.streak ?? 0,
@@ -114,7 +115,7 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
                                     lastCreatedAt: data.lastCreatedAt ?? null,
                                 },
                             },
-                        });
+                        }));
                     }
                 } catch (err) {
                     console.error('[fetchKidStats] Exception:', err);
@@ -172,11 +173,10 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
                     }
 
                     const activity = data as Activity;
-                    const { recentActivities } = get();
-                    set({
-                        recentActivities: [activity, ...recentActivities].slice(0, 50),
+                    set((state) => ({
+                        recentActivities: [activity, ...state.recentActivities].slice(0, 50),
                         isGenerating: false,
-                    });
+                    }));
 
                     return { data: activity, error: null };
                 } catch (error) {
@@ -187,20 +187,21 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
             },
 
             toggleSaved: async (id) => {
-                const { recentActivities, savedActivities } = get();
-                const activity = [...recentActivities, ...savedActivities].find(a => a.id === id);
+                const snapshot = get();
+                const activity = [...snapshot.recentActivities, ...snapshot.savedActivities].find(a => a.id === id);
                 if (!activity) return;
 
                 const newSavedState = !activity.is_saved;
 
-                set({
-                    recentActivities: recentActivities.map(a =>
+                // Optimistic update
+                set((state) => ({
+                    recentActivities: state.recentActivities.map(a =>
                         a.id === id ? { ...a, is_saved: newSavedState } : a
                     ),
                     savedActivities: newSavedState
-                        ? [...savedActivities, { ...activity, is_saved: true }]
-                        : savedActivities.filter(a => a.id !== id),
-                });
+                        ? [...state.savedActivities, { ...activity, is_saved: true }]
+                        : state.savedActivities.filter(a => a.id !== id),
+                }));
 
                 const { error } = await supabase
                     .from('activities')
@@ -209,24 +210,45 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
 
                 if (error) {
                     console.error('[toggleSaved] Failed to update db:', error);
-                    set({ recentActivities, savedActivities });
+                    // Rollback using functional update to avoid overwriting concurrent changes
+                    set((state) => ({
+                        recentActivities: state.recentActivities.map(a =>
+                            a.id === id ? { ...a, is_saved: !newSavedState } : a
+                        ),
+                        savedActivities: !newSavedState
+                            ? [...state.savedActivities, { ...activity, is_saved: false }]
+                            : state.savedActivities.filter(a => a.id !== id),
+                    }));
                 }
             },
 
             deleteActivity: async (id) => {
-                const { recentActivities, savedActivities } = get();
-                set({
-                    recentActivities: recentActivities.filter(a => a.id !== id),
-                    savedActivities: savedActivities.filter(a => a.id !== id),
-                });
+                const snapshot = get();
+                set((state) => ({
+                    recentActivities: state.recentActivities.filter(a => a.id !== id),
+                    savedActivities: state.savedActivities.filter(a => a.id !== id),
+                }));
                 
                 const { error } = await supabase.from('activities').delete().eq('id', id);
                 if (error) {
                     console.error('[deleteActivity] Failed to delete from db:', error);
-                    set({ recentActivities, savedActivities });
+                    set({
+                        recentActivities: snapshot.recentActivities,
+                        savedActivities: snapshot.savedActivities,
+                    });
                 }
             },
 
             clearRateLimit: () => set({ rateLimitState: DEFAULT_RATE_LIMIT }),
+
+            reset: () => set({
+                recentActivities: [],
+                savedActivities: [],
+                kidStats: {},
+                isGenerating: false,
+                isFetchingRecent: false,
+                isFetchingSaved: false,
+                rateLimitState: DEFAULT_RATE_LIMIT,
+            }),
         })
 );

@@ -33,7 +33,8 @@ const ScreenColors = {
 export default function SignInScreen() {
     const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
-    const { signIn, isLoading } = useAuthStore();
+    const signIn = useAuthStore((s) => s.signIn);
+    const isLoading = useAuthStore((s) => s.isLoading);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
