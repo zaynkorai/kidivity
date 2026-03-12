@@ -6,6 +6,7 @@ import {
     ActivityIndicator,
     type ViewStyle,
     type TextStyle,
+    type StyleProp,
 } from 'react-native';
 import { Colors, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -18,8 +19,8 @@ interface ButtonProps {
     disabled?: boolean;
     loading?: boolean;
     icon?: React.ReactNode;
-    style?: ViewStyle;
-    textStyle?: TextStyle;
+    style?: StyleProp<ViewStyle>;
+    textStyle?: StyleProp<TextStyle>;
 }
 
 export function Button({

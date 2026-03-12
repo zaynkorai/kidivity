@@ -1,14 +1,38 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
-import { Triangle, Square, Circle, Cloud, Star } from 'lucide-react-native';
-import { Colors } from '@/constants/theme';
+import { View, StyleSheet, useWindowDimensions, Text, Platform } from 'react-native';
+import { Triangle, Square, Circle, Cloud, Star, Globe, Atom, Rocket, Ruler, PenTool } from 'lucide-react-native';
+import { Colors, Fonts } from '@/constants/theme';
 
-// Opacity for the faint watermark geometric shapes
-const OPACITY = 0.20; // Increased significantly to add dynamic texture
+interface ScreenBackgroundProps {
+    variant?: 'default' | 'vibrant';
+}
 
-export function ScreenBackground() {
+export function ScreenBackground({ variant = 'default' }: ScreenBackgroundProps) {
     const { width, height } = useWindowDimensions();
 
+    if (variant === 'vibrant') {
+        const OPACITY = 0.8;
+        return (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.pastelPeach }]} pointerEvents="none">
+                <Globe size={64} color={Colors.blue} opacity={OPACITY} style={[styles.icon, { top: '10%', left: '42%' }]} />
+                <Star size={24} color={Colors.yellow} fill={Colors.yellow} opacity={OPACITY} style={[styles.icon, { top: '45%', right: '15%' }]} />
+                <Star size={24} color={Colors.rad} fill={Colors.rad} opacity={OPACITY} style={[styles.icon, { top: '12%', right: '18%' }]} />
+
+                <Atom size={50} color={Colors.green} opacity={OPACITY} style={[styles.icon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
+                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
+
+                <Ruler size={60} color={Colors.primaryPurple} opacity={OPACITY} style={[styles.icon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
+                <PenTool size={26} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
+
+                <Text style={[styles.icon, styles.squiggleText, { top: '14%', left: '24%' }]}>~</Text>
+                <Text style={[styles.icon, styles.squiggleText, { top: '20%', right: '20%' }]}>~</Text>
+                <Text style={[styles.icon, styles.squiggleText, { top: '75%', right: '24%' }]}>~</Text>
+            </View>
+        );
+    }
+
+    // Default faint geometric watermark version
+    const OPACITY = 0.20;
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
             {/* Top Section */}
@@ -78,5 +102,12 @@ export function ScreenBackground() {
 const styles = StyleSheet.create({
     icon: {
         position: 'absolute',
+    },
+    squiggleText: {
+        fontSize: 32,
+        color: Colors.rad,
+        fontFamily: Fonts.bold,
+        fontWeight: 'bold',
+        transform: [{ rotate: '45deg' }]
     },
 });

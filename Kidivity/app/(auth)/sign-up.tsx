@@ -29,7 +29,7 @@ const ScreenColors = {
 };
 
 export default function SignUpScreen() {
-    const { height, isCompact } = useResponsive();
+    const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
     const { signUp, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -74,7 +74,7 @@ export default function SignUpScreen() {
             <SafeAreaView style={styles.safe}>
                 <View style={styles.successContainer}>
                     <View style={styles.successIcon}>
-                        <CheckCircle size={64} color={Colors.success} />
+                        <CheckCircle size={isShort ? 48 : 64} color={Colors.success} />
                     </View>
                     <Text style={styles.successTitle}>Account Created!</Text>
                     <Text style={styles.successSubtitle}>
@@ -98,16 +98,24 @@ export default function SignUpScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ScrollView
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={[
+                        styles.scrollContent,
+                        isShort && { paddingBottom: Spacing['3xl'] },
+                    ]}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                     bounces={false}
                 >
                     <View style={styles.themedContainer}>
-                        <ScreenBackground />
+                        <ScreenBackground variant="vibrant" />
 
                         {/* 1. Header Banner */}
-                        <View style={[styles.headerBlock, { height: height * 0.45 }]}>
+                        <View
+                            style={[
+                                styles.headerBlock,
+                                { height: isShort ? height * 0.20 : height * 0.40 },
+                            ]}
+                        >
                             <TouchableOpacity
                                 onPress={() => router.back()}
                                 style={styles.backButton}
@@ -115,21 +123,26 @@ export default function SignUpScreen() {
                                 <ArrowLeft size={24} color={ScreenColors.purpleText} />
                             </TouchableOpacity>
 
-                            {/* Grouped harmonious illustration */}
-                            <View style={styles.illustrationGroup}>
-                                <Star size={16} color="#FFADAD" fill="#FFADAD" style={[styles.floatingIcon, { top: -10, left: -40 }]} />
-                                <Star size={20} color="#FDCB6E" fill="#FDCB6E" style={[styles.floatingIcon, { bottom: 10, right: -40 }]} />
-                                <BookOpen size={75} color={ScreenColors.purpleText} style={{ transform: [{ rotate: '-10deg' }] }} />
-                            </View>
-
-                            <Text style={styles.headerTitle}>Unlock Your{'\n'}Child&apos;s Potential</Text>
+                            <Text style={[styles.headerTitle, isShort && { fontSize: FontSize['3xl'], lineHeight: 36 }]}>Unlock Your{'\n'}Child&apos;s Potential</Text>
                         </View>
 
                         {/* 2. Elevated Form Surface - Overlapping Header */}
-                        <View style={[styles.formSurface, isCompact && { paddingHorizontal: Spacing.lg }]}>
-                            <View style={[styles.formCard, isCompact && { padding: Spacing.xl }]}>
-                                <Text style={styles.title}>Create Account</Text>
-                                <Text style={styles.subtitle}>
+                        <View
+                            style={[
+                                styles.formSurface,
+                                isCompact && { paddingHorizontal: Spacing.lg },
+                                isShort && { marginTop: -120, paddingBottom: Spacing.sm },
+                            ]}
+                        >
+                            <View
+                                style={[
+                                    styles.formCard,
+                                    isCompact && { padding: Spacing.md },
+                                    isShort && { padding: Spacing.md },
+                                ]}
+                            >
+                                <Text style={[styles.title, isShort && { fontSize: FontSize.xl, marginBottom: 0 }]}>Create Account</Text>
+                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: 13 }]}>
                                     Sign up to save activities and sync across devices.
                                 </Text>
 
@@ -146,12 +159,12 @@ export default function SignUpScreen() {
 
                                     <Input
                                         label="Password"
-                                        placeholder="At least 6 characters"
+                                        placeholder="Choose a strong password"
                                         value={password}
                                         onChangeText={setPassword}
                                         secureTextEntry
                                         autoCapitalize="none"
-                                        containerStyle={{ marginTop: Spacing.xl }}
+                                        containerStyle={{ marginTop: Spacing.md }}
                                     />
 
                                     <Input
@@ -161,11 +174,11 @@ export default function SignUpScreen() {
                                         onChangeText={setConfirmPassword}
                                         secureTextEntry
                                         autoCapitalize="none"
-                                        containerStyle={{ marginTop: Spacing.lg }}
+                                        containerStyle={{ marginTop: Spacing.sm }}
                                     />
 
                                     {/* Upgraded Password Strength Indicators */}
-                                    <View style={styles.checks}>
+                                    <View style={[styles.checks, isShort && { marginTop: Spacing.md }]}>
                                         <View style={styles.checkRow}>
                                             <View
                                                 style={[
@@ -208,13 +221,16 @@ export default function SignUpScreen() {
                                         loading={isLoading}
                                         disabled={!passwordChecks.length || !passwordChecks.match}
                                         size="lg"
-                                        style={styles.submitButton}
+                                        style={[
+                                            styles.submitButton,
+                                            isShort && { marginTop: Spacing.md, paddingVertical: 12 }
+                                        ]}
                                         icon={<ArrowRight size={20} color={Colors.white} />}
                                     />
 
                                     <TouchableOpacity
                                         onPress={() => router.back()}
-                                        style={styles.switchLink}
+                                        style={[styles.switchLink, isShort && { marginTop: Spacing.md }]}
                                     >
                                         <Text style={styles.switchLinkText}>
                                             Already have an account?{' '}
@@ -234,7 +250,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: ScreenColors.background,
+        backgroundColor: 'transparent',
     },
     flex: {
         flex: 1,
@@ -243,18 +259,16 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     themedContainer: {
-        backgroundColor: ScreenColors.background,
+        backgroundColor: 'transparent',
     },
 
     // 1. Header Block (Purple)
     headerBlock: {
         width: '100%',
-        backgroundColor: ScreenColors.purpleHeader,
+        backgroundColor: 'transparent',
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'center',
-        borderBottomLeftRadius: Radius.xl * 2,
-        borderBottomRightRadius: Radius.xl * 2,
     },
     backButton: {
         position: 'absolute',
@@ -264,15 +278,16 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: Radius.full,
-        backgroundColor: Colors.white + '90',
+        backgroundColor: Colors.white,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadows.md,
     },
     illustrationGroup: {
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: Spacing.xl,
+        marginBottom: Spacing.md,
     },
     floatingIcon: {
         position: 'absolute',
@@ -280,7 +295,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
+        fontWeight: FontWeight.bold,
         color: ScreenColors.purpleText,
         textAlign: 'center',
         lineHeight: 44,
@@ -289,14 +304,14 @@ const styles = StyleSheet.create({
 
     // 2. Overlapping Elevated Form
     formSurface: {
-        paddingHorizontal: Spacing['2xl'],
-        marginTop: -60, // The overlap effect
-        paddingBottom: Spacing['5xl'],
+        paddingHorizontal: Spacing.lg,
+        marginTop: -100, // The overlap effect
+        paddingBottom: Spacing.xs,
     },
     formCard: {
         backgroundColor: ScreenColors.formBg,
-        borderRadius: Radius.xl * 1.5,
-        padding: Spacing['3xl'],
+        borderRadius: Radius.xl,
+        padding: Spacing.lg,
         ...Shadows.lg,
     },
     title: {
@@ -312,7 +327,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
-        marginBottom: Spacing['3xl'],
+        marginBottom: Spacing['xl'],
     },
     form: {
         width: '100%',
@@ -320,8 +335,8 @@ const styles = StyleSheet.create({
 
     // Password checks
     checks: {
-        marginTop: Spacing.xl,
-        gap: Spacing.sm,
+        marginTop: Spacing.md,
+        gap: Spacing.xs,
     },
     checkRow: {
         flexDirection: 'row',

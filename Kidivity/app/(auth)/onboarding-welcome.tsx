@@ -9,80 +9,34 @@ import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
 import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 
-const SLIDES = [
-    {
-        id: '1',
-        title: 'Personalized Learning',
-        subtitle: 'Printable activities tailored to your child&apos;s age and grade level.',
-        Icon: Wand2,
-        color: Colors.categoryMath,
-    },
-    {
-        id: '2',
-        title: 'Screen-Free Time You Feel Good About',
-        subtitle: 'Printable, educational activities you can trust.',
-        Icon: ShieldCheck,
-        color: Colors.categoryScience,
-    },
-    {
-        id: '3',
-        title: 'Track Their Growth',
-        subtitle: 'See progress across Math, Reading, and more with every activity.',
-        Icon: TrendingUp,
-        color: Colors.categoryReading,
-    },
-];
-
 export default function WelcomeScreen() {
     useOnboardingGuard(1);
     const router = useRouter();
-    const [currentIndex, setCurrentIndex] = useState(0);
     const setStep = useOnboardingSessionStore(s => s.setStep);
 
-    const handleNext = () => {
-        if (currentIndex < SLIDES.length - 1) {
-            setCurrentIndex(prev => prev + 1);
-        } else {
-            setStep(2);
-            router.push('/(onboarding)/questionnaire');
-        }
+    const handleStart = () => {
+        setStep(2);
+        router.push('/(onboarding)/questionnaire');
     };
-
-    const currentSlide = SLIDES[currentIndex];
-    const Icon = currentSlide.Icon;
 
     return (
         <SafeAreaView style={styles.safe}>
-            <ScreenBackground />
+            <ScreenBackground variant="vibrant" />
             <View style={styles.container}>
                 <View style={styles.content}>
-                    <View style={[styles.iconContainer, { backgroundColor: currentSlide.color + '20' }]}>
-                        <Icon size={80} color={currentSlide.color} />
-                    </View>
-                    <Text style={styles.title}>{currentSlide.title}</Text>
-                    <Text style={styles.subtitle}>{currentSlide.subtitle}</Text>
+                    <Text style={styles.title}>Smart Learning,{'\n'}Screen-Free</Text>
+                    <Text style={styles.subtitle}>
+                        Personalized, printable activities tailored to your child&apos;s age and grade level.
+                    </Text>
                 </View>
 
                 <View style={styles.footer}>
-                    <View style={styles.pagination}>
-                        {SLIDES.map((_, index) => (
-                            <View
-                                key={index}
-                                style={[
-                                    styles.dot,
-                                    currentIndex === index && styles.dotActive,
-                                    currentIndex === index && { backgroundColor: currentSlide.color }
-                                ]}
-                            />
-                        ))}
-                    </View>
-
                     <Button
-                        title={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
-                        onPress={handleNext}
+                        title="Get Started"
+                        onPress={handleStart}
                         size="lg"
                         style={styles.button}
-                        icon={currentIndex === SLIDES.length - 1 ? undefined : <ArrowRight size={20} color={Colors.white} />}
+                        icon={<ArrowRight size={20} color={Colors.white} />}
                     />
                 </View>
             </View>
@@ -93,7 +47,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: 'transparent',
     },
     container: {
         flex: 1,
@@ -114,12 +68,13 @@ const styles = StyleSheet.create({
         marginBottom: Spacing['3xl'],
     },
     title: {
-        fontSize: FontSize['3xl'],
+        fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.md,
+        letterSpacing: -1,
     },
     subtitle: {
         fontSize: FontSize.lg,
@@ -132,21 +87,6 @@ const styles = StyleSheet.create({
     footer: {
         width: '100%',
         paddingBottom: Spacing.xl,
-    },
-    pagination: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-        marginBottom: Spacing['2xl'],
-    },
-    dot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: Colors.border,
-    },
-    dotActive: {
-        width: 24,
     },
     button: {
         width: '100%',

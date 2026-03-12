@@ -31,7 +31,7 @@ const ScreenColors = {
 };
 
 export default function SignInScreen() {
-    const { height, isCompact } = useResponsive();
+    const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
     const { signIn, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
@@ -50,23 +50,27 @@ export default function SignInScreen() {
         }
     };
 
+    const headerHeight = isShort ? height * 0.18 : height * 0.40;
+    const formPadding = isShort ? Spacing.md : Spacing['3xl'];
+    const overlapOffset = isShort ? -120 : -60;
+    const fieldSpacing = isShort ? Spacing.sm : Spacing.xl;
+
     return (
         <SafeAreaView style={styles.safe}>
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                >
-                    <View style={styles.themedContainer}>
-                        <ScreenBackground />
+                <View style={styles.themedContainer}>
+                        <ScreenBackground variant="vibrant" />
 
                         {/* 1. Header Banner - 45% height block */}
-                        <View style={[styles.headerBlock, { height: height * 0.45 }]}>
+                        <View
+                            style={[
+                                styles.headerBlock,
+                                { height: headerHeight },
+                            ]}
+                        >
                             <TouchableOpacity
                                 onPress={() => router.back()}
                                 style={styles.backButton}
@@ -74,21 +78,25 @@ export default function SignInScreen() {
                                 <ArrowLeft size={24} color={ScreenColors.blueText} />
                             </TouchableOpacity>
 
-                            {/* Grouped harmonious illustration */}
-                            <View style={styles.illustrationGroup}>
-                                <Star size={24} color="#FDCB6E" fill="#FDCB6E" style={[styles.floatingIcon, { top: 10, left: -40 }]} />
-                                <Star size={16} color="#FFADAD" fill="#FFADAD" style={[styles.floatingIcon, { bottom: 20, right: -50 }]} />
-                                <Rocket size={80} color={ScreenColors.blueText} style={{ transform: [{ rotate: '45deg' }] }} />
-                            </View>
-
-                            <Text style={styles.headerTitle}>Welcome{'\n'}Back!</Text>
+                            <Text style={[styles.headerTitle, isShort && { fontSize: FontSize['3xl'], lineHeight: 36 }]}>Welcome{'\n'}Back!</Text>
                         </View>
 
                         {/* 2. Elevated Form Surface - Overlapping the Header */}
-                        <View style={[styles.formSurface, isCompact && { paddingHorizontal: Spacing.lg }]}>
-                            <View style={[styles.formCard, isCompact && { padding: Spacing.xl }]}>
-                                <Text style={styles.title}>Sign In</Text>
-                                <Text style={styles.subtitle}>
+                        <View
+                            style={[
+                                styles.formSurface,
+                                isCompact && { paddingHorizontal: Spacing.lg },
+                                { marginTop: overlapOffset },
+                            ]}
+                        >
+                            <View
+                                style={[
+                                    styles.formCard,
+                                    { padding: formPadding },
+                                ]}
+                            >
+                                <Text style={[styles.title, isShort && { fontSize: FontSize.xl, marginBottom: 0 }]}>Sign In</Text>
+                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: 13 }]}>
                                     Pick up right where you left off.
                                 </Text>
 
@@ -110,7 +118,7 @@ export default function SignInScreen() {
                                         onChangeText={setPassword}
                                         secureTextEntry
                                         autoCapitalize="none"
-                                        containerStyle={{ marginTop: Spacing.xl }}
+                                        containerStyle={{ marginTop: fieldSpacing }}
                                     />
 
                                     {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -120,13 +128,13 @@ export default function SignInScreen() {
                                         onPress={handleSignIn}
                                         loading={isLoading}
                                         size="lg"
-                                        style={styles.submitButton}
+                                        style={[styles.submitButton, isShort && { marginTop: Spacing.md, paddingVertical: 12 }]}
                                         icon={<ArrowRight size={20} color={Colors.white} />}
                                     />
 
                                     <TouchableOpacity
                                         onPress={() => router.replace('/(auth)/sign-up')}
-                                        style={styles.switchLink}
+                                        style={[styles.switchLink, isShort && { marginTop: Spacing.md }]}
                                     >
                                         <Text style={styles.switchLinkText}>
                                             Don&apos;t have an account?{' '}
@@ -136,9 +144,7 @@ export default function SignInScreen() {
                                 </View>
                             </View>
                         </View>
-
-                    </View>
-                </ScrollView>
+                </View>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -147,27 +153,23 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: ScreenColors.background,
+        backgroundColor: 'transparent',
     },
     flex: {
         flex: 1,
     },
-    scrollContent: {
-        flexGrow: 1,
-    },
     themedContainer: {
-        backgroundColor: ScreenColors.background,
+        flex: 1,
+        backgroundColor: 'transparent',
     },
 
     // 1. Header Block (Blue)
     headerBlock: {
         width: '100%',
-        backgroundColor: ScreenColors.blueHeader,
+        backgroundColor: 'transparent',
         position: 'relative',
         alignItems: 'center',
         justifyContent: 'center',
-        borderBottomLeftRadius: Radius.xl * 2,
-        borderBottomRightRadius: Radius.xl * 2,
     },
     backButton: {
         position: 'absolute',
@@ -177,9 +179,10 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: Radius.full,
-        backgroundColor: Colors.white + '90',
+        backgroundColor: Colors.white,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadows.md,
     },
     illustrationGroup: {
         position: 'relative',
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
+        fontWeight: FontWeight.bold,
         color: ScreenColors.blueText,
         textAlign: 'center',
         lineHeight: 44,
@@ -202,14 +205,14 @@ const styles = StyleSheet.create({
 
     // 2. Overlapping Elevated Form
     formSurface: {
-        paddingHorizontal: Spacing['2xl'],
-        marginTop: -60, // The overlap effect
-        paddingBottom: Spacing['5xl'],
+        paddingHorizontal: Spacing.lg,
+        marginTop: -100, // The overlap effect
+        paddingBottom: Spacing.xs,
     },
     formCard: {
         backgroundColor: ScreenColors.formBg,
-        borderRadius: Radius.xl * 1.5,
-        padding: Spacing['3xl'],
+        borderRadius: Radius.xl,
+        padding: Spacing.lg,
         ...Shadows.lg,
     },
     title: {
@@ -261,6 +264,6 @@ const styles = StyleSheet.create({
     switchLinkBold: {
         color: ScreenColors.textMain,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
+        fontWeight: FontWeight.bold,
     },
 });

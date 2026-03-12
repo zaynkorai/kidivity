@@ -31,7 +31,7 @@ export function Input({ label, error, containerStyle, style, ...props }: InputPr
                     error && styles.inputError,
                     style,
                 ]}
-                placeholderTextColor={Colors.textPrimary}
+                placeholderTextColor={Colors.textTertiary}
                 onFocus={(e) => {
                     setIsFocused(true);
                     props.onFocus?.(e);
@@ -64,10 +64,14 @@ const styles = StyleSheet.create({
         borderColor: 'transparent',
         borderRadius: 9999,
         paddingHorizontal: Spacing['xl'],
-        paddingVertical: 18,
+        paddingVertical: 14,
         fontSize: FontSize.md,
         fontFamily: Fonts.sans,
         color: Colors.textPrimary,
+    },
+    size_lg: {
+        paddingVertical: 14,
+        paddingHorizontal: 32,
     },
     inputShort: {
         paddingVertical: 12,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight, Sparkles, Check } from 'lucide-react-native';
@@ -53,6 +54,7 @@ const QUESTIONS: Question[] = [
 export default function QuestionnaireScreen() {
     useOnboardingGuard(2);
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [showTransition, setShowTransition] = useState(false);
@@ -95,11 +97,8 @@ export default function QuestionnaireScreen() {
 
         return (
             <SafeAreaView style={styles.safe}>
-                <ScreenBackground />
-                <View style={[styles.container, styles.centerAll]}>
-                    <View style={styles.transitionIcon}>
-                        <Sparkles size={48} color={Colors.primary} />
-                    </View>
+                <ScreenBackground variant="vibrant" />
+                <View style={[styles.container, styles.centerAll, { paddingTop: Spacing['3xl'] + insets.top }]}>
                     <Text style={styles.transitionTitle}>We've got you covered.</Text>
                     <Text style={styles.transitionSubtitle}>
                         We specialize in turning mindless screen time into productive, <Text style={styles.transitionGoalLabel}>{goalLabel}</Text>.
@@ -114,8 +113,13 @@ export default function QuestionnaireScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
-            <ScreenBackground />
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScreenBackground variant="vibrant" />
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContainer,
+                    { paddingTop: Spacing['2xl'] + insets.top },
+                ]}
+            >
 
                 {/* Progress Indicators */}
                 <View style={styles.progressContainer}>
@@ -176,7 +180,6 @@ export default function QuestionnaireScreen() {
                         onPress={handleNext}
                         disabled={!answers[question.id]}
                         style={styles.nextBtn}
-                        icon={currentStep === QUESTIONS.length - 1 ? <Sparkles size={20} color={Colors.white} /> : <ArrowRight size={20} color={Colors.white} />}
                     />
                 </View>
             </ScrollView>
