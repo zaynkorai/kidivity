@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 // Screen colors aligned to the core theme
 const ScreenColors = {
@@ -23,16 +23,6 @@ const ScreenColors = {
 export default function WelcomeScreen() {
     const { height, isCompact } = useResponsive();
     const router = useRouter();
-
-    const handleGoogleAuth = () => {
-        // TODO(auth): Implement Google OAuth before launch.
-        // Implement real OAuth later
-    };
-
-    const handleAppleAuth = () => {
-        // TODO(auth): Implement Apple OAuth before launch.
-        // Implement real OAuth later
-    };
 
     const handleEmailAuth = () => {
         router.push('/(auth)/sign-in');
@@ -66,20 +56,6 @@ export default function WelcomeScreen() {
                     <Text style={styles.authSubtitle}>
                         You&apos;re one step away from{'\n'}printable, screen-free activities tailored to your child
                     </Text>
-
-                    <TouchableOpacity style={styles.oauthButton} onPress={handleEmailAuth}>
-                        <View style={styles.oauthIconContainer}>
-                            <Text style={styles.oauthTypeletter}>G</Text>
-                        </View>
-                        <Text style={styles.oauthButtonLabel}>Continue with Google</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.oauthButton} onPress={handleAppleAuth}>
-                        <View style={styles.oauthIconContainer}>
-                            <Text style={[styles.oauthTypeletter, { color: '#000' }]}></Text>
-                        </View>
-                        <Text style={styles.oauthButtonLabel}>Continue with Apple</Text>
-                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.emailButton} onPress={handleEmailAuth}>
                         <Text style={styles.emailButtonLabel}>Continue with Email</Text>
@@ -150,37 +126,6 @@ const styles = StyleSheet.create({
         marginBottom: Spacing['3xl'],
         lineHeight: 22,
     },
-    oauthButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.white,
-        paddingVertical: 18,
-        paddingHorizontal: Spacing['2xl'],
-        borderRadius: Radius.full,
-        width: '100%',
-        marginBottom: Spacing.lg,
-        ...Shadows.md,
-        shadowOpacity: 0.04, // Very soft shadow
-    },
-    oauthIconContainer: {
-        marginRight: Spacing.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    oauthTypeletter: {
-        fontSize: 20,
-        fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
-        color: '#4285F4',
-    },
-    oauthButtonLabel: {
-        fontSize: FontSize.md,
-        fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
-        color: ScreenColors.textMain,
-    },
-
     bottomDecoration: {
         position: 'absolute',
         bottom: -40,

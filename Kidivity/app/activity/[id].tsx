@@ -37,7 +37,7 @@ import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 import { useResponsive } from '@/hooks/useResponsive';
 import { MarkdownContent } from '@/components/ui/MarkdownContent';
 
-const VISUAL_CATEGORIES = new Set(['tracing', 'drawings', 'logic', 'educational', 'math', 'coloring', 'story']);
+const VISUAL_CATEGORIES = new Set(['puzzles', 'tracing', 'science', 'art', 'math', 'reading']);
 
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();

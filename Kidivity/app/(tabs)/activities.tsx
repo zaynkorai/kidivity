@@ -7,16 +7,18 @@ import {
     StyleSheet,
     RefreshControl,
     Platform,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Filter, X, Search, History, Star } from 'lucide-react-native';
+import { Filter, X, Search, History, Star, BookOpen, CheckCircle2, Circle } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 
+import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { WeeklyCalendar } from '@/components/ui/WeeklyCalendar';
@@ -25,6 +27,8 @@ import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categori
 import type { Activity } from '@/types/activity';
 
 type SortOption = 'newest' | 'oldest';
+const MAX_WORKBOOK_ITEMS = 5;
+const MIN_WORKBOOK_ITEMS = 3;
 
 export default function ActivitiesScreen() {
     const router = useRouter();
@@ -44,6 +48,8 @@ export default function ActivitiesScreen() {
     const [filterDate, setFilterDate] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const [refreshing, setRefreshing] = useState(false);
+    const [workbookMode, setWorkbookMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         fetchRecent();
@@ -85,6 +91,21 @@ export default function ActivitiesScreen() {
         setFilterDate(null);
     };
 
+    const selectedCount = selectedIds.size;
+
+    const exitWorkbookMode = () => {
+        setWorkbookMode(false);
+        setSelectedIds(new Set());
+    };
+
+    const toggleWorkbookMode = () => {
+        if (workbookMode) {
+            exitWorkbookMode();
+        } else {
+            setWorkbookMode(true);
+        }
+    };
+
     const handleToggleSaved = async (id: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         await toggleSaved(id);
@@ -93,6 +114,38 @@ export default function ActivitiesScreen() {
     const handleDelete = async (id: string) => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
         await deleteActivity(id);
+    };
+
+    const handleToggleSelect = async (item: Activity) => {
+        if (!item.is_saved) {
+            await toggleSaved(item.id);
+        }
+
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(item.id)) {
+                next.delete(item.id);
+                return next;
+            }
+            if (next.size >= MAX_WORKBOOK_ITEMS) {
+                Alert.alert('Limit reached', `Select up to ${MAX_WORKBOOK_ITEMS} activities.`);
+                return prev;
+            }
+            next.add(item.id);
+            return next;
+        });
+    };
+
+    const handleCreateWorkbook = () => {
+        if (selectedCount < MIN_WORKBOOK_ITEMS) {
+            Alert.alert('Select more activities', `Choose at least ${MIN_WORKBOOK_ITEMS} activities.`);
+            return;
+        }
+        const ids = Array.from(selectedIds);
+        router.push({
+            pathname: '/workbook-preview',
+            params: { ids: ids.join(',') },
+        } as any);
     };
 
     const ACCENT_COLORS: Record<string, string> = {
@@ -142,7 +195,13 @@ export default function ActivitiesScreen() {
         return (
             <TouchableOpacity
                 activeOpacity={0.88}
-                onPress={() => router.push(`/activity/${item.id}` as any)}
+                onPress={() => {
+                    if (workbookMode) {
+                        handleToggleSelect(item);
+                    } else {
+                        router.push(`/activity/${item.id}` as any);
+                    }
+                }}
                 style={styles.gridItemWrapper}
             >
                 <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
@@ -159,7 +218,11 @@ export default function ActivitiesScreen() {
                         </View>
                         <TouchableOpacity
                             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                            onPress={(e) => { e.stopPropagation(); handleToggleSaved(item.id); }}
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                if (workbookMode) return;
+                                handleToggleSaved(item.id);
+                            }}
                         >
                             <Star
                                 size={16}
@@ -212,6 +275,16 @@ export default function ActivitiesScreen() {
                             </Text>
                         </View>
                     )}
+
+                    {workbookMode && (
+                        <View style={styles.selectBadge}>
+                            {selectedIds.has(item.id) ? (
+                                <CheckCircle2 size={18} color={Colors.primary} />
+                            ) : (
+                                <Circle size={18} color={Colors.textTertiary} />
+                            )}
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -226,6 +299,15 @@ export default function ActivitiesScreen() {
                     <History size={24} color={Colors.primary} />
                     <Text style={styles.title}>Activities</Text>
                 </View>
+                <TouchableOpacity
+                    onPress={toggleWorkbookMode}
+                    style={[styles.workbookBtn, workbookMode && styles.workbookBtnActive]}
+                >
+                    <BookOpen size={16} color={workbookMode ? Colors.white : Colors.textPrimary} />
+                    <Text style={[styles.workbookBtnText, workbookMode && styles.workbookBtnTextActive]}>
+                        Workbook
+                    </Text>
+                </TouchableOpacity>
             </View>
 
             {/* Weekly Calendar */}
@@ -243,6 +325,29 @@ export default function ActivitiesScreen() {
                     <Filter size={18} color={hasActiveFilters ? Colors.white : Colors.textPrimary} />
                 </TouchableOpacity>
             </View>
+
+            {workbookMode && (
+                <View style={styles.workbookBar}>
+                    <Text style={styles.workbookCount}>
+                        {selectedCount} selected
+                    </Text>
+                    <View style={styles.workbookActions}>
+                        <Button
+                            title="Cancel"
+                            onPress={exitWorkbookMode}
+                            variant="ghost"
+                            size="sm"
+                        />
+                        <Button
+                            title="Create Workbook"
+                            onPress={handleCreateWorkbook}
+                            variant="primary"
+                            size="sm"
+                            disabled={selectedCount < MIN_WORKBOOK_ITEMS}
+                        />
+                    </View>
+                </View>
+            )}
 
             {/* Filter bar */}
             {showFilters && (
@@ -376,6 +481,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: Spacing.md,
     },
+    workbookBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.xs,
+        borderRadius: Radius.full,
+    },
+    workbookBtnActive: {
+        backgroundColor: Colors.primary,
+        borderColor: Colors.primary,
+    },
+    workbookBtnText: {
+        fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
+        color: Colors.textPrimary,
+    },
+    workbookBtnTextActive: {
+        color: Colors.white,
+    },
     title: {
         fontSize: FontSize['3xl'],
         fontFamily: Fonts.bold,
@@ -400,6 +529,29 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.xl,
         marginTop: Spacing.sm,
         marginBottom: Spacing.sm,
+    },
+    workbookBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.sm,
+        marginBottom: Spacing.sm,
+        backgroundColor: Colors.white,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: Colors.border,
+    },
+    workbookCount: {
+        fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
+        fontWeight: FontWeight.medium,
+        color: Colors.textPrimary,
+    },
+    workbookActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
     },
     filterBar: {
         paddingHorizontal: Spacing.xl,
@@ -572,6 +724,16 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textSecondary,
+    },
+    selectBadge: {
+        position: 'absolute',
+        top: Spacing.sm,
+        right: Spacing.sm,
+        backgroundColor: Colors.white,
+        borderRadius: Radius.full,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: Colors.border,
     },
 
     emptyContainer: {

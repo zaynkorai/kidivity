@@ -56,6 +56,7 @@ export default function SettingsScreen() {
     const [gateVisible, setGateVisible] = useState(false);
     const [pendingAction, setPendingAction] = useState<GateAction>(null);
     const [pendingProfileId, setPendingProfileId] = useState<string | null>(null);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
     const openGate = (action: GateAction, id?: string) => {
         setPendingAction(action);
@@ -102,8 +103,7 @@ export default function SettingsScreen() {
                     {
                         text: 'Delete Account', style: 'destructive', onPress: () => {
                             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                            // TODO(account): Implement user deletion via Supabase auth and profile cascade.
-                            Alert.alert('Notice', 'Account deletion will be implemented in a future update.');
+                            handleDeleteAccount();
                         }
                     },
                 ]);
@@ -120,6 +120,33 @@ export default function SettingsScreen() {
             });
         } catch (error) {
             console.error('Share failed', error);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (isDeletingAccount) return;
+        if (!user) {
+            Alert.alert('Error', 'No active account found.');
+            return;
+        }
+
+        setIsDeletingAccount(true);
+        try {
+            const { error } = await supabase.functions.invoke('delete-account', {
+                body: { userId: user.id },
+            });
+
+            if (error) {
+                Alert.alert('Delete Failed', 'Unable to delete your account right now. Please contact support.');
+                return;
+            }
+
+            await signOut();
+            Alert.alert('Account Deleted', 'Your account has been deleted.');
+        } catch {
+            Alert.alert('Delete Failed', 'Unable to delete your account right now. Please try again.');
+        } finally {
+            setIsDeletingAccount(false);
         }
     };
 
