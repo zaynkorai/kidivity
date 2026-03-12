@@ -12,6 +12,7 @@ import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -56,6 +57,8 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  
+  const restoreSession = useOnboardingSessionStore(state => state.restoreSession);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
@@ -329,6 +332,20 @@ export default function HomeScreen() {
             );
           })}
         </View>
+
+        <View style={[styles.statsHeader, { marginTop: Spacing.xl }]}>
+          <Text style={styles.sectionTitle}>Returning Users</Text>
+        </View>
+        <Button
+          title="New Evaluation"
+          variant="secondary"
+          onPress={async () => {
+             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+             await restoreSession();
+             router.push('/(onboarding)/upload');
+          }}
+          style={{ marginBottom: Spacing.xl }}
+        />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

@@ -6,6 +6,8 @@ import { ArrowRight, Sparkles, Check } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius, Shadows } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
+import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 // Minimal local state for the questionnaire. 
 // Can be moved to Zustand or just used to drive the "Soft Sell" transition.
@@ -49,10 +51,12 @@ const QUESTIONS: Question[] = [
 ];
 
 export default function QuestionnaireScreen() {
+    useOnboardingGuard(2);
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [showTransition, setShowTransition] = useState(false);
+    const setStep = useOnboardingSessionStore(s => s.setStep);
 
     const question = QUESTIONS[currentStep];
 
@@ -68,6 +72,7 @@ export default function QuestionnaireScreen() {
         } else {
             // Show soft sell transition
             setShowTransition(true);
+            setStep(3);
             setTimeout(() => {
                 router.push('/(auth)/sign-up');
             }, 3500);

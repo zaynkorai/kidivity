@@ -5,6 +5,8 @@ import { Wand2, ShieldCheck, TrendingUp, ArrowRight } from 'lucide-react-native'
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
+import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 
 const SLIDES = [
@@ -32,13 +34,16 @@ const SLIDES = [
 ];
 
 export default function WelcomeScreen() {
+    useOnboardingGuard(1);
     const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
+    const setStep = useOnboardingSessionStore(s => s.setStep);
 
     const handleNext = () => {
         if (currentIndex < SLIDES.length - 1) {
             setCurrentIndex(prev => prev + 1);
         } else {
+            setStep(2);
             router.push('/(auth)/questionnaire');
         }
     };

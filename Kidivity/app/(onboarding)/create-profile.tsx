@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { Card } from '@/components/ui/Card';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { useOnboardingGuard } from '@/hooks/useOnboardingGuard';
+import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 import { GRADE_LEVELS } from '@/constants/grades';
 import type { GradeLevel } from '@/constants/grades';
 
@@ -29,8 +31,10 @@ const AVATAR_COLORS = [
 const STEP_COUNT = 2;
 
 export default function OnboardingCreateProfileScreen() {
+    useOnboardingGuard(3);
     const router = useRouter();
     const addProfile = useProfileStore((s) => s.addProfile);
+    const setGlobalStep = useOnboardingSessionStore(s => s.setStep);
 
     const [step, setStep] = useState(0);
     const [name, setName] = useState('');
@@ -91,11 +95,9 @@ export default function OnboardingCreateProfileScreen() {
         if (submitError) {
             setError(submitError);
         } else if (newProfile) {
-            // Transition directly to first activity generation screen
-            router.push({
-                pathname: '/(onboarding)/first-activity',
-                params: { name: newProfile.name, profileId: newProfile.id }
-            });
+            setGlobalStep(4);
+            // Transition to the upload screen (Step 4)
+            router.push('/(onboarding)/upload');
         }
     };
 
