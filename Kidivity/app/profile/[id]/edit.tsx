@@ -46,7 +46,7 @@ export default function EditProfileScreen() {
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const [gateVisible, setGateVisible] = useState(false);
 
@@ -63,33 +63,37 @@ export default function EditProfileScreen() {
     const handleSubmit = async () => {
         if (!id || !profile) return;
 
+        setErrors({});
+        const newErrors: Record<string, string> = {};
         if (!name.trim()) {
-            setError('Please enter a name');
-            return;
+            newErrors.name = 'Please enter a name';
         }
         const ageNum = parseInt(age, 10);
         if (isNaN(ageNum) || ageNum < 1 || ageNum > 12) {
-            setError('Please enter a valid age (1-12)');
-            return;
+            newErrors.age = 'Please enter a valid age (1-12)';
         }
         if (!gradeLevel) {
-            setError('Please select a grade level');
+            newErrors.gradeLevel = 'Please select a grade level';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
-        setError(null);
+
         setIsSubmitting(true);
 
         const { error: submitError } = await updateProfile(id, {
             name: name.trim(),
             age: ageNum,
-            grade_level: gradeLevel,
+            grade_level: gradeLevel as GradeLevel,
             avatar_color: avatarColor,
         });
 
         setIsSubmitting(false);
 
         if (submitError) {
-            setError(submitError);
+            setErrors({ form: submitError });
         } else {
             router.back();
         }
@@ -165,6 +169,10 @@ export default function EditProfileScreen() {
                                 {name ? name.charAt(0).toUpperCase() : '?'}
                             </Text>
                         </View>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.fieldLabel}>Pick a color</Text>
+                            <Text style={styles.requiredStar}>*</Text>
+                        </View>
                         <View style={styles.colorPicker}>
                             {AVATAR_COLORS.map((color) => (
                                 <TouchableOpacity
@@ -189,8 +197,13 @@ export default function EditProfileScreen() {
                         label="Name"
                         placeholder="Child's name"
                         value={name}
-                        onChangeText={setName}
+                        onChangeText={(text) => {
+                            setName(text);
+                            if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                        }}
                         autoCapitalize="words"
+                        required
+                        error={errors.name}
                     />
 
                     {/* Age */}
@@ -198,14 +211,22 @@ export default function EditProfileScreen() {
                         label="Age"
                         placeholder="How old are they?"
                         value={age}
-                        onChangeText={setAge}
+                        onChangeText={(text) => {
+                            setAge(text);
+                            if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+                        }}
                         keyboardType="number-pad"
                         maxLength={2}
                         containerStyle={styles.ageInput}
+                        required
+                        error={errors.age}
                     />
 
                     {/* Grade Level */}
-                    <Text style={styles.fieldLabel}>Grade Level</Text>
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.fieldLabel}>Grade Level</Text>
+                        <Text style={styles.requiredStar}>*</Text>
+                    </View>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
@@ -216,16 +237,19 @@ export default function EditProfileScreen() {
                                 key={grade}
                                 label={grade}
                                 selected={gradeLevel === grade}
-                                onPress={() => setGradeLevel(grade)}
+                                onPress={() => {
+                                    setGradeLevel(grade);
+                                    if (errors.gradeLevel) setErrors(prev => ({ ...prev, gradeLevel: '' }));
+                                }}
                             />
                         ))}
                     </ScrollView>
 
                     {/* Error */}
-                    {error && (
+                    {(errors.form || errors.gradeLevel) && (
                         <View style={styles.errorContainer}>
                             <AlertTriangle size={16} color={Colors.accent} />
-                            <Text style={[styles.error, styles.errorTextMargin]}>{error}</Text>
+                            <Text style={[styles.error, styles.errorTextMargin]}>{errors.form || errors.gradeLevel}</Text>
                         </View>
                     )}
 
@@ -312,7 +336,19 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
-        marginLeft: Spacing.xs,
+    },
+    labelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
+    requiredStar: {
+        color: Colors.accent,
+        fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
+        marginTop: Spacing.xl,
+        marginBottom: Spacing.sm,
     },
 
     gradeList: {

@@ -14,7 +14,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Filter, X, Search, History, Star, BookOpen, CheckCircle2, Circle } from 'lucide-react-native';
+import { Filter, X, Search, History, Star, BookOpen, CheckCircle2, Circle, FileText } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 
@@ -269,10 +269,16 @@ export default function ActivitiesScreen() {
                 activities={recentActivities}
                 selectedDate={filterDate}
                 onSelectDate={setFilterDate}
-                printablesCount={activeProfileId ? stats?.total ?? 0 : recentActivities.length}
             />
 
             <View style={styles.filterToggleContainer}>
+                <View style={styles.printablesBadge}>
+                    <FileText size={14} color={Colors.primary} />
+                    <Text style={styles.printablesBadgeText}>
+                        {activeProfileId ? stats?.total ?? 0 : recentActivities.length} Printables
+                    </Text>
+                </View>
+
                 <TouchableOpacity
                     onPress={() => setShowFilters(!showFilters)}
                     style={[styles.filterBtn, hasActiveFilters && styles.filterBtnActive]}
@@ -457,10 +463,28 @@ const styles = StyleSheet.create({
     },
     filterToggleContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: Spacing.xl,
         marginTop: Spacing.sm,
         marginBottom: Spacing.sm,
+    },
+    printablesBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
+        backgroundColor: Colors.pastelPurple,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: 6,
+        borderRadius: Radius.full,
+        borderWidth: 1,
+        borderColor: Colors.primary + '15',
+    },
+    printablesBadgeText: {
+        fontSize: FontSize.xs,
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
+        color: Colors.primary,
     },
     workbookBar: {
         flexDirection: 'row',

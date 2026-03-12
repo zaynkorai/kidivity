@@ -3,7 +3,6 @@ import {
     View,
     Text,
     ScrollView,
-    TouchableOpacity,
     StyleSheet,
     Alert,
     Share,
@@ -11,6 +10,7 @@ import {
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import * as LinkingApi from 'expo-linking';
@@ -41,7 +41,7 @@ import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme'
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/hooks/useResponsive';
 
-type GateAction = 'delete' | 'add' | 'signout' | 'delete_account' | null;
+type GateAction = 'delete' | 'add' | 'delete_account' | null;
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -87,16 +87,6 @@ export default function SettingsScreen() {
                 );
             } else if (pendingAction === 'add') {
                 router.push('/profile/create');
-            } else if (pendingAction === 'signout') {
-                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                        text: 'Sign Out', style: 'destructive', onPress: () => {
-                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                            signOut();
-                        }
-                    },
-                ]);
             } else if (pendingAction === 'delete_account') {
                 Alert.alert('Delete Account', 'Are you sure you want to permanently delete your account and all kid profiles? This action cannot be undone.', [
                     { text: 'Cancel', style: 'cancel' },
@@ -196,7 +186,196 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView style={styles.safe}>
-            <ScreenBackground />
+            <View style={styles.flex}>
+                <ScreenBackground />
+                <ScrollView 
+                    style={[styles.container, { zIndex: 1 }]} 
+                    contentContainerStyle={[
+                        styles.content, 
+                        isMobile && { paddingHorizontal: Spacing.lg, paddingTop: Spacing['xl'] }
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header */}
+                    <View style={[styles.header, isMobile && { marginBottom: Spacing.lg }]}>
+                        <View style={[styles.headerIconContainer, isMobile && { width: 36, height: 36, borderRadius: 18 }]}>
+                            <SettingsIcon size={isMobile ? 20 : 28} color={Colors.white} />
+                        </View>
+                        <Text style={[styles.title, isMobile && { fontSize: FontSize['2xl'] }]}>Settings</Text>
+                    </View>
+
+                    {/* Kid Profiles Section */}
+                    <Text style={styles.sectionTitle}>Kid Profiles</Text>
+                    <Card variant="elevated">
+                        {profiles.map((profile, index) => (
+                            <View key={profile.id}>
+                                <View style={styles.profileRow}>
+                                    <View style={styles.profileInfo}>
+                                        <View
+                                            style={[
+                                                styles.avatar,
+                                                isMobile && { width: 48, height: 48, borderRadius: 24 },
+                                                { backgroundColor: profile.avatar_color },
+                                            ]}
+                                        >
+                                            <Text style={[styles.avatarText, isMobile && { fontSize: FontSize.md }]}>
+                                                {profile.name.charAt(0).toUpperCase()}
+                                            </Text>
+                                        </View>
+                                        <View>
+                                            <Text style={[styles.profileName, isMobile && { fontSize: FontSize.md }]}>{profile.name}</Text>
+                                            <Text style={[styles.profileMeta, isMobile && { fontSize: FontSize.xs }]}>
+                                                {profile.age}yo · {profile.grade_level}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.profileActions}>
+                                        <GHTouchableOpacity
+                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
+                                            onPress={() => router.push(`/profile/${profile.id}/edit`)}
+                                        >
+                                            <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
+                                        </GHTouchableOpacity>
+                                        <GHTouchableOpacity
+                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
+                                            onPress={() => openGate('delete', profile.id)}
+                                        >
+                                            <Trash2 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
+                                        </GHTouchableOpacity>
+                                    </View>
+                                </View>
+                                {index < profiles.length - 1 && <View style={styles.divider} />}
+                            </View>
+                        ))}
+
+                        <GHTouchableOpacity
+                            style={styles.addProfileBtn}
+                            onPress={() => openGate('add')}
+                        >
+                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                                <Plus size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                            </View>
+                            <Text style={[styles.addProfileText, isMobile && { fontSize: FontSize.sm }]}>Add Kid Profile</Text>
+                        </GHTouchableOpacity>
+                    </Card>
+
+                    {/* Account Section */}
+                    <Text style={styles.sectionTitle}>Account</Text>
+                    <Card variant="elevated">
+                        <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
+                                    <Mail size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Email</Text>
+                            </View>
+                            <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>{user?.email ?? 'Not signed in'}</Text>
+                        </View>
+                        <View style={styles.divider} />
+                        <GHTouchableOpacity
+                            style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
+                            onPress={handleResetPassword}
+                            disabled={!user?.email}
+                        >
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
+                                    <KeyRound size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Reset Password</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                        <View style={styles.divider} />
+                        <GHTouchableOpacity
+                            style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
+                            onPress={() => openGate('delete_account')}
+                        >
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.rad }]}>
+                                    <UserX size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, { color: Colors.textPrimary }, isMobile && { fontSize: FontSize.sm }]}>Delete Account</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                    </Card>
+
+                    {/* About Section */}
+                    <Text style={styles.sectionTitle}>About & Support</Text>
+                    <Card variant="elevated">
+                        <GHTouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleHelpSupport}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                                    <HelpCircle size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Help & Support</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                        <View style={styles.divider} />
+                        <GHTouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleRateApp}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.yellow }]}>
+                                    <Star size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Rate App</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                        <View style={styles.divider} />
+                        <GHTouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleShare}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
+                                    <ShareIcon size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Share App</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                        <View style={styles.divider} />
+                        <GHTouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handlePrivacyTerms}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
+                                    <Shield size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Privacy & Terms</Text>
+                            </View>
+                            <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                        </GHTouchableOpacity>
+                        <View style={styles.divider} />
+                        <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
+                            <View style={styles.settingLabelGroup}>
+                                <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                                    <Info size={isMobile ? 16 : 18} color={Colors.textPrimary} />
+                                </View>
+                                <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>App Version</Text>
+                            </View>
+                            <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>1.0.0</Text>
+                        </View>
+                    </Card>
+
+                    {/* Sign Out */}
+                    <Button
+                    title="Sign Out"
+                    onPress={() => {
+                        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                                text: 'Sign Out', style: 'destructive', onPress: () => {
+                                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                                    signOut();
+                                }
+                            },
+                        ]);
+                    }}
+                    size="lg"
+                    icon={<LogOut size={18} color={Colors.white} />}
+                    style={styles.signOutBtn}
+                />
+
+                    <View style={[styles.bottomSpacer, { height: bottomPad }]} />
+                </ScrollView>
+            </View>
             <ParentGate
                 visible={gateVisible}
                 onClose={() => {
@@ -213,176 +392,6 @@ export default function SettingsScreen() {
                 }
                 userEmail={user?.email}
             />
-            <ScrollView style={styles.container} contentContainerStyle={[styles.content, isMobile && { paddingHorizontal: Spacing.lg, paddingTop: Spacing['xl'] }]}>
-                {/* Header */}
-                <View style={[styles.header, isMobile && { marginBottom: Spacing.lg }]}>
-                    <View style={[styles.headerIconContainer, isMobile && { width: 36, height: 36, borderRadius: 18 }]}>
-                        <SettingsIcon size={isMobile ? 20 : 28} color={Colors.white} />
-                    </View>
-                    <Text style={[styles.title, isMobile && { fontSize: FontSize['2xl'] }]}>Settings</Text>
-                </View>
-
-                {/* Kid Profiles Section */}
-                <Text style={styles.sectionTitle}>Kid Profiles</Text>
-                <Card variant="elevated">
-                    {profiles.map((profile, index) => (
-                        <View key={profile.id}>
-                            <View style={styles.profileRow}>
-                                <View style={styles.profileInfo}>
-                                    <View
-                                        style={[
-                                            styles.avatar,
-                                            isMobile && { width: 48, height: 48, borderRadius: 24 },
-                                            { backgroundColor: profile.avatar_color },
-                                        ]}
-                                    >
-                                        <Text style={[styles.avatarText, isMobile && { fontSize: FontSize.md }]}>
-                                            {profile.name.charAt(0).toUpperCase()}
-                                        </Text>
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.profileName, isMobile && { fontSize: FontSize.md }]}>{profile.name}</Text>
-                                        <Text style={[styles.profileMeta, isMobile && { fontSize: FontSize.xs }]}>
-                                            {profile.age}yo · {profile.grade_level}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <View style={styles.profileActions}>
-                                    <TouchableOpacity
-                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
-                                        onPress={() => router.push(`/profile/${profile.id}/edit`)}
-                                    >
-                                        <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
-                                        onPress={() => openGate('delete', profile.id)}
-                                    >
-                                        <Trash2 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                            {index < profiles.length - 1 && <View style={styles.divider} />}
-                        </View>
-                    ))}
-
-                    <TouchableOpacity
-                        style={styles.addProfileBtn}
-                        onPress={() => openGate('add')}
-                    >
-                        <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
-                            <Plus size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                        </View>
-                        <Text style={[styles.addProfileText, isMobile && { fontSize: FontSize.sm }]}>Add Kid Profile</Text>
-                    </TouchableOpacity>
-                </Card>
-
-                {/* Account Section */}
-                <Text style={styles.sectionTitle}>Account</Text>
-                <Card variant="elevated">
-                    <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
-                                <Mail size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Email</Text>
-                        </View>
-                        <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>{user?.email ?? 'Not signed in'}</Text>
-                    </View>
-                    <View style={styles.divider} />
-                    <TouchableOpacity
-                        style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
-                        onPress={handleResetPassword}
-                        disabled={!user?.email}
-                    >
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
-                                <KeyRound size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Reset Password</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.divider} />
-                    <TouchableOpacity
-                        style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}
-                        onPress={() => openGate('delete_account')}
-                    >
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.rad }]}>
-                                <UserX size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, { color: Colors.textPrimary }, isMobile && { fontSize: FontSize.sm }]}>Delete Account</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                </Card>
-
-                {/* About Section */}
-                <Text style={styles.sectionTitle}>About & Support</Text>
-                <Card variant="elevated">
-                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleHelpSupport}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
-                                <HelpCircle size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Help & Support</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.divider} />
-                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleRateApp}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.yellow }]}>
-                                <Star size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Rate App</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.divider} />
-                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handleShare}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.blue }]}>
-                                <ShareIcon size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Share App</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.divider} />
-                    <TouchableOpacity style={[styles.settingRow, isMobile && { paddingVertical: 12 }]} onPress={handlePrivacyTerms}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.green }]}>
-                                <Shield size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>Privacy & Terms</Text>
-                        </View>
-                        <ChevronRight size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                    </TouchableOpacity>
-                    <View style={styles.divider} />
-                    <View style={[styles.settingRow, isMobile && { paddingVertical: 12 }]}>
-                        <View style={styles.settingLabelGroup}>
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
-                                <Info size={isMobile ? 16 : 18} color={Colors.textPrimary} />
-                            </View>
-                            <Text style={[styles.settingLabel, isMobile && { fontSize: FontSize.sm }]}>App Version</Text>
-                        </View>
-                        <Text style={[styles.settingValue, isMobile && { fontSize: 13 }]}>1.0.0</Text>
-                    </View>
-                </Card>
-
-                {/* Sign Out */}
-                <Button
-                    title="Sign Out"
-                    onPress={() => openGate('signout')}
-                    size="lg"
-                    icon={<LogOut size={18} color={Colors.white} />}
-                    style={styles.signOutBtn}
-                />
-
-                <View style={[styles.bottomSpacer, { height: bottomPad }]} />
-            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -391,6 +400,9 @@ const styles = StyleSheet.create({
     safe: {
         flex: 1,
         backgroundColor: Colors.background,
+    },
+    flex: {
+        flex: 1,
     },
     container: {
         flex: 1,

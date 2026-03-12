@@ -44,7 +44,7 @@ export default function OnboardingCreateProfileScreen() {
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
     const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const canAdvance = () => {
         switch (step) {
@@ -60,7 +60,7 @@ export default function OnboardingCreateProfileScreen() {
     };
 
     const handleNext = () => {
-        setError(null);
+        setErrors({});
         if (step < STEP_COUNT - 1) {
             setStep(step + 1);
         } else {
@@ -71,18 +71,18 @@ export default function OnboardingCreateProfileScreen() {
     const handleBack = () => {
         if (step > 0) {
             setStep(step - 1);
-            setError(null);
+            setErrors({});
         }
     };
 
     const handleSubmit = async () => {
         const ageNum = parseInt(age, 10);
         if (!name.trim() || isNaN(ageNum) || !gradeLevel) {
-            setError('Please complete all fields.');
+            setErrors({ form: 'Please complete all fields.' });
             return;
         }
 
-        setError(null);
+        setErrors({});
         setIsSubmitting(true);
 
         const { error: submitError, data: newProfile } = await addProfile({
@@ -95,7 +95,7 @@ export default function OnboardingCreateProfileScreen() {
         setIsSubmitting(false);
 
         if (submitError) {
-            setError(submitError);
+            setErrors({ form: submitError });
         } else if (newProfile) {
             setGlobalStep(4);
             // Transition to the upload screen (Step 4)
@@ -157,13 +157,21 @@ export default function OnboardingCreateProfileScreen() {
                                 label="Child's Name"
                                 placeholder="e.g. Aisha, Noah, Luna..."
                                 value={name}
-                                onChangeText={setName}
+                                onChangeText={(text) => {
+                                    setName(text);
+                                    if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                                }}
                                 autoCapitalize="words"
                                 autoFocus
+                                required
+                                error={errors.name}
                             />
 
                             {/* Color Picker */}
-                            <Text style={styles.fieldLabel}>Pick a color</Text>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.fieldLabel}>Pick a color</Text>
+                                <Text style={styles.requiredStar}>*</Text>
+                            </View>
                             <View style={styles.colorPicker}>
                                 {AVATAR_COLORS.map((color) => (
                                     <TouchableOpacity
@@ -191,14 +199,22 @@ export default function OnboardingCreateProfileScreen() {
                                 label="Age"
                                 placeholder="How old are they?"
                                 value={age}
-                                onChangeText={setAge}
+                                onChangeText={(text) => {
+                                    setAge(text);
+                                    if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+                                }}
                                 keyboardType="number-pad"
                                 returnKeyType="done"
                                 maxLength={2}
                                 autoFocus
+                                required
+                                error={errors.age}
                             />
 
-                            <Text style={styles.fieldLabel}>Grade Level</Text>
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.fieldLabel}>Grade Level</Text>
+                                <Text style={styles.requiredStar}>*</Text>
+                            </View>
                             <View style={styles.gradeGrid}>
                                 {GRADE_LEVELS.map((grade) => (
                                     <Chip
@@ -213,7 +229,7 @@ export default function OnboardingCreateProfileScreen() {
                     )}
 
                     {/* Error */}
-                    {error && <Text style={styles.error}>{error}</Text>}
+                    {errors.form && <Text style={styles.error}>{errors.form}</Text>}
 
                     {/* Navigation Buttons */}
                     <View style={styles.navButtons}>
@@ -379,7 +395,19 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.md,
-        marginLeft: Spacing.xs,
+    },
+    labelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
+    requiredStar: {
+        color: Colors.accent,
+        fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
+        marginTop: Spacing.xl,
+        marginBottom: Spacing.md,
     },
 
     // Grades

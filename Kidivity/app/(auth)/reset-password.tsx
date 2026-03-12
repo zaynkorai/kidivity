@@ -23,25 +23,33 @@ export default function ResetPasswordScreen() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleUpdatePassword = async () => {
-        setError(null);
+        setErrors({});
         setSuccessMessage(null);
 
-        if (!password || !confirmPassword) {
-            setError('Please fill in all fields.');
+        const newErrors: Record<string, string> = {};
+        if (!password) {
+            newErrors.password = 'Password is required';
+        }
+        if (!confirmPassword) {
+            newErrors.confirmPassword = 'Confirmation is required';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
         if (password.length < 6) {
-            setError('Password must be at least 6 characters.');
+            setErrors({ password: 'Password must be at least 6 characters.' });
             return;
         }
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match.');
+            setErrors({ confirmPassword: 'Passwords do not match.' });
             return;
         }
 
@@ -54,7 +62,7 @@ export default function ResetPasswordScreen() {
             });
 
             if (updateError) {
-                setError(updateError.message);
+                setErrors({ form: updateError.message });
                 setIsLoading(false);
                 return;
             }
@@ -69,7 +77,7 @@ export default function ResetPasswordScreen() {
             }, 1500);
 
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+            setErrors({ form: err instanceof Error ? err.message : 'An unexpected error occurred.' });
             setIsLoading(false);
         }
     };
@@ -104,10 +112,12 @@ export default function ResetPasswordScreen() {
                             value={password}
                             onChangeText={(text) => {
                                 setPassword(text);
-                                setError(null);
+                                if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
                             }}
                             secureTextEntry
                             autoCapitalize="none"
+                            required
+                            error={errors.password}
                         />
 
                         <Input
@@ -116,16 +126,18 @@ export default function ResetPasswordScreen() {
                             value={confirmPassword}
                             onChangeText={(text) => {
                                 setConfirmPassword(text);
-                                setError(null);
+                                if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
                             }}
                             secureTextEntry
                             autoCapitalize="none"
                             onSubmitEditing={handleUpdatePassword}
                             returnKeyType="done"
+                            required
+                            error={errors.confirmPassword}
                         />
 
-                        {error ? (
-                            <Text style={styles.errorText}>{error}</Text>
+                        {errors.form ? (
+                            <Text style={styles.errorText}>{errors.form}</Text>
                         ) : null}
 
                         {successMessage ? (

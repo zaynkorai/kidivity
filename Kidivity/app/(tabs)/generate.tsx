@@ -385,6 +385,7 @@ export default function GenerateScreen() {
                                 onChangeText={setTopic}
                                 maxLength={60}
                                 containerStyle={styles.topicInput}
+                                required
                             />
                         </>
                     ) : (

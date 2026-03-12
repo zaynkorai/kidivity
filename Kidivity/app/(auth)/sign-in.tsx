@@ -36,17 +36,26 @@ export default function SignInScreen() {
     const { signIn, isLoading } = useAuthStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleSignIn = async () => {
-        setError('');
-        if (!email.trim() || !password.trim()) {
-            setError('Please enter both email and password.');
+        setErrors({});
+        const newErrors: Record<string, string> = {};
+        if (!email.trim()) {
+            newErrors.email = 'Email is required';
+        }
+        if (!password.trim()) {
+            newErrors.password = 'Password is required';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
+
         const result = await signIn(email.trim(), password.trim());
         if (result.error) {
-            setError(result.error);
+            setErrors({ form: result.error });
         }
     };
 
@@ -105,23 +114,33 @@ export default function SignInScreen() {
                                         label="Email Address"
                                         placeholder="you@example.com"
                                         value={email}
-                                        onChangeText={setEmail}
+                                        onChangeText={(text) => {
+                                            setEmail(text);
+                                            if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                        }}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                         autoComplete="email"
+                                        required
+                                        error={errors.email}
                                     />
 
                                     <Input
                                         label="Password"
                                         placeholder="Enter your password"
                                         value={password}
-                                        onChangeText={setPassword}
+                                        onChangeText={(text) => {
+                                            setPassword(text);
+                                            if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                                        }}
                                         secureTextEntry
                                         autoCapitalize="none"
                                         containerStyle={{ marginTop: fieldSpacing }}
+                                        required
+                                        error={errors.password}
                                     />
 
-                                    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                                    {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
 
                                     <Button
                                         title="Sign In"

@@ -4,12 +4,12 @@ import {
     Text,
     StyleSheet,
     Modal,
-    TouchableOpacity,
     TouchableWithoutFeedback,
     KeyboardAvoidingView,
     Platform,
     Keyboard,
 } from 'react-native';
+import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
 import { X, Lock } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Button } from './Button';
@@ -135,9 +135,9 @@ export function ParentGate({
                                 <Lock size={20} color={Colors.primary} />
                                 <Text style={styles.title}>{title}</Text>
                             </View>
-                            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                            <GHTouchableOpacity onPress={onClose} style={styles.closeBtn}>
                                 <X size={20} color={Colors.textPrimary} />
-                            </TouchableOpacity>
+                            </GHTouchableOpacity>
                         </View>
 
                         {/* Content */}

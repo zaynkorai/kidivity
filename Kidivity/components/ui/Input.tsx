@@ -13,16 +13,22 @@ import { useResponsive } from '@/hooks/useResponsive';
 interface InputProps extends TextInputProps {
     label?: string;
     error?: string;
+    required?: boolean;
     containerStyle?: ViewStyle;
 }
 
-export function Input({ label, error, containerStyle, style, ...props }: InputProps) {
+export function Input({ label, error, required, containerStyle, style, ...props }: InputProps) {
     const [isFocused, setIsFocused] = useState(false);
     const { isShort } = useResponsive();
 
     return (
         <View style={[styles.container, containerStyle]}>
-            {label && <Text style={styles.label}>{label}</Text>}
+            {label && (
+                <View style={styles.labelContainer}>
+                    <Text style={styles.label}>{label}</Text>
+                    {required && <Text style={styles.requiredStar}>*</Text>}
+                </View>
+            )}
             <TextInput
                 style={[
                     styles.input,
@@ -51,12 +57,23 @@ const styles = StyleSheet.create({
     container: {
         gap: Spacing.xs,
     },
+    labelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+    },
     label: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginLeft: Spacing.xs,
+    },
+    requiredStar: {
+        color: Colors.accent,
+        fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
     },
     input: {
         backgroundColor: '#F8F9FE',

@@ -35,7 +35,7 @@ export default function SignUpScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [success, setSuccess] = useState(false);
 
     const passwordChecks = {
@@ -44,24 +44,36 @@ export default function SignUpScreen() {
     };
 
     const handleSignUp = async () => {
-        setError('');
+        setErrors({});
 
+        const newErrors: Record<string, string> = {};
         if (!email.trim()) {
-            setError('Please enter your email address.');
+            newErrors.email = 'Email is required';
+        }
+        if (!password) {
+            newErrors.password = 'Password is required';
+        }
+        if (!confirmPassword) {
+            newErrors.confirmPassword = 'Please confirm your password';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
+
         if (!passwordChecks.length) {
-            setError('Password must be at least 6 characters.');
+            setErrors({ password: 'Password must be at least 6 characters.' });
             return;
         }
         if (!passwordChecks.match) {
-            setError('Passwords do not match.');
+            setErrors({ confirmPassword: 'Passwords do not match.' });
             return;
         }
 
         const result = await signUp(email.trim(), password);
         if (result.error) {
-            setError(result.error);
+            setErrors({ form: result.error });
         } else {
             if (!useAuthStore.getState().session) {
                 setSuccess(true);
@@ -151,30 +163,45 @@ export default function SignUpScreen() {
                                         label="Email Address"
                                         placeholder="you@example.com"
                                         value={email}
-                                        onChangeText={setEmail}
+                                        onChangeText={(text) => {
+                                            setEmail(text);
+                                            if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                        }}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                         autoComplete="email"
+                                        required
+                                        error={errors.email}
                                     />
 
                                     <Input
                                         label="Password"
                                         placeholder="Choose a strong password"
                                         value={password}
-                                        onChangeText={setPassword}
+                                        onChangeText={(text) => {
+                                            setPassword(text);
+                                            if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                                        }}
                                         secureTextEntry
                                         autoCapitalize="none"
                                         containerStyle={{ marginTop: Spacing.md }}
+                                        required
+                                        error={errors.password}
                                     />
 
                                     <Input
                                         label="Confirm Password"
                                         placeholder="Re-enter your password"
                                         value={confirmPassword}
-                                        onChangeText={setConfirmPassword}
+                                        onChangeText={(text) => {
+                                            setConfirmPassword(text);
+                                            if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
+                                        }}
                                         secureTextEntry
                                         autoCapitalize="none"
                                         containerStyle={{ marginTop: Spacing.sm }}
+                                        required
+                                        error={errors.confirmPassword}
                                     />
 
                                     {/* Upgraded Password Strength Indicators */}
@@ -213,7 +240,7 @@ export default function SignUpScreen() {
                                         </View>
                                     </View>
 
-                                    {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                                    {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
 
                                     <Button
                                         title="Create Account"

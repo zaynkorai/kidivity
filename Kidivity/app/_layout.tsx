@@ -7,6 +7,7 @@ import { useProfileStore } from '@/store/profileStore';
 import { Colors } from '@/constants/theme';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   useFonts,
   Poppins_400Regular,
@@ -85,31 +86,33 @@ export default function RootLayout() {
   }
 
   return (
-    <ErrorBoundary>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(onboarding)" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="profile/create"
-          options={{ presentation: 'modal', headerShown: true, title: 'Add Kid' }}
-        />
-        <Stack.Screen
-          name="profile/[id]/edit"
-          options={{ presentation: 'modal', headerShown: true, title: 'Edit Profile' }}
-        />
-        <Stack.Screen
-          name="activity/[id]"
-          options={{ headerShown: false, animation: 'slide_from_right' }}
-        />
-        <Stack.Screen
-          name="print-preview"
-          options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
-        />
-      </Stack>
-      <StatusBar style="dark" />
-    </ErrorBoundary>
+    <GestureHandlerRootView style={styles.flex}>
+      <ErrorBoundary>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(onboarding)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="profile/create"
+            options={{ presentation: 'modal', headerShown: true, title: 'Add Kid' }}
+          />
+          <Stack.Screen
+            name="profile/[id]/edit"
+            options={{ presentation: 'modal', headerShown: true, title: 'Edit Profile' }}
+          />
+          <Stack.Screen
+            name="activity/[id]"
+            options={{ headerShown: false, animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="print-preview"
+            options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
+          />
+        </Stack>
+        <StatusBar style="dark" />
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 
@@ -119,5 +122,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.background,
+  },
+  flex: {
+    flex: 1,
   },
 });
