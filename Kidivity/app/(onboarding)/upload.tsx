@@ -12,7 +12,7 @@ export default function UploadActivityScreen() {
 
   const handleComplete = () => {
     completeOnboarding();
-    router.replace('/(tabs)/');
+    router.replace('/(tabs)');
   };
 
   return (

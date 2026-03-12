@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
 
@@ -19,7 +17,8 @@ interface ActivityState {
         { total: number; streak: number; weekCount: number; lastCreatedAt: string | null }
     >;
     isGenerating: boolean;
-    isLoading: boolean;
+    isFetchingRecent: boolean;
+    isFetchingSaved: boolean;
     rateLimitState: RateLimitState;
 }
 
@@ -37,18 +36,17 @@ type ActivityStore = ActivityState & ActivityActions;
 
 const DEFAULT_RATE_LIMIT: RateLimitState = { hit: false, used: 0, limit: 10, resetAt: null };
 
-export const useActivityStore = create<ActivityStore>()(
-    persist(
-        (set, get) => ({
+export const useActivityStore = create<ActivityStore>()((set, get) => ({
             recentActivities: [],
             savedActivities: [],
             kidStats: {},
             isGenerating: false,
-            isLoading: false,
+            isFetchingRecent: false,
+            isFetchingSaved: false,
             rateLimitState: DEFAULT_RATE_LIMIT,
 
             fetchRecent: async () => {
-                set({ isLoading: true });
+                set({ isFetchingRecent: true });
                 try {
                     const { data, error } = await supabase
                         .from('activities')
@@ -65,12 +63,12 @@ export const useActivityStore = create<ActivityStore>()(
                         set({ recentActivities: activities });
                     }
                 } finally {
-                    set({ isLoading: false });
+                    set({ isFetchingRecent: false });
                 }
             },
 
             fetchSaved: async () => {
-                set({ isLoading: true });
+                set({ isFetchingSaved: true });
                 try {
                     const { data, error } = await supabase
                         .from('activities')
@@ -87,81 +85,38 @@ export const useActivityStore = create<ActivityStore>()(
                         set({ savedActivities: activities });
                     }
                 } finally {
-                    set({ isLoading: false });
+                    set({ isFetchingSaved: false });
                 }
             },
 
             fetchKidStats: async (kidProfileId) => {
                 try {
-                    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                    const timezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+                    const { data, error } = await supabase.rpc('get_kid_activity_stats', {
+                        p_kid_profile_id: kidProfileId,
+                        p_timezone_name: timezoneName,
+                    });
 
-                    const [totalRes, datesRes, weekRes, lastRes] = await Promise.all([
-                        supabase
-                            .from('activities')
-                            .select('id', { count: 'exact', head: true })
-                            .eq('kid_profile_id', kidProfileId),
-                        supabase
-                            .from('activities')
-                            .select('created_at')
-                            .eq('kid_profile_id', kidProfileId)
-                            .order('created_at', { ascending: false }),
-                        supabase
-                            .from('activities')
-                            .select('id', { count: 'exact', head: true })
-                            .eq('kid_profile_id', kidProfileId)
-                            .gte('created_at', weekAgo),
-                        supabase
-                            .from('activities')
-                            .select('created_at')
-                            .eq('kid_profile_id', kidProfileId)
-                            .order('created_at', { ascending: false })
-                            .limit(1),
-                    ]);
-
-                    const total = totalRes.count ?? 0;
-                    const weekCount = weekRes.count ?? 0;
-                    const lastCreatedAt = lastRes.data?.[0]?.created_at ?? null;
-
-                    // Calculate streak
-                    let streak = 0;
-                    if (datesRes.data && datesRes.data.length > 0) {
-                        const formatDateLocal = (date: Date) => {
-                            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-                        };
-                        const dates = datesRes.data.map((d: any) => formatDateLocal(new Date(d.created_at)));
-                        const uniqueDates = [...new Set(dates)].sort((a, b) => b.localeCompare(a));
-                        
-                        const today = new Date();
-                        const todayStr = formatDateLocal(today);
-                        
-                        const yesterday = new Date(today);
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const yesterdayStr = formatDateLocal(yesterday);
-                        
-                        if (uniqueDates[0] === todayStr || uniqueDates[0] === yesterdayStr) {
-                            streak = 1;
-                            const [y, m, d] = uniqueDates[0].split('-').map(Number);
-                            let currentDate = new Date(y, m - 1, d);
-                            
-                            for (let i = 1; i < uniqueDates.length; i++) {
-                                currentDate.setDate(currentDate.getDate() - 1);
-                                const expectedStr = formatDateLocal(currentDate);
-                                if (uniqueDates[i] === expectedStr) {
-                                    streak++;
-                                } else {
-                                    break;
-                                }
-                            }
-                        }
+                    if (error) {
+                        console.error('[fetchKidStats] RPC Error:', error);
+                        return;
                     }
 
-                    set({
-                        kidStats: {
-                            ...get().kidStats,
-                            [kidProfileId]: { total, streak, weekCount, lastCreatedAt },
-                        },
-                    });
-                } catch {
+                    if (data) {
+                        set({
+                            kidStats: {
+                                ...get().kidStats,
+                                [kidProfileId]: {
+                                    total: data.total ?? 0,
+                                    streak: data.streak ?? 0,
+                                    weekCount: data.weekCount ?? 0,
+                                    lastCreatedAt: data.lastCreatedAt ?? null,
+                                },
+                            },
+                        });
+                    }
+                } catch (err) {
+                    console.error('[fetchKidStats] Exception:', err);
                     // Non-critical: home can still render without stats.
                 }
             },
@@ -186,7 +141,15 @@ export const useActivityStore = create<ActivityStore>()(
                         body: JSON.stringify(input),
                     });
 
-                    const data = await response.json();
+                    const text = await response.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (parseError) {
+                        console.error('[Generate] Invalid JSON response. Status:', response.status, 'Body:', text.slice(0, 200));
+                        set({ isGenerating: false });
+                        return { data: null, error: `Server error (${response.status})` };
+                    }
 
                     if (response.status === 429) {
                         set({
@@ -215,7 +178,8 @@ export const useActivityStore = create<ActivityStore>()(
                     });
 
                     return { data: activity, error: null };
-                } catch {
+                } catch (error) {
+                    console.error('[Generate] Exception:', error);
                     set({ isGenerating: false });
                     return { data: null, error: 'Failed to generate activity' };
                 }
@@ -237,10 +201,15 @@ export const useActivityStore = create<ActivityStore>()(
                         : savedActivities.filter(a => a.id !== id),
                 });
 
-                await supabase
+                const { error } = await supabase
                     .from('activities')
                     .update({ is_saved: newSavedState })
                     .eq('id', id);
+
+                if (error) {
+                    console.error('[toggleSaved] Failed to update db:', error);
+                    set({ recentActivities, savedActivities });
+                }
             },
 
             deleteActivity: async (id) => {
@@ -249,24 +218,14 @@ export const useActivityStore = create<ActivityStore>()(
                     recentActivities: recentActivities.filter(a => a.id !== id),
                     savedActivities: savedActivities.filter(a => a.id !== id),
                 });
-                await supabase.from('activities').delete().eq('id', id);
+                
+                const { error } = await supabase.from('activities').delete().eq('id', id);
+                if (error) {
+                    console.error('[deleteActivity] Failed to delete from db:', error);
+                    set({ recentActivities, savedActivities });
+                }
             },
 
             clearRateLimit: () => set({ rateLimitState: DEFAULT_RATE_LIMIT }),
-        }),
-        {
-            name: 'kidivity-activities',
-            storage: createJSONStorage(() => AsyncStorage),
-            partialize: (state) => {
-                // Remove base64 image_urls from persisted state to prevent AsyncStorage quota errors
-                const stripHeavyData = (activities: Activity[]) =>
-                    activities.map(({ image_url, ...rest }) => rest as Activity);
-
-                return {
-                    recentActivities: stripHeavyData(state.recentActivities),
-                    savedActivities: stripHeavyData(state.savedActivities),
-                };
-            },
-        }
-    )
+        })
 );

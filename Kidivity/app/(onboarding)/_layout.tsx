@@ -7,6 +7,7 @@ export default function OnboardingLayout() {
             <Stack.Screen name="questionnaire" />
             <Stack.Screen name="create-profile" />
             <Stack.Screen name="first-activity" />
+            <Stack.Screen name="upload" />
         </Stack>
     );
 }

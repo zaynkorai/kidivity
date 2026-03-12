@@ -41,7 +41,12 @@ export default function HomeScreen() {
   const horizontalPadding = isCompact ? Spacing.lg : Spacing.xl;
   const gridGap = Spacing.md;
   const { width: screenWidth } = Dimensions.get('window');
-  const categoryCardWidth = (screenWidth - (horizontalPadding * 2) - gridGap) / 2;
+
+  // Dynamic columns: minimum 2, but can expand on larger screens
+  const availableWidth = screenWidth - (horizontalPadding * 2);
+  const minColWidth = 160;
+  const numColumns = Math.max(2, Math.floor((availableWidth + gridGap) / (minColWidth + gridGap)));
+  const categoryCardWidth = (availableWidth - (gridGap * (numColumns - 1))) / numColumns - 0.1;
 
   // Stable action selectors
   const fetchProfiles = useProfileStore((state) => state.fetchProfiles);
@@ -57,7 +62,7 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  
+
   const restoreSession = useOnboardingSessionStore(state => state.restoreSession);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
@@ -140,14 +145,6 @@ export default function HomeScreen() {
               <ChevronDown size={16} color={Colors.textPrimary} />
             </TouchableOpacity>
           </View>
-          <Text style={[styles.title, isCompact && { fontSize: FontSize['2xl'] }]}>
-            {activeProfile ? `Today for ${activeProfile.name}` : 'Start with a kid profile'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {activeProfile
-              ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
-              : 'Add a profile to generate your first printable activity.'}
-          </Text>
         </View>
 
         {/* Dropdown Menu Modal */}
@@ -214,10 +211,14 @@ export default function HomeScreen() {
           <View style={styles.magicCardContent}>
             <View style={styles.magicCardText}>
               <Text style={styles.magicCardTitle}>Create Activity!</Text>
-              <Text style={styles.magicCardSubtitle}>Generate personalized, print-ready activities instantly.</Text>
+              <Text style={styles.magicCardSubtitle}>
+                {activeProfile
+                  ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
+                  : 'Add a profile to generate your first printable activity.'}
+              </Text>
 
               <View style={styles.magicCardBadge}>
-                <Text style={styles.magicCardBadgeText}>Tap to start</Text>
+                <Text style={styles.magicCardBadgeText}>Tap to create</Text>
               </View>
             </View>
 
@@ -332,20 +333,6 @@ export default function HomeScreen() {
             );
           })}
         </View>
-
-        <View style={[styles.statsHeader, { marginTop: Spacing.xl }]}>
-          <Text style={styles.sectionTitle}>Returning Users</Text>
-        </View>
-        <Button
-          title="New Evaluation"
-          variant="secondary"
-          onPress={async () => {
-             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-             await restoreSession();
-             router.push('/(onboarding)/upload');
-          }}
-          style={{ marginBottom: Spacing.xl }}
-        />
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
