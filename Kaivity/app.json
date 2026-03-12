@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Kidivity",
-    "slug": "Kidivity",
+    "name": "Kaivity",
+    "slug": "Kaivity",
     "version": "1.0.0",
-    "description": "Kidivity - AI generated educational activities for kids",
+    "description": "Kaivity - AI generated educational activities for kids",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "kidivity",
+    "scheme": "kaivity",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zaynkorai.kidivity"
+      "bundleIdentifier": "com.zaynkorai.kaivity"
     },
     "android": {
-      "package": "com.zaynkorai.kidivity",
+      "package": "com.zaynkorai.kaivity",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

@@ -1,4 +1,4 @@
-# Kidivity — System Architecture
+# Kaivity — System Architecture
 
 ## High-Level Architecture
 
@@ -47,7 +47,7 @@ flowchart TB
 ## Directory Structure
 
 ```
-kidivity/
+kaivity/
 ├── docs/                          ← Project documentation
 │   ├── project_requirements.md
 │   ├── screen_flow.md
@@ -55,7 +55,7 @@ kidivity/
 │   ├── api_design.md
 │   └── architecture.md           ← This file
 │
-├── Kidivity/                      ← Expo mobile app
+├── Kaivity/                      ← Expo mobile app
 │   ├── app/                       ← File-based routing (screens)
 │   │   ├── (auth)/                ← Auth screens (welcome, sign-up)
 │   │   ├── (onboarding)/          ← First-time profile creation

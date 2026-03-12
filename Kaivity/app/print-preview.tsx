@@ -156,7 +156,7 @@ function buildPrintHtml(activity: {
       </div>
     </div>
     ${htmlContent}
-    <div class="footer">Generated with ❤️ by Kidivity</div>
+    <div class="footer">Generated with ❤️ by Kaivity</div>
   </div>
 </body>
 </html>`;
@@ -321,7 +321,7 @@ export default function PrintPreviewScreen() {
 
                     <View style={styles.previewFooter}>
                         <Text style={styles.footerText}>
-                            Generated with <Heart size={16} color={Colors.primary} fill={Colors.primary} /> by Kidivity
+                            Generated with <Heart size={16} color={Colors.primary} fill={Colors.primary} /> by Kaivity
                         </Text>
                     </View>
                 </View>

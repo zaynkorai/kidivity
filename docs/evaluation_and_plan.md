@@ -1,8 +1,8 @@
-# Kidivity Project Evaluation & Path Forward (v0.1 → v0.2)
+# Kaivity Project Evaluation & Path Forward (v0.1 → v0.2)
 
 ## 1. What We Have Done (The v0.1 MVP)
 
-We have successfully executed the **Phase 0-8 Roadmap** outlined in the implementation plan, bringing the Kidivity MVP to a complete, stable, and feature-rich state. 
+We have successfully executed the **Phase 0-8 Roadmap** outlined in the implementation plan, bringing the Kaivity MVP to a complete, stable, and feature-rich state. 
 
 **Key Accomplishments:**
 - **Rock-Solid Foundation:** A complete React Native (Expo) app with file-based routing and a well-architected Supabase + Fastify backend.
@@ -14,7 +14,7 @@ We have successfully executed the **Phase 0-8 Roadmap** outlined in the implemen
 ## 2. Rating: A+ (Outstanding)
 
 **Why this rating?**
-- **Adherence to Standards:** The codebase strictly followed the minimalist, clean, and token-saving principles defined in `kidivity_standards`. It relies on vector icons over emojis and keeps the UI clean.
+- **Adherence to Standards:** The codebase strictly followed the minimalist, clean, and token-saving principles defined in `kaivity_standards`. It relies on vector icons over emojis and keeps the UI clean.
 - **Velocity & Scope:** We successfully built the entire MVP including the "Deferred" Phase 6 functionalities (Visuals, Rate Limiting, Parent Convenience features) entirely ahead of schedule.
 - **Architecture Integrity:** The migration from Supabase Edge Functions to a Fastify backend was clean and ensures long-term scalability and easier debugging. State management with Zustand + AsyncStorage is snappy.
 - **User-Centric AI:** The dual-model approach (Gemini for structured educational context + Imagen for visuals) delivers a premium, highly differentiated product for parents.

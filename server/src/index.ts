@@ -88,7 +88,7 @@ async function main() {
     // ── Start ────────────────────────────────────────────
     try {
         await fastify.listen({ port: PORT, host: HOST });
-        fastify.log.info(`🚀 Kidivity API running at http://${HOST}:${PORT}`);
+        fastify.log.info(`🚀 Kaivity API running at http://${HOST}:${PORT}`);
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);

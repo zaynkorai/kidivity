@@ -1,4 +1,4 @@
-# Kidivity — Screen Flow & Navigation Map
+# Kaivity — Screen Flow & Navigation Map
 
 ## Navigation Architecture
 

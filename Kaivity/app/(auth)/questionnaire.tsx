@@ -31,7 +31,7 @@ const QUESTIONS: Question[] = [
     },
     {
         id: 'goal',
-        title: 'What are you hoping Kidivity will help achieve?',
+        title: 'What are you hoping Kaivity will help achieve?',
         options: [
             { id: 'habits', label: 'Build daily learning habits' },
             { id: 'creativity', label: 'Foster creative thinking' },

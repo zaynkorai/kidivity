@@ -188,7 +188,7 @@ export const useProfileStore = create<ProfileStore>()(
             },
         }),
         {
-            name: 'kidivity-profiles',
+            name: 'kaivity-profiles',
             storage: createJSONStorage(() => AsyncStorage),
             partialize: (state) => ({
                 profiles: state.profiles,

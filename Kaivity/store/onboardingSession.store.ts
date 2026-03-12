@@ -62,7 +62,7 @@ export const useOnboardingSessionStore = create<OnboardingState>()(
       reset: () => set({ step: 1, status: 'in-progress', sessionData: null }),
     }),
     {
-      name: 'kidivity-onboarding-session',
+      name: 'kaivity-onboarding-session',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

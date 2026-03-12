@@ -1,8 +1,8 @@
-# Kidivity — API Design
+# Kaivity — API Design
 
 ## Overview
 
-The Kidivity project transitioned from **Supabase Edge Functions** to a custom **Fastify backend**. The mobile app and frontend applications communicate directly with Supabase for CRUD operations (via the Supabase JS client with RLS) and call the Fastify server for AI-powered generation.
+The Kaivity project transitioned from **Supabase Edge Functions** to a custom **Fastify backend**. The mobile app and frontend applications communicate directly with Supabase for CRUD operations (via the Supabase JS client with RLS) and call the Fastify server for AI-powered generation.
 
 ---
 
@@ -112,7 +112,7 @@ export default async function activityRoutes(fastify: FastifyInstance) {
 ### System Prompt (All Categories)
 
 ```
-You are Kidivity, an AI that creates fun, educational activities for children.
+You are Kaivity, an AI that creates fun, educational activities for children.
 You always respond with well-structured, age-appropriate content.
 Format your response in clean markdown.
 

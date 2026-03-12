@@ -1,10 +1,10 @@
-# Kidivity 🎨
+# Kaivity 🎨
 
 AI-powered educational activity generator for kids. Built with React Native (Expo), Supabase, and Google Gemini.
 
-## What is Kidivity?
+## What is Kaivity?
 
-Kidivity helps parents and homeschoolers generate fun, customizable, and printable educational activities for their children using AI. Create kid profiles, choose a category, and get personalized activities in seconds.
+Kaivity helps parents and homeschoolers generate fun, customizable, and printable educational activities for their children using AI. Create kid profiles, choose a category, and get personalized activities in seconds.
 
 **Categories:** Logic Puzzles · Tracing · Educational · Screen-Free Activities
 
@@ -30,8 +30,8 @@ Kidivity helps parents and homeschoolers generate fun, customizable, and printab
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/kidivity.git
-cd kidivity/Kidivity
+git clone https://github.com/your-username/kaivity.git
+cd kaivity/Kaivity
 
 
 # Install dependencies
@@ -47,7 +47,7 @@ Scan the QR code with Expo Go to run on your device, or press `i` for iOS Simula
 
 ### Environment Variables
 
-Create a `.env` file in the `Kidivity/` directory:
+Create a `.env` file in the `Kaivity/` directory:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -57,14 +57,14 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ## Project Structure
 
 ```
-kidivity/
+kaivity/
 ├── docs/                    ← Project documentation
 │   ├── project_requirements.md
 │   ├── screen_flow.md
 │   ├── data_model.md
 │   ├── api_design.md
 │   └── architecture.md
-├── Kidivity/                ← Expo mobile app
+├── Kaivity/                ← Expo mobile app
 │   ├── app/                 ← Screens (file-based routing)
 │   ├── components/          ← Reusable UI components
 │   ├── store/               ← Zustand state management

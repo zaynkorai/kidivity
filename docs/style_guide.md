@@ -1,6 +1,6 @@
-# Kidivity Style Guide
+# Kaivity Style Guide
 
-This document outlines the core visual identity and design system for the Kidivity app. It serves as the single source of truth for colors and typography, ensuring a cohesive, professional, yet playful experience.
+This document outlines the core visual identity and design system for the Kaivity app. It serves as the single source of truth for colors and typography, ensuring a cohesive, professional, yet playful experience.
 
 ## 1. Color Palette
 
@@ -17,7 +17,7 @@ The color strategy relies on vibrant, kid-friendly pastel/bright colors mixed wi
 
 ### Semantic Mappings
 
-To maintain accessibility (e.g., white text on buttons), we distinctively map the brand colors to specific semantic roles in `Kidivity/constants/theme.ts`:
+To maintain accessibility (e.g., white text on buttons), we distinctively map the brand colors to specific semantic roles in `Kaivity/constants/theme.ts`:
 
 - **Primary / CTAs**: Orange (`#FF8A00`) — Provides strong contrast for active elements and primary buttons.
 - **Primary Light / Backgrounds**: Purple (`#E7E1FF`) — Used for subtle background tints and category chips.
@@ -39,7 +39,7 @@ Each activity domain has a designated color to create visual anchors for users:
 
 ## 2. Typography
 
-The application uses **Poppins** exclusively across all platforms. Poppins is a geometric sans-serif typeface that perfectly complements the playful and modern aesthetic of Kidivity.
+The application uses **Poppins** exclusively across all platforms. Poppins is a geometric sans-serif typeface that perfectly complements the playful and modern aesthetic of Kaivity.
 
 ### Font Family & Weights
 
@@ -47,7 +47,7 @@ The application uses **Poppins** exclusively across all platforms. Poppins is a 
 - **Rounded/Medium Elements**: `Poppins_500Medium` (rounded/medium)
 - **Headings/Bold Elements**: `Poppins_700Bold` (bold)
 
-> **Implementation Note**: Do not use default iOS or Android system fonts. The exact `expo-google-fonts/poppins` package is integrated in the root layout (`_layout.tsx`) and mapped in `Kidivity/constants/theme.ts`.
+> **Implementation Note**: Do not use default iOS or Android system fonts. The exact `expo-google-fonts/poppins` package is integrated in the root layout (`_layout.tsx`) and mapped in `Kaivity/constants/theme.ts`.
 
 ---
 

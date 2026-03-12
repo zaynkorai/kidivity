@@ -1,7 +1,7 @@
 # Auth + UX Alignment Design
 
 ## Goal
-Align auth/onboarding copy and visuals with the core Kidivity promise (printable, screen-free activities), improve activity card legibility, and document unimplemented actions without changing behavior.
+Align auth/onboarding copy and visuals with the core Kaivity promise (printable, screen-free activities), improve activity card legibility, and document unimplemented actions without changing behavior.
 
 ## Scope
 - Update auth and onboarding copy to emphasize printable, screen-free activities tailored to a child’s age/grade.

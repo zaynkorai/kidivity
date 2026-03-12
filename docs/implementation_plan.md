@@ -1,8 +1,8 @@
-# Kidivity — Implementation Plan (Phased Roadmap)
+# Kaivity — Implementation Plan (Phased Roadmap)
 
 ## Goal
 
-Ship a working MVP of Kidivity: a React Native (Expo) app where parents create kid profiles, generate AI-powered educational activities via Google Gemini, and print/save them. This plan breaks the work into 6 phases with clear deliverables.
+Ship a working MVP of Kaivity: a React Native (Expo) app where parents create kid profiles, generate AI-powered educational activities via Google Gemini, and print/save them. This plan breaks the work into 6 phases with clear deliverables.
 
 > **Last Updated:** March 9, 2026 — All phases complete including Phase 6 (Core Value & Monetization).
 

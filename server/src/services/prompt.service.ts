@@ -2,7 +2,7 @@ import { GenerateBody } from '../schemas/activity.schema.js';
 
 // ── System instruction ───────────────────────────────────
 export function buildSystemInstruction(profile: any): string {
-    return `You are Kidivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
+    return `You are Kaivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
 
 OUTPUT FORMAT (STRICT):
 - Return a single JSON object that matches the provided JSON schema. No extra keys. No surrounding text. No code fences.

@@ -41,7 +41,7 @@ import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme'
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/hooks/useResponsive';
 
-type GateAction = 'delete' | 'add' | 'delete_account' | null;
+type GateAction = 'delete' | 'add' | 'edit' | 'delete_account' | null;
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -87,6 +87,8 @@ export default function SettingsScreen() {
                 );
             } else if (pendingAction === 'add') {
                 router.push('/profile/create');
+            } else if (pendingAction === 'edit' && pendingProfileId) {
+                router.push(`/profile/${pendingProfileId}/edit`);
             } else if (pendingAction === 'delete_account') {
                 Alert.alert('Delete Account', 'Are you sure you want to permanently delete your account and all kid profiles? This action cannot be undone.', [
                     { text: 'Cancel', style: 'cancel' },
@@ -106,7 +108,7 @@ export default function SettingsScreen() {
     const handleShare = async () => {
         try {
             await Share.share({
-                message: `Check out Kidivity - The best app for supercharging your kid's development!`,
+                message: `Check out Kaivity - The best app for supercharging your kid's development!`,
             });
         } catch (error) {
             console.error('Share failed', error);
@@ -167,31 +169,31 @@ export default function SettingsScreen() {
     };
 
     const handleHelpSupport = () => {
-        Linking.openURL('mailto:support@kidivity.com');
+        Linking.openURL('mailto:support@kaivity.com');
     };
 
     const handleRateApp = () => {
         // Placeholder IDs - swap with real ones before launch
         const url = Platform.OS === 'ios'
             ? 'itms-apps://itunes.apple.com/app/id123456789'
-            : 'market://details?id=com.kidivity.app';
+            : 'market://details?id=com.kaivity.app';
         Linking.openURL(url).catch(() => {
             Alert.alert('Error', 'Unable to open store.');
         });
     };
 
     const handlePrivacyTerms = () => {
-        Linking.openURL('https://kidivity.com/privacy'); // Placeholder URL
+        Linking.openURL('https://kaivity.com/privacy'); // Placeholder URL
     };
 
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.flex}>
                 <ScreenBackground />
-                <ScrollView 
-                    style={[styles.container, { zIndex: 1 }]} 
+                <ScrollView
+                    style={[styles.container, { zIndex: 1 }]}
                     contentContainerStyle={[
-                        styles.content, 
+                        styles.content,
                         isMobile && { paddingHorizontal: Spacing.lg, paddingTop: Spacing['xl'] }
                     ]}
                     showsVerticalScrollIndicator={false}
@@ -229,15 +231,14 @@ export default function SettingsScreen() {
                                             </Text>
                                         </View>
                                     </View>
-                                    <View style={styles.profileActions}>
+                                    <View style={styles.profileActions}>                                        <GHTouchableOpacity
+                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
+                                        onPress={() => openGate('edit', profile.id)}
+                                    >
+                                        <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
+                                    </GHTouchableOpacity>
                                         <GHTouchableOpacity
-                                            style={[styles.actionIconBtn, isMobile && { width: 30, height: 30, borderRadius: 15 }, { backgroundColor: Colors.yellow }]}
-                                            onPress={() => router.push(`/profile/${profile.id}/edit`)}
-                                        >
-                                            <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
-                                        </GHTouchableOpacity>
-                                        <GHTouchableOpacity
-                                            style={[styles.actionIconBtn, isMobile && { width: 30, height: 30, borderRadius: 15 }, { backgroundColor: Colors.rad }]}
+                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
                                             onPress={() => openGate('delete', profile.id)}
                                         >
                                             <Trash2 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
@@ -356,22 +357,22 @@ export default function SettingsScreen() {
 
                     {/* Sign Out */}
                     <Button
-                    title="Sign Out"
-                    onPress={() => {
-                        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                            { text: 'Cancel', style: 'cancel' },
-                            {
-                                text: 'Sign Out', style: 'destructive', onPress: () => {
-                                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                                    signOut();
-                                }
-                            },
-                        ]);
-                    }}
-                    size="lg"
-                    icon={<LogOut size={18} color={Colors.white} />}
-                    style={styles.signOutBtn}
-                />
+                        title="Sign Out"
+                        onPress={() => {
+                            Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                    text: 'Sign Out', style: 'destructive', onPress: () => {
+                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                                        signOut();
+                                    }
+                                },
+                            ]);
+                        }}
+                        size="lg"
+                        icon={<LogOut size={18} color={Colors.white} />}
+                        style={styles.signOutBtn}
+                    />
 
                     <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
@@ -386,9 +387,10 @@ export default function SettingsScreen() {
                 title="Password Required"
                 description={
                     pendingAction === 'add' ? `Enter your password to add a new kid's profile.` :
-                        pendingAction === 'delete' ? `Enter your password to manage profiles.` :
-                            pendingAction === 'delete_account' ? `Enter your password to verify your identity.` :
-                                'Enter your password to access account settings.'
+                        pendingAction === 'edit' ? `Enter your password to edit the profile.` :
+                            pendingAction === 'delete' ? `Enter your password to manage profiles.` :
+                                pendingAction === 'delete_account' ? `Enter your password to verify your identity.` :
+                                    'Enter your password to access account settings.'
                 }
                 userEmail={user?.email}
             />

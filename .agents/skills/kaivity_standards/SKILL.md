@@ -1,11 +1,11 @@
 ---
-name: kidivity_standards
-description: Core conventions, design theme, and coding standards for the Kidivity app
+name: kaivity_standards
+description: Core conventions, design theme, and coding standards for the Kaivity app
 ---
 
-# Kidivity App Standards
+# Kaivity App Standards
 
-When working on the Kidivity application, you MUST follow these strictly defined architectural and stylistic rules to ensure high-quality, maintainable code.
+When working on the Kaivity application, you MUST follow these strictly defined architectural and stylistic rules to ensure high-quality, maintainable code.
 
 ## 1. Clean and Token-Savvy Code
 - Write concise, hyper-optimized code.
@@ -20,7 +20,7 @@ When working on the Kidivity application, you MUST follow these strictly defined
 - Icons should be visually consistent and strictly follow the design system.
 
 ## 3. Core Theme Definition
-Adhere strictly to the defined constants in `Kidivity/constants/theme.ts`:
+Adhere strictly to the defined constants in `Kaivity/constants/theme.ts`:
 - **Core Brand:** Purple (`#E7E1FF`), Rad (`#FECAC3`), Blue (`#8AE3FF`), Yellow (`#FFE3C1`), Orange (`#FF8A00`), Green (`#A2DDC2`)
 - **Semantic Mapping:** Orange is `primary` and `primaryDark`, Purple is `primaryLight`
 - **Category Colors:** Math (`#8AE3FF`), Reading (`#FF8A00`), Science (`#A2DDC2`), Art (`#FFE3C1`), Tracing (`#FECAC3`), Puzzles (`#E7E1FF`)

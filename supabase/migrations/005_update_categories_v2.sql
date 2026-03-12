@@ -14,7 +14,7 @@ UPDATE public.activities SET category = 'art' WHERE category = 'coloring';
 UPDATE public.activities SET category = 'reading' WHERE category = 'story';
 UPDATE public.activities SET category = 'reading' WHERE category = 'educational';
 
--- 3. Add new expanded constraint matching Kidivity constants
+-- 3. Add new expanded constraint matching Kaivity constants
 ALTER TABLE public.activities 
 ADD CONSTRAINT activities_category_check 
 CHECK (category IN ('puzzles', 'tracing', 'science', 'art', 'math', 'reading'));

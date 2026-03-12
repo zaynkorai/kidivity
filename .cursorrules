@@ -1,4 +1,4 @@
-# Kidivity App Agent Rules
+# Kaivity App Agent Rules
 
 ## Core Guidelines
 - Write clean, concise, hyper-optimized code. Token conservation is paramount.
@@ -11,7 +11,7 @@
 - **Icons Only:** Use proper vector icons for all visual indicators (e.g., Lucide React Native, Expo Vector Icons) instead of text-based emojis.
 
 ## Core Theme Architecture
-Adhere strictly to the defined constants in `Kidivity/constants/theme.ts`:
+Adhere strictly to the defined constants in `Kaivity/constants/theme.ts`:
 - **Brand Colors:** Primary Purple (`#6C63FF`), Light Purple (`#A29BFE`), Dark Purple (`#4834D4`)
 - **Accent Colors:** Coral Red (`#FF6B6B`), Success Green (`#2ED573`), Warning Yellow (`#FECA57`)
 - **Neutrals:** Light Background (`#F8F9FE`), Surface (`#FFFFFF`), Text Primary (`#1E1E2E`)

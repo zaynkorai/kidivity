@@ -1,7 +1,7 @@
-# Kidivity Categories - Current
+# Kaivity Categories - Current
 
 ## 1. Final Integrated Categories
-The Kidivity category engine now uses **6** core buckets aligned to the app constants.
+The Kaivity category engine now uses **6** core buckets aligned to the app constants.
 
 | Category ID | Label | Icon | Focus |
 |---|---|---|---|
@@ -17,8 +17,8 @@ The Kidivity category engine now uses **6** core buckets aligned to the app cons
 ## 2. Implementation Summary
 
 ### Frontend (Mobile App)
-- **Constants**: `Kidivity/constants/categories.ts` aligned to 6 items.
-- **Theming**: `Kidivity/constants/theme.ts` provides category colors per item.
+- **Constants**: `Kaivity/constants/categories.ts` aligned to 6 items.
+- **Theming**: `Kaivity/constants/theme.ts` provides category colors per item.
 - **UI Logic**: Activity detail screens render hero visuals for all visual-first categories.
 
 ### Backend (Fastify & AI)

@@ -1,8 +1,8 @@
-# Kidivity — Product Requirements Document
+# Kaivity — Product Requirements Document
 
 ## 1. Vision
 
-**Kidivity** is a mobile app that uses AI (Google Gemini + image generation) to create fun, educational, printable activities tailored to each child's age and grade. Built for parents and homeschoolers who want quality screen-free learning.
+**Kaivity** is a mobile app that uses AI (Google Gemini + image generation) to create fun, educational, printable activities tailored to each child's age and grade. Built for parents and homeschoolers who want quality screen-free learning.
 
 ---
 

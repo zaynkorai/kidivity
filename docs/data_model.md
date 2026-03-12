@@ -1,4 +1,4 @@
-# Kidivity — Data Model & Supabase Schema
+# Kaivity — Data Model & Supabase Schema
 
 ## Overview
 
