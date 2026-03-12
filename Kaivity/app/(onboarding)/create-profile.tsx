@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     progressDot: {
         width: 40,
         height: 6,
-        borderRadius: 3,
+        borderRadius: Radius.full,
         backgroundColor: Colors.border,
     },
     progressDotActive: {
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     stepBadge: {
         width: 48,
         height: 48,
-        borderRadius: 24,
+        borderRadius: Radius.full,
         backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
@@ -331,7 +331,6 @@ const styles = StyleSheet.create({
     stepTitle: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xs,
@@ -356,7 +355,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 96,
         height: 96,
-        borderRadius: 48,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
         ...Shadows.lg,
@@ -364,7 +363,6 @@ const styles = StyleSheet.create({
     avatarInitial: {
         fontSize: 40,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.white,
     },
 
@@ -378,7 +376,7 @@ const styles = StyleSheet.create({
     colorDot: {
         width: 32,
         height: 32,
-        borderRadius: 16,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -391,7 +389,6 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.md,
@@ -405,7 +402,6 @@ const styles = StyleSheet.create({
         color: Colors.accent,
         fontSize: FontSize.sm,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         marginTop: Spacing.xl,
         marginBottom: Spacing.md,
     },
@@ -436,7 +432,7 @@ const styles = StyleSheet.create({
     backBtn: {
         flex: 0.4,
         paddingVertical: 16,
-        borderRadius: Radius.lg,
+        borderRadius: Radius.full,
         borderWidth: 1.5,
         borderColor: Colors.border,
         alignItems: 'center',
@@ -445,17 +441,16 @@ const styles = StyleSheet.create({
     backBtnText: {
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     nextBtn: {
         flex: 0.6,
-        borderRadius: Radius.lg,
+        borderRadius: Radius.full,
         paddingVertical: 16,
     },
     nextBtnFull: {
         flex: 1,
-        borderRadius: Radius.lg,
+        borderRadius: Radius.full,
         paddingVertical: 16,
     },
 
@@ -479,13 +474,11 @@ const styles = StyleSheet.create({
     previewInitial: {
         fontSize: FontSize.lg,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     previewName: {
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     previewMeta: {
@@ -509,7 +502,6 @@ const styles = StyleSheet.create({
     buildingTitle: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },

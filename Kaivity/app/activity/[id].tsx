@@ -185,7 +185,7 @@ export default function ActivityDetailScreen() {
                 {/* Category badge + date */}
                 <View style={[styles.metaRow, isSmallMobile && { marginBottom: Spacing.sm }]}>
                     <View style={[styles.badge, {
-                        backgroundColor: (category?.color ?? Colors.primary) + '15',
+                        backgroundColor: (Colors.pastels as any)[activity.category] ?? Colors.primary + '15',
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 4,
@@ -256,7 +256,7 @@ export default function ActivityDetailScreen() {
                                 </Text>
                             </View>
                         )}
-                        <View style={[styles.visualBadge, { backgroundColor: (category?.color ?? Colors.primary) + '20' }, isSmallMobile && { padding: Spacing.xs }]}>
+                        <View style={[styles.visualBadge, { backgroundColor: Colors.primary + '20' }, isSmallMobile && { padding: Spacing.xs }]}>
                             <ImageIcon size={isSmallMobile ? 10 : 12} color={Colors.textPrimary} />
                             <Text style={[styles.visualBadgeText, { color: Colors.textPrimary }, isSmallMobile && { fontSize: 11 }]}>
                                 Visual Activity
@@ -338,7 +338,6 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: Fonts.medium,
         fontSize: FontSize.lg,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     topBar: {
@@ -393,7 +392,6 @@ const styles = StyleSheet.create({
     badgeText: {
         fontFamily: Fonts.medium,
         fontSize: FontSize.sm,
-        fontWeight: FontWeight.semibold,
     },
     chipRow: {
         flexDirection: 'row',
@@ -505,7 +503,6 @@ const styles = StyleSheet.create({
     heroPlaceholderText: {
         fontFamily: Fonts.medium,
         fontSize: FontSize.lg,
-        fontWeight: FontWeight.semibold,
     },
     heroPlaceholderSub: {
         fontFamily: Fonts.sans,
@@ -522,7 +519,6 @@ const styles = StyleSheet.create({
     visualBadgeText: {
         fontFamily: Fonts.medium,
         fontSize: FontSize.xs,
-        fontWeight: FontWeight.semibold,
     },
     contentCard: {
         marginBottom: Spacing.xl,
@@ -537,7 +533,6 @@ const styles = StyleSheet.create({
     createdForKid: {
         fontFamily: Fonts.medium,
         color: Colors.textPrimary,
-        fontWeight: FontWeight.semibold,
     },
     flex1: {
         flex: 1,

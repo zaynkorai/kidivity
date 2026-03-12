@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
         fontSize: 32,
         color: Colors.rad,
         fontFamily: Fonts.bold,
-        fontWeight: 'bold',
         transform: [{ rotate: '45deg' }]
     },
 });

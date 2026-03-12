@@ -17,12 +17,41 @@ export const Colors = {
   primaryLight: '#E7E1FF',  // Purple — backgrounds, chips
   primaryDark: '#FF8A00',   // Orange — pressed states
   primaryPurple: '#9B72DA', // Purple CTA color
+  primaryOrange: '#FF8A00', // Explicit Orange CTA
 
   // Accent
   accent: '#FECAC3',        // Rad 
   accentLight: '#FFE3C1',   // Yellow
   success: '#A2DDC2',       // Green 
   warning: '#FFE3C1',       // Yellow 
+  danger: '#E8757A',        // Reddish for destructive actions
+
+  // Category Accent Colors (Dynamic lookup)
+  accents: {
+    puzzles: '#9B72DA',
+    tracing: '#E8757A',
+    science: '#31A87A',
+    art: '#D4920A',
+    math: '#0EAAD4',
+    reading: '#D46300',
+  },
+
+  // Category Pastels (Dynamic lookup)
+  pastels: {
+    puzzles: '#F3EFFF', // pastelPurple
+    tracing: '#FFF0F5', // pastelPink
+    science: '#E8F5E9', // pastelMint
+    art: '#FFFBE6',     // pastelYellow
+    math: '#E3F2FD',    // pastelBlue
+    reading: '#FFF3E0', // pastelPeach
+  },
+
+  // Difficulty Colors
+  difficulty: {
+    easy: '#31A87A',
+    medium: '#D4920A',
+    hard: '#E8757A',
+  },
 
   // Neutrals
   white: '#FFFFFF',

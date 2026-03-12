@@ -12,23 +12,8 @@ interface WeeklyCalendarProps {
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-const CATEGORY_COLORS: Record<string, string> = {
-    puzzles: '#9B72DA',
-    tracing: '#E8757A',
-    science: '#31A87A',
-    art: '#D4920A',
-    math: '#0EAAD4',
-    reading: '#D46300',
-};
-
-const CATEGORY_SOFT: Record<string, string> = {
-    puzzles: '#EDE7FF',
-    tracing: '#FFE0E2',
-    science: '#D6F5E9',
-    art: '#FFF3CD',
-    math: '#D9F3FB',
-    reading: '#FFE8D0',
-};
+const CATEGORY_COLORS = Colors.accents;
+const CATEGORY_SOFT = Colors.pastels;
 
 function toLocalDateStr(date: Date): string {
     return (
@@ -232,8 +217,8 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
                             isToday={ds === todayStr}
                             isSelected={ds === selectedDate}
                             activityCount={stats?.count ?? 0}
-                            dominantColor={dominantCat ? CATEGORY_COLORS[dominantCat] : null}
-                            softColor={dominantCat ? CATEGORY_SOFT[dominantCat] : null}
+                            dominantColor={dominantCat ? (CATEGORY_COLORS as any)[dominantCat] : null}
+                            softColor={dominantCat ? (CATEGORY_SOFT as any)[dominantCat] : null}
                             pillSize={pillSize}
                             onPress={() => onSelectDate(ds === selectedDate ? null : ds)}
                         />
@@ -281,8 +266,8 @@ const styles = StyleSheet.create({
         borderRadius: Radius.xl,
         paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.md,
-        borderWidth: 1.5,
-        borderColor: 'rgba(255,255,255,0.9)',
+        borderWidth: 1,
+        borderColor: Colors.border,
         ...Shadows.md,
     },
 
@@ -295,7 +280,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         letterSpacing: -0.3,
     },
@@ -328,7 +312,6 @@ const styles = StyleSheet.create({
     badgeText: {
         fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
     },
 
     pillRow: {
@@ -346,13 +329,11 @@ const styles = StyleSheet.create({
     },
     dayLetter: {
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textSecondary,
         letterSpacing: 0.3,
     },
     dayNum: {
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     textWhite: {
@@ -365,7 +346,6 @@ const styles = StyleSheet.create({
     },
     countBadgeText: {
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     emptyDot: {
@@ -410,7 +390,6 @@ const styles = StyleSheet.create({
     perfectWeekText: {
         fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.primary,
         letterSpacing: 0.3,
     },

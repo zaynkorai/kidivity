@@ -37,7 +37,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { ParentGate } from '@/components/ui/ParentGate';
-import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -425,15 +425,12 @@ const styles = StyleSheet.create({
     headerIconContainer: {
         width: 44,
         height: 44,
-        borderRadius: 22,
+        borderRadius: Radius.full,
         backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadows.md,
         shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
     },
     title: {
         fontSize: FontSize['3xl'],
@@ -468,16 +465,12 @@ const styles = StyleSheet.create({
     avatar: {
         width: 44,
         height: 44,
-        borderRadius: 22,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
         borderColor: Colors.surface,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        ...Shadows.sm,
     },
     avatarText: {
         fontSize: FontSize.md,
@@ -496,7 +489,6 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.medium,
         color: Colors.textSecondary,
         marginTop: 1,
-        fontWeight: FontWeight.medium,
     },
     profileActions: {
         flexDirection: 'row',
@@ -505,7 +497,7 @@ const styles = StyleSheet.create({
     actionIconBtn: {
         width: 32,
         height: 32,
-        borderRadius: 16,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -549,13 +541,11 @@ const styles = StyleSheet.create({
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
         color: Colors.textPrimary,
-        fontWeight: FontWeight.semibold,
     },
     settingValue: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
         color: Colors.textSecondary,
-        fontWeight: FontWeight.medium,
     },
 
     divider: {
@@ -567,11 +557,8 @@ const styles = StyleSheet.create({
     signOutBtn: {
         marginTop: Spacing['3xl'],
         backgroundColor: Colors.primary,
+        ...Shadows.md,
         shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
     },
     bottomSpacer: {
         height: Spacing['3xl'],

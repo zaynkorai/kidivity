@@ -229,7 +229,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         lineHeight: 34,
     },
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: Spacing.xl,
         borderRadius: Radius.xl,
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
     },
@@ -256,14 +255,12 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: FontSize.lg,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         flex: 1,
     },
     optionTextSelected: {
         color: Colors.textPrimary,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
     },
     checkWrap: {
         width: 24,
@@ -289,12 +286,11 @@ const styles = StyleSheet.create({
     backText: {
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     nextBtn: {
         flex: 0.6,
-        borderRadius: Radius.lg,
+        borderRadius: Radius.full,
     },
 
     // Transition Overlay
@@ -310,7 +306,6 @@ const styles = StyleSheet.create({
     transitionTitle: {
         fontSize: FontSize['3xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.md,
         textAlign: 'center',

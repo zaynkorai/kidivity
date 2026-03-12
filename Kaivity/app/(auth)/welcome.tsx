@@ -96,10 +96,9 @@ const styles = StyleSheet.create({
         position: 'absolute',
     },
     squiggleText: {
-        fontSize: 32,
+        fontSize: FontSize['3xl'],
         color: Colors.rad,
         fontFamily: Fonts.bold,
-        fontWeight: 'bold',
         transform: [{ rotate: '45deg' }]
     },
 
@@ -111,16 +110,14 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     authTitle: {
-        fontSize: 36,
+        fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
         color: ScreenColors.textMain,
         marginBottom: Spacing.sm,
     },
     authSubtitle: {
-        fontSize: 14,
+        fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing['3xl'],
@@ -146,7 +143,6 @@ const styles = StyleSheet.create({
     emailButtonLabel: {
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.textPrimary,
     },
     signUpLink: {
@@ -162,6 +158,5 @@ const styles = StyleSheet.create({
     signUpBold: {
         color: ScreenColors.textMain,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
     }
 });

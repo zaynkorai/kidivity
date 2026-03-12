@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     labelContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 2,
+        gap: Spacing.xs / 2,
     },
     label: {
         fontSize: FontSize.sm,
@@ -76,12 +76,12 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.bold,
     },
     input: {
-        backgroundColor: '#F8F9FE',
+        backgroundColor: Colors.light.background,
         borderWidth: 2,
         borderColor: 'transparent',
-        borderRadius: 9999,
+        borderRadius: Radius.full,
         paddingHorizontal: Spacing['xl'],
-        paddingVertical: 14,
+        paddingVertical: Spacing.lg - 2,
         fontSize: FontSize.md,
         fontFamily: Fonts.sans,
         color: Colors.textPrimary,

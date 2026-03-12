@@ -14,7 +14,7 @@ import { KeyRound } from 'lucide-react-native';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordScreen() {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     iconCircle: {
         width: 80,
         height: 80,
-        borderRadius: 40,
+        borderRadius: Radius.full,
         backgroundColor: Colors.pastelPeach,
         alignItems: 'center',
         justifyContent: 'center',
@@ -194,7 +194,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSize['3xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.primaryDark,
         textAlign: 'center',
         marginBottom: Spacing.sm,
@@ -223,7 +222,6 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.medium,
         fontSize: FontSize.sm,
         textAlign: 'center',
-        fontWeight: FontWeight.medium,
         marginTop: Spacing.xs,
         marginBottom: Spacing.sm,
     },

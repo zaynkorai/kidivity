@@ -142,29 +142,6 @@ export default function ActivitiesScreen() {
         } as any);
     };
 
-    const ACCENT_COLORS: Record<string, string> = {
-        puzzles: '#9B72DA',
-        tracing: '#E8757A',
-        science: '#31A87A',
-        art: '#D4920A',
-        math: '#0EAAD4',
-        reading: '#D46300',
-    };
-
-    const BG_COLORS: Record<string, string> = {
-        puzzles: Colors.pastelPurple,
-        tracing: Colors.pastelPink,
-        science: Colors.pastelMint,
-        art: Colors.pastelYellow,
-        math: Colors.pastelBlue,
-        reading: Colors.pastelPeach,
-    };
-
-    const DIFFICULTY_COLORS: Record<string, string> = {
-        easy: '#31A87A',
-        medium: '#D4920A',
-        hard: '#E8757A',
-    };
     const tabBarHeight = useBottomTabBarHeight();
     const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
     const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
@@ -182,9 +159,9 @@ export default function ActivitiesScreen() {
 
     const renderItem = ({ item }: { item: Activity }) => {
         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
-        const accent = ACCENT_COLORS[item.category] ?? Colors.primary;
-        const bgColor = BG_COLORS[item.category] ?? Colors.pastelYellow;
-        const diffColor = DIFFICULTY_COLORS[item.difficulty] ?? Colors.primary;
+        const accent = Colors.accents[item.category as keyof typeof Colors.accents] ?? Colors.primary;
+        const bgColor = Colors.pastels[item.category as keyof typeof Colors.pastels] ?? Colors.pastelYellow;
+        const diffColor = Colors.difficulty[item.difficulty as keyof typeof Colors.difficulty] ?? Colors.primary;
 
         return (
             <TouchableOpacity
@@ -606,7 +583,7 @@ const styles = StyleSheet.create({
     gridTopic: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.bold,
-        fontWeight: '800',
+        fontWeight: FontWeight.extrabold,
         color: Colors.textPrimary,
         lineHeight: 18,
         letterSpacing: -0.2,

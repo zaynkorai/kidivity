@@ -8,13 +8,13 @@ import {
     type TextStyle,
     type StyleProp,
 } from 'react-native';
-import { Colors, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface ButtonProps {
     title: string;
     onPress: () => void;
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+    variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'purple';
     size?: 'sm' | 'md' | 'lg';
     disabled?: boolean;
     loading?: boolean;
@@ -83,12 +83,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: Spacing.sm,
         borderRadius: Radius.full,
     },
 
     // Variants
     primary: {
+        backgroundColor: Colors.primaryOrange,
+        ...Shadows.md,
+    },
+    purple: {
         backgroundColor: Colors.primaryPurple,
         ...Shadows.md,
     },
@@ -129,6 +133,9 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.bold,
     },
     text_primary: {
+        color: Colors.white,
+    },
+    text_purple: {
         color: Colors.white,
     },
     text_secondary: {

@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
@@ -164,7 +164,7 @@ export default function EditProfileScreen() {
                 >
                     {/* Avatar Preview */}
                     <View style={styles.avatarSection}>
-                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && { width: 64, height: 64, borderRadius: 32 }]}>
+                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && { width: 64, height: 64, borderRadius: Radius.full }]}>
                             <Text style={[styles.avatarInitial, isCompact && { fontSize: FontSize['3xl'] }]}>
                                 {name ? name.charAt(0).toUpperCase() : '?'}
                             </Text>
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 80,
         height: 80,
-        borderRadius: 40,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: Spacing.md,
@@ -309,7 +309,6 @@ const styles = StyleSheet.create({
     avatarInitial: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     colorPicker: {
@@ -319,7 +318,7 @@ const styles = StyleSheet.create({
     colorDot: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: Radius.full,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -332,7 +331,6 @@ const styles = StyleSheet.create({
     fieldLabel: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
@@ -346,7 +344,6 @@ const styles = StyleSheet.create({
         color: Colors.accent,
         fontSize: FontSize.sm,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
     },
@@ -378,7 +375,6 @@ const styles = StyleSheet.create({
     deleteBtnText: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.accent,
     },
 
@@ -395,7 +391,6 @@ const styles = StyleSheet.create({
     notFoundText: {
         fontSize: FontSize.lg,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     ageInput: {

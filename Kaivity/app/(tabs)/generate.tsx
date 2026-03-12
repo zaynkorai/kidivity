@@ -302,15 +302,10 @@ export default function GenerateScreen() {
                     </View>
                     <View style={styles.categoryGrid}>
                         {ACTIVITY_CATEGORIES.map((cat) => {
-                            const Icon = cat.icon;
                             const isSelected = selectedCategory === cat.id;
 
                             // Aggressive responsive scaling for all mobile devices
-                            const isMobile = !isTablet; 
-                            const cardPadV = isMobile ? Spacing.sm : Spacing.lg;
-                            const cardPadH = isMobile ? Spacing.md : Spacing.lg;
-                            const iconSz  = isMobile ? 26 : 40; 
-                            const iconBr  = isMobile ? 10 : 16;
+                            const isMobile = !isTablet;
                             const labelSz = isMobile ? FontSize.sm : FontSize.md;
 
                             return (
@@ -323,10 +318,10 @@ export default function GenerateScreen() {
                                     activeOpacity={0.85}
                                     style={[
                                         styles.categoryCard,
-                                        { backgroundColor: cat.color + '40', borderColor: cat.color, paddingVertical: cardPadV, paddingHorizontal: cardPadH },
+                                        { backgroundColor: cat.color + '40', borderColor: cat.color },
                                         isSelected && {
                                             borderColor: cat.accent,
-                                            borderWidth: 2.5,
+                                            borderWidth: 1.2,
                                             backgroundColor: cat.accent + '18',
                                             shadowColor: cat.accent,
                                             shadowOpacity: 0.3,
@@ -336,20 +331,15 @@ export default function GenerateScreen() {
                                         },
                                     ]}
                                 >
-                                    <View style={styles.categoryTopRow}>
-                                        <View style={[styles.categoryIconWrap, {
-                                            backgroundColor: isSelected ? cat.accent : cat.color,
-                                            width: iconSz, height: iconSz, borderRadius: iconBr,
-                                        }]}>
-                                            <Icon size={isMobile ? 16 : 22} color={isSelected ? Colors.white : Colors.textPrimary} />
+                                    {isSelected && (
+                                        <View style={[styles.selectedPip, { backgroundColor: cat.accent }]}>
+                                            <Check size={13} color={Colors.white} strokeWidth={3} />
                                         </View>
-                                        {isSelected && (
-                                            <View style={[styles.selectedPip, { backgroundColor: cat.accent }]}>
-                                                <Check size={13} color={Colors.white} strokeWidth={3} />
-                                            </View>
-                                        )}
-                                    </View>
-                                    <Text style={[styles.categoryLabel, { fontSize: labelSz }, isSelected && { color: cat.accent }]}>
+                                    )}
+                                    <Text
+                                        style={[styles.categoryLabel, { fontSize: labelSz }, isSelected && { color: cat.accent }]}
+                                        numberOfLines={2}
+                                    >
                                         {cat.label}
                                     </Text>
                                 </TouchableOpacity>
@@ -542,7 +532,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         backgroundColor: Colors.white,
         borderRadius: Radius.full,
-        borderWidth: 1.5,
+        borderWidth: 1.2,
         borderColor: 'rgba(255,255,255,0.8)',
         ...Shadows.sm,
     },
@@ -646,7 +636,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.background,
-        borderWidth: 1.5,
+        borderWidth: 1.2,
         borderColor: Colors.border,
         borderStyle: 'dashed',
     },
@@ -683,7 +673,7 @@ const styles = StyleSheet.create({
 
     stepCard: {
         borderRadius: Radius.xl,
-        borderWidth: 1.5,
+        borderWidth: 1.2,
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
     },
@@ -697,33 +687,32 @@ const styles = StyleSheet.create({
     categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
     categoryCard: {
         width: '48%',
+        minHeight: 84,
         borderRadius: Radius.lg,
-        borderWidth: 1.5,
+        borderWidth: 1.2,
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
-        padding: Spacing.lg,
+        padding: Spacing.md,
+        alignItems: 'center',
+        justifyContent: 'center',
         ...Shadows.sm,
     },
-    categoryTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    categoryIconWrap: {
-        width: 40,
-        height: 40,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     selectedPip: {
-        width: 26,
-        height: 26,
-        borderRadius: 13,
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 1,
     },
     categoryLabel: {
-        marginTop: Spacing.sm,
         fontSize: FontSize.md,
         fontFamily: Fonts.bold,
         color: Colors.textPrimary,
+        textAlign: 'center',
     },
 
     topicChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },

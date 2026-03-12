@@ -155,7 +155,7 @@ export default function SignUpScreen() {
                                 ]}
                             >
                                 <Text style={[styles.title, isShort && { fontSize: FontSize.xl, marginBottom: 0 }]}>Create Account</Text>
-                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: 13 }]}>
+                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: FontSize.xs }]}>
                                     Sign up to save activities and sync across devices.
                                 </Text>
 
@@ -323,7 +323,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.purpleText,
         textAlign: 'center',
         lineHeight: 44,
@@ -345,7 +344,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
         marginBottom: Spacing.xs,
         textAlign: 'center',
@@ -384,7 +382,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         color: Colors.textPrimary,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
     },
     checkTextActive: {
         color: Colors.success,
@@ -420,7 +417,6 @@ const styles = StyleSheet.create({
     switchLinkBold: {
         color: ScreenColors.textMain,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.extrabold,
     },
 
     // Success
@@ -436,7 +432,6 @@ const styles = StyleSheet.create({
     successTitle: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
         textAlign: 'center',
         marginBottom: Spacing.md,
@@ -451,7 +446,7 @@ const styles = StyleSheet.create({
     },
     successButton: {
         width: '100%',
-        borderRadius: Radius.lg,
+        borderRadius: Radius.full,
         paddingVertical: 16,
     },
 });

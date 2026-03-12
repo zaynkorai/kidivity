@@ -106,7 +106,7 @@ export default function SignInScreen() {
                                 ]}
                             >
                                 <Text style={[styles.title, isShort && { fontSize: FontSize.xl, marginBottom: 0 }]}>Sign In</Text>
-                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: 13 }]}>
+                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: FontSize.xs }]}>
                                     Pick up right where you left off.
                                 </Text>
 
@@ -216,7 +216,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.blueText,
         textAlign: 'center',
         lineHeight: 44,
@@ -238,7 +237,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
         marginBottom: Spacing.xs,
         textAlign: 'center',
@@ -284,6 +282,5 @@ const styles = StyleSheet.create({
     switchLinkBold: {
         color: ScreenColors.textMain,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
     },
 });

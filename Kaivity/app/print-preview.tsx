@@ -283,7 +283,7 @@ export default function PrintPreviewScreen() {
                         !activity.image_url && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
                         isSmallScreen && { paddingBottom: Spacing.md, marginBottom: Spacing.md }
                     ]}>
-                        <View style={[styles.badge, { backgroundColor: (category?.color ?? Colors.primary) + '15' }]}>
+                        <View style={[styles.badge, { backgroundColor: (Colors.pastels as any)[activity.category] ?? Colors.primary + '15' }]}>
                             <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                 {category?.label}
                             </Text>
@@ -347,7 +347,6 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: FontSize.lg,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
         marginTop: Spacing.md,
     },
@@ -377,7 +376,6 @@ const styles = StyleSheet.create({
     topTitle: {
         fontSize: FontSize.lg,
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     container: {
@@ -421,7 +419,6 @@ const styles = StyleSheet.create({
     previewTitle: {
         fontSize: FontSize['2xl'],
         fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: 4,

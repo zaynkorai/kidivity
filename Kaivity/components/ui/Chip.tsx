@@ -48,7 +48,7 @@ export function Chip({
                 style={[
                     styles.label,
                     isSmall && styles.labelSmall,
-                    selected && { color: activeColor, fontFamily: Fonts.bold, fontWeight: FontWeight.bold },
+                    selected && { color: activeColor, fontFamily: Fonts.bold },
                 ]}
             >
                 {label}
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
         borderRadius: Radius.full,
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderColor: Colors.border,
         backgroundColor: Colors.surface,
     },
@@ -79,7 +79,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
     },
     labelSmall: {
