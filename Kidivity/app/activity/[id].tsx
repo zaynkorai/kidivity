@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
     ArrowLeft,
@@ -43,6 +44,8 @@ export default function ActivityDetailScreen() {
     const router = useRouter();
     const { recentActivities, savedActivities, toggleSaved, generateActivity, isGenerating } = useActivityStore();
     const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['5xl']);
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
@@ -290,7 +293,7 @@ export default function ActivityDetailScreen() {
                     />
                 </View>
 
-                <View style={[styles.bottomSpacer, isSmallMobile && { height: Spacing['3xl'] }]} />
+                <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
         </SafeAreaView>
     );

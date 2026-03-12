@@ -10,7 +10,11 @@ export default async function activityRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: GenerateBody }>('/api/activities/generate', async (request, reply) => {
         const parsed = generateSchema.safeParse(request.body);
         if (!parsed.success) {
-            fastify.log.error({ body: request.body, errors: parsed.error.errors }, 'Validation failed');
+            const logPayload =
+                process.env.NODE_ENV === 'production'
+                    ? { errors: parsed.error.errors, bodyKeys: Object.keys(request.body ?? {}) }
+                    : { errors: parsed.error.errors, body: request.body };
+            fastify.log.error(logPayload, 'Validation failed');
             return reply.code(400).send({
                 error: 'Invalid request data',
                 details: parsed.error.errors,

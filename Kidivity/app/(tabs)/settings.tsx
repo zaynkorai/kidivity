@@ -11,6 +11,7 @@ import {
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import * as LinkingApi from 'expo-linking';
 import * as Haptics from 'expo-haptics';
@@ -48,6 +49,9 @@ export default function SettingsScreen() {
     const { profiles, deleteProfile } = useProfileStore();
     const { isTablet, isCompact } = useResponsive();
     const isMobile = !isTablet;
+    const tabBarHeight = useBottomTabBarHeight();
+    const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
+    const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
 
     const [gateVisible, setGateVisible] = useState(false);
     const [pendingAction, setPendingAction] = useState<GateAction>(null);
@@ -98,7 +102,7 @@ export default function SettingsScreen() {
                     {
                         text: 'Delete Account', style: 'destructive', onPress: () => {
                             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                            // TODO: Implement user deletion via supabase auth and profile cascading deletion
+                            // TODO(account): Implement user deletion via Supabase auth and profile cascade.
                             Alert.alert('Notice', 'Account deletion will be implemented in a future update.');
                         }
                     },
@@ -350,7 +354,7 @@ export default function SettingsScreen() {
                     style={styles.signOutBtn}
                 />
 
-                <View style={styles.bottomSpacer} />
+                <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
         </SafeAreaView>
     );

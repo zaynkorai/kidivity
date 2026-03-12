@@ -13,21 +13,21 @@ const SLIDES = [
     {
         id: '1',
         title: 'Personalized Learning',
-        subtitle: 'AI-crafted quests that adapt to your child&apos;s pace and grade level.',
+        subtitle: 'Printable activities tailored to your child&apos;s age and grade level.',
         Icon: Wand2,
         color: Colors.categoryMath,
     },
     {
         id: '2',
-        title: 'Screen-Time You Feel Good About',
-        subtitle: '100% educational, safe, and wildly engaging.',
+        title: 'Screen-Free Time You Feel Good About',
+        subtitle: 'Printable, educational activities you can trust.',
         Icon: ShieldCheck,
         color: Colors.categoryScience,
     },
     {
         id: '3',
         title: 'Track Their Growth',
-        subtitle: 'Watch them level up in Math, Reading, and more every single day.',
+        subtitle: 'See progress across Math, Reading, and more with every activity.',
         Icon: TrendingUp,
         color: Colors.categoryReading,
     },
@@ -44,7 +44,7 @@ export default function WelcomeScreen() {
             setCurrentIndex(prev => prev + 1);
         } else {
             setStep(2);
-            router.push('/(auth)/questionnaire');
+            router.push('/(onboarding)/questionnaire');
         }
     };
 

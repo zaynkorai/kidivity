@@ -50,10 +50,12 @@ export default function RootLayout() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inPublicOnboarding =
+      inOnboardingGroup && (segments[1] === 'welcome' || segments[1] === 'questionnaire');
     const isAuthenticated = !!session;
     const hasProfiles = profiles.length > 0;
 
-    if (!isAuthenticated && !inAuthGroup) {
+    if (!isAuthenticated && !(inAuthGroup || inPublicOnboarding)) {
       // Not signed in → send to welcome
       router.replace('/(auth)/welcome');
     } else if (isAuthenticated && inAuthGroup) {

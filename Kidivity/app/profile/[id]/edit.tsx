@@ -13,6 +13,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
@@ -32,6 +33,8 @@ const AVATAR_COLORS = [
 
 export default function EditProfileScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['4xl']);
     const { id } = useLocalSearchParams<{ id: string }>();
     const { profiles, updateProfile, deleteProfile } = useProfileStore();
     const { user } = useAuthStore();
@@ -244,7 +247,7 @@ export default function EditProfileScreen() {
                         <Text style={styles.deleteBtnText}>Delete Profile</Text>
                     </TouchableOpacity>
 
-                    <View style={styles.bottomSpacer} />
+                    <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>

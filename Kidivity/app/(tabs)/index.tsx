@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback, Dimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Plus, Wand2, Sun, Sunset, Moon, Flame, Clock, History, ChevronDown, ChevronRight, FileText, Calendar } from 'lucide-react-native';
@@ -36,6 +37,9 @@ function formatShortDate(dateIso: string): string {
 export default function HomeScreen() {
   const router = useRouter();
   const { isCompact, isSmallMobile, isShort } = useResponsive();
+  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
+  const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
 
   // Calculate dynamic card width for perfect grid consistency
   const horizontalPadding = isCompact ? Spacing.lg : Spacing.xl;
@@ -334,7 +338,7 @@ export default function HomeScreen() {
           })}
         </View>
 
-        <View style={styles.bottomSpacer} />
+        <View style={[styles.bottomSpacer, { height: bottomPad }]} />
       </ScrollView>
     </SafeAreaView>
   );

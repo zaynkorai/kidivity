@@ -8,8 +8,10 @@ import {
     Modal,
     TouchableWithoutFeedback,
     useWindowDimensions,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -43,6 +45,9 @@ import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
     const { isCompact: compact, isSmallMobile: sm, isShort, isTablet } = useResponsive();
+    const tabBarHeight = useBottomTabBarHeight();
+    const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
+    const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
 
     const { category } = useLocalSearchParams<{ category?: ActivityCategory }>();
     const profiles = useProfileStore((state) => state.profiles);
@@ -471,7 +476,7 @@ export default function GenerateScreen() {
                     </Card>
                 )}
 
-                <View style={styles.bottomSpacer} />
+                <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
         </SafeAreaView >
     );

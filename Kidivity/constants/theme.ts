@@ -27,6 +27,7 @@ export const Colors = {
   // Neutrals
   white: '#FFFFFF',
   background: '#f5f5ffff',    // Crisp white for playful watermarks
+  paleBackground: '#FDFBF7',
   surface: '#FFFFFF',       // Cards, modals
   border: '#E8E8F0',        // Subtle borders
   textPrimary: '#1E1E2E',   // Near-black

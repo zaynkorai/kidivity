@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { getApiUrl } from '@/lib/network';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
 
 interface RateLimitState {
@@ -130,7 +131,7 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
                         return { data: null, error: 'Not authenticated' };
                     }
 
-                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+                    const apiUrl = getApiUrl();
 
                     const response = await fetch(`${apiUrl}/api/activities/generate`, {
                         method: 'POST',

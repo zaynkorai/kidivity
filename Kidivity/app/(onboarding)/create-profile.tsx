@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Wand2, ArrowRight, Check } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -33,6 +34,8 @@ const STEP_COUNT = 2;
 export default function OnboardingCreateProfileScreen() {
     useOnboardingGuard(3);
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['4xl']);
     const addProfile = useProfileStore((s) => s.addProfile);
     const setGlobalStep = useOnboardingSessionStore(s => s.setStep);
 
@@ -257,7 +260,7 @@ export default function OnboardingCreateProfileScreen() {
                         </Card>
                     )}
 
-                    <View style={styles.bottomSpacer} />
+                    <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>

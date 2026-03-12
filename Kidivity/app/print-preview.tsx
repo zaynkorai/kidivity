@@ -15,6 +15,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { ArrowLeft, Printer, FileDown, Search, Heart } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
@@ -163,6 +164,8 @@ function buildPrintHtml(activity: {
 }
 
 export default function PrintPreviewScreen() {
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['3xl']);
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { recentActivities, savedActivities } = useActivityStore();
@@ -324,7 +327,7 @@ export default function PrintPreviewScreen() {
                     </View>
                 </View>
 
-                <View style={styles.bottomSpacer} />
+                <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
         </SafeAreaView>
     );

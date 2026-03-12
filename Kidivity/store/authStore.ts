@@ -44,6 +44,14 @@ async function ensureUserRow(user: User) {
     }
 }
 
+const INVALID_REFRESH_TOKEN_MESSAGES = ['invalid refresh token', 'refresh token not found'];
+
+function isInvalidRefreshTokenError(message?: string): boolean {
+    if (!message) return false;
+    const normalized = message.toLowerCase();
+    return INVALID_REFRESH_TOKEN_MESSAGES.some(fragment => normalized.includes(fragment));
+}
+
 export const useAuthStore = create<AuthStore>()(
         (set, get) => ({
             // State
@@ -59,7 +67,23 @@ export const useAuthStore = create<AuthStore>()(
                 get()._authSubscription?.();
 
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
+                    const { data, error } = await supabase.auth.getSession();
+                    if (error && isInvalidRefreshTokenError(error.message)) {
+                        try {
+                            await supabase.auth.signOut();
+                        } catch {
+                            // Best-effort cleanup for stale refresh token.
+                        }
+                        useProfileStore.getState().clearProfiles();
+                        set({
+                            session: null,
+                            user: null,
+                            isInitialized: true,
+                        });
+                        return;
+                    }
+
+                    const session = data.session;
                     set({
                         session,
                         user: session?.user ?? null,

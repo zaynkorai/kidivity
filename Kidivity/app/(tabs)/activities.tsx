@@ -6,8 +6,10 @@ import {
     TouchableOpacity,
     StyleSheet,
     RefreshControl,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -116,6 +118,9 @@ export default function ActivitiesScreen() {
         medium: '#D4920A',
         hard: '#E8757A',
     };
+    const tabBarHeight = useBottomTabBarHeight();
+    const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
+    const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
 
     function relativeDate(iso: string): string {
         const diff = Date.now() - new Date(iso).getTime();
@@ -334,7 +339,7 @@ export default function ActivitiesScreen() {
                 <FlatList
                     data={filteredActivities}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
+                    contentContainerStyle={[styles.list, { paddingBottom: bottomPad }]}
                     numColumns={2}
                     columnWrapperStyle={styles.columnWrapper}
                     renderItem={renderItem}
@@ -442,7 +447,6 @@ const styles = StyleSheet.create({
     list: {
         padding: Spacing.xl,
         paddingTop: Spacing.sm,
-        paddingBottom: 120, // Account for floating tab bar
     },
     columnWrapper: {
         gap: Spacing.md,
@@ -484,7 +488,7 @@ const styles = StyleSheet.create({
         borderRadius: Radius.full,
     },
     catChipText: {
-        fontSize: 9,
+        fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.2,
@@ -538,16 +542,16 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     diffLabel: {
-        fontSize: 9,
+        fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.2,
     },
     dateLabel: {
-        fontSize: 9,
+        fontSize: FontSize.xs,
         fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
-        color: Colors.textTertiary,
+        color: Colors.textSecondary,
     },
 
     // Kid badge at bottom
@@ -564,7 +568,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.textTertiary,
     },
     kidBadgeText: {
-        fontSize: 9,
+        fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textSecondary,

@@ -2,13 +2,12 @@ import 'react-native-url-polyfill/auto';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { resolveLocalhostUrl } from './network';
 
 let supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-if (Platform.OS !== 'web' && supabaseUrl.includes('localhost')) {
-    supabaseUrl = supabaseUrl.replace('localhost', '172.16.162.13');
-}
+supabaseUrl = resolveLocalhostUrl(supabaseUrl);
 
 // Lazy singleton — avoids initializing during Expo Router's SSR pass
 // where AsyncStorage's `window.localStorage` isn't available.

@@ -11,13 +11,13 @@ import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
-// Refined colors based on standard design philosophy from the screenshots
+// Screen colors aligned to the core theme
 const ScreenColors = {
-    background: '#FDFBF7', // Very pale cream background matching screenshot
-    authBg: '#FFF9E6',     // Pale beige for the sign in screen
-    textMain: '#1A1A1A',
-    textPrimary: '#1A1A1A',
-    textSecondary: '#7A7A7A',
+    background: Colors.background,
+    authBg: Colors.pastelPeach,
+    textMain: Colors.textPrimary,
+    textPrimary: Colors.textPrimary,
+    textSecondary: Colors.textSecondary,
 };
 
 export default function WelcomeScreen() {
@@ -25,10 +25,12 @@ export default function WelcomeScreen() {
     const router = useRouter();
 
     const handleGoogleAuth = () => {
+        // TODO(auth): Implement Google OAuth before launch.
         // Implement real OAuth later
     };
 
     const handleAppleAuth = () => {
+        // TODO(auth): Implement Apple OAuth before launch.
         // Implement real OAuth later
     };
 
@@ -42,15 +44,15 @@ export default function WelcomeScreen() {
                 {/* Top Floating Space Elements Container */}
                 <View style={[styles.floatingContainer, { height: height * 0.45 }]}>
                     {/* Decorative Icons positioned absolutely to match the Sign In screenshot */}
-                    <Globe size={64} color="#FDCB6E" style={[styles.floatingIcon, { top: '10%', left: '42%' }]} />
-                    <Star size={24} color="#FDCB6E" fill="#FDCB6E" style={[styles.floatingIcon, { top: '45%', right: '15%' }]} />
-                    <Star size={24} color="#FFADAD" fill="#FFADAD" style={[styles.floatingIcon, { top: '12%', right: '18%' }]} />
+                    <Globe size={64} color={Colors.blue} style={[styles.floatingIcon, { top: '10%', left: '42%' }]} />
+                    <Star size={24} color={Colors.yellow} fill={Colors.yellow} style={[styles.floatingIcon, { top: '45%', right: '15%' }]} />
+                    <Star size={24} color={Colors.rad} fill={Colors.rad} style={[styles.floatingIcon, { top: '12%', right: '18%' }]} />
 
-                    <Atom size={50} color="#F7AFAF" style={[styles.floatingIcon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
-                    <Rocket size={56} color="#FF8A00" style={[styles.floatingIcon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
+                    <Atom size={50} color={Colors.green} style={[styles.floatingIcon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
+                    <Rocket size={56} color={Colors.primary} style={[styles.floatingIcon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
 
-                    <Ruler size={60} color="#E17A5D" style={[styles.floatingIcon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
-                    <PenTool size={26} color="#E17A5D" style={[styles.floatingIcon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
+                    <Ruler size={60} color={Colors.primaryPurple} style={[styles.floatingIcon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
+                    <PenTool size={26} color={Colors.primary} style={[styles.floatingIcon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
 
                     {/* Tiny decorative elements (squiggles simulated with tiny text) */}
                     <Text style={[styles.floatingIcon, styles.squiggleText, { top: '14%', left: '24%' }]}>~</Text>
@@ -62,7 +64,7 @@ export default function WelcomeScreen() {
                 <View style={[styles.authBottomContainer, isCompact && { paddingHorizontal: Spacing.xl }]}>
                     <Text style={styles.authTitle}>Welcome</Text>
                     <Text style={styles.authSubtitle}>
-                        You&apos;re just one click away from{'\n'}finding the expertise and knowledge
+                        You&apos;re one step away from{'\n'}printable, screen-free activities tailored to your child
                     </Text>
 
                     <TouchableOpacity style={styles.oauthButton} onPress={handleEmailAuth}>
@@ -83,15 +85,15 @@ export default function WelcomeScreen() {
                         <Text style={styles.emailButtonLabel}>Continue with Email</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.signUpLink} onPress={() => router.push('/(auth)/onboarding-welcome')}>
+                    <TouchableOpacity style={styles.signUpLink} onPress={() => router.push('/(onboarding)/welcome')}>
                         <Text style={styles.signUpText}>Don&apos;t have an account? <Text style={styles.signUpBold}>Sign Up</Text></Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Bottom Bush / Cloud Decoration */}
                 <View style={styles.bottomDecoration}>
-                    <Cloud size={140} color="#F39C12" fill="#F39C12" style={styles.bushIcon} />
-                    <Cloud size={120} color="#E67E22" fill="#E67E22" style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
+                    <Cloud size={140} color={Colors.primary} fill={Colors.primary} style={styles.bushIcon} />
+                    <Cloud size={120} color={Colors.orange} fill={Colors.orange} style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
                 </View>
             </View>
         </SafeAreaView>
@@ -119,7 +121,7 @@ const styles = StyleSheet.create({
     },
     squiggleText: {
         fontSize: 32,
-        color: '#FFADAD',
+        color: Colors.rad,
         fontFamily: Fonts.bold,
         fontWeight: 'bold',
         transform: [{ rotate: '45deg' }]

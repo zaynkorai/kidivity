@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AlertTriangle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -28,6 +29,8 @@ const AVATAR_COLORS = [
 
 export default function CreateProfileScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['4xl']);
     const addProfile = useProfileStore((s) => s.addProfile);
     const { isCompact } = useResponsive();
 
@@ -163,7 +166,7 @@ export default function CreateProfileScreen() {
                         style={styles.submitBtn}
                     />
 
-                    <View style={styles.bottomSpacer} />
+                    <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>

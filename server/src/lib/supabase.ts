@@ -18,7 +18,7 @@ export function getAdminClient(): SupabaseClient {
 export function getUserClient(accessToken: string): SupabaseClient {
     return createClient(
         process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        process.env.SUPABASE_ANON_KEY!,
         {
             global: {
                 headers: { Authorization: `Bearer ${accessToken}` },

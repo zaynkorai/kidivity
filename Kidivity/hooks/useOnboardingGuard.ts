@@ -24,17 +24,13 @@ export function useOnboardingGuard(currentStep: number) {
     // Enforce sequential navigation
     if (status === 'in-progress' && currentStep > step) {
       const stepMap: Record<number, Href> = {
-        1: '/(auth)/onboarding-welcome',
-        2: '/(auth)/questionnaire',
+        1: '/(onboarding)/welcome',
+        2: '/(onboarding)/questionnaire',
         3: '/(onboarding)/create-profile',
         4: '/(onboarding)/upload'
       };
 
-      let target = stepMap[step] || ('/(auth)/onboarding-welcome' as Href);
-      if (!isAuthenticated && (target as string).startsWith('/(onboarding)/')) {
-        target = '/(auth)/onboarding-welcome' as Href;
-      }
-      go(target);
+      go(stepMap[step] || ('/(onboarding)/welcome' as Href));
     }
   }, [currentStep, step, status, isAuthenticated, pathname, router]);
 }

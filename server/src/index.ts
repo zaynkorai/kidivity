@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'crypto';
 import authPlugin from './plugins/auth.js';
 import activityRoutes from './routes/activities.js';
@@ -59,6 +60,11 @@ async function main() {
     await fastify.register(cors, {
         origin: true, // Allow all origins in dev; lock down in production
         credentials: true,
+    });
+
+    await fastify.register(rateLimit, {
+        max: 30,
+        timeWindow: '1 minute',
     });
 
     await fastify.register(authPlugin);
