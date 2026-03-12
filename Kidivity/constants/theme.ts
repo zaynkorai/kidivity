@@ -107,17 +107,17 @@ export const Fonts = Platform.select({
     sans: 'Poppins_400Regular',
     medium: 'Poppins_500Medium',
     bold: 'Poppins_700Bold',
-    serif: 'Georgia',
+    serif: 'Poppins_400Regular',
     rounded: 'Poppins_500Medium',
-    mono: 'Menlo',
+    mono: 'Poppins_400Regular',
   },
   default: {
     sans: 'Poppins_400Regular',
     medium: 'Poppins_500Medium',
     bold: 'Poppins_700Bold',
-    serif: 'serif',
+    serif: 'Poppins_400Regular',
     rounded: 'Poppins_500Medium',
-    mono: 'monospace',
+    mono: 'Poppins_400Regular',
   },
 })!;
 
