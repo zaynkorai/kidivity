@@ -3,13 +3,13 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     TouchableOpacity,
     useWindowDimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ArrowRight, Wand2, Star, Rocket } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';

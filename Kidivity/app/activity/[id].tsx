@@ -5,13 +5,12 @@ import {
     ScrollView,
     TouchableOpacity,
     StyleSheet,
-    SafeAreaView,
     Alert,
     Share,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
     ArrowLeft,

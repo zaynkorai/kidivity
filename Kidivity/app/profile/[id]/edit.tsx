@@ -4,7 +4,6 @@ import {
     Text,
     ScrollView,
     StyleSheet,
-    SafeAreaView,
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
@@ -13,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';

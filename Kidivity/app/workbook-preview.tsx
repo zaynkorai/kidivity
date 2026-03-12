@@ -4,7 +4,6 @@ import {
     Text,
     ScrollView,
     StyleSheet,
-    SafeAreaView,
     Alert,
     TouchableOpacity,
 } from 'react-native';
@@ -13,7 +12,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { ArrowLeft, Printer, FileDown, Search } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';

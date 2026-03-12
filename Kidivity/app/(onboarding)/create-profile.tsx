@@ -4,14 +4,13 @@ import {
     Text,
     ScrollView,
     StyleSheet,
-    SafeAreaView,
     TouchableOpacity,
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
 import { Wand2, ArrowRight, Check } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';

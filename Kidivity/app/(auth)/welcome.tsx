@@ -3,10 +3,10 @@ import {
     View,
     Text,
     StyleSheet,
-    SafeAreaView,
     TouchableOpacity,
     Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
 import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
