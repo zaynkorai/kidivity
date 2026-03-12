@@ -14,7 +14,7 @@ import { KeyRound } from 'lucide-react-native';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function ResetPasswordScreen() {
@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['3xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.primaryDark,
         textAlign: 'center',
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: Colors.textSecondary,
         textAlign: 'center',
         marginBottom: Spacing['2xl'],
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: Colors.accent,
+        fontFamily: Fonts.sans,
         fontSize: FontSize.sm,
         textAlign: 'center',
         marginTop: Spacing.xs,
@@ -205,6 +208,7 @@ const styles = StyleSheet.create({
     },
     successText: {
         color: Colors.success,
+        fontFamily: Fonts.medium,
         fontSize: FontSize.sm,
         textAlign: 'center',
         fontWeight: FontWeight.medium,

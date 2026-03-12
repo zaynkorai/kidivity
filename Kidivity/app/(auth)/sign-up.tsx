@@ -15,7 +15,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, BookOpen, Star } from 'lucide-react
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 import { useResponsive } from '@/hooks/useResponsive';
 const ScreenColors = {
@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: FontSize['4xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.extrabold,
         color: ScreenColors.purpleText,
         textAlign: 'center',
@@ -300,6 +301,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
         marginBottom: Spacing.xs,
@@ -307,6 +309,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing['3xl'],
@@ -337,6 +340,7 @@ const styles = StyleSheet.create({
     checkText: {
         fontSize: FontSize.sm,
         color: Colors.textPrimary,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
     },
     checkTextActive: {
@@ -346,6 +350,7 @@ const styles = StyleSheet.create({
     // Error
     errorText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.accent,
         textAlign: 'center',
         marginTop: Spacing.md,
@@ -366,10 +371,12 @@ const styles = StyleSheet.create({
     },
     switchLinkText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
     },
     switchLinkBold: {
         color: ScreenColors.textMain,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.extrabold,
     },
 
@@ -385,6 +392,7 @@ const styles = StyleSheet.create({
     },
     successTitle: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
         textAlign: 'center',
@@ -392,6 +400,7 @@ const styles = StyleSheet.create({
     },
     successSubtitle: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
         lineHeight: 22,

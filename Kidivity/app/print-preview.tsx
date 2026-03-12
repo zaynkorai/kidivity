@@ -17,7 +17,7 @@ import * as Haptics from 'expo-haptics';
 import { ArrowLeft, Printer, FileDown, Search, Heart } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { MarkdownContent, normalizeActivityContent } from '@/components/ui/MarkdownContent';
 
@@ -246,23 +246,23 @@ export default function PrintPreviewScreen() {
                         title={isSmallScreen ? "PDF" : "Export PDF"}
                         onPress={handleSavePdf}
                         variant="secondary"
-                        size={isSmallScreen ? "sm" : "md"}
-                        icon={<FileDown size={16} color={Colors.textPrimary} />}
+                        size="sm"
+                        icon={<FileDown size={14} color={Colors.textPrimary} />}
                         textStyle={{ color: Colors.textPrimary }}
                     />
                     <Button
                         title={isSmallScreen ? "Print" : "Print Now"}
                         onPress={handlePrint}
                         variant="secondary"
-                        size={isSmallScreen ? "sm" : "md"}
-                        icon={<Printer size={16} color={Colors.textPrimary} />}
+                        size="sm"
+                        icon={<Printer size={14} color={Colors.textPrimary} />}
                         textStyle={{ color: Colors.textPrimary }}
                     />
                 </View>
             </View>
 
-            <ScrollView 
-                style={styles.container} 
+            <ScrollView
+                style={styles.container}
                 contentContainerStyle={[
                     styles.content,
                     isSmallScreen && { padding: Spacing.md },
@@ -276,7 +276,7 @@ export default function PrintPreviewScreen() {
                 ]}>
                     {/* Header */}
                     <View style={[
-                        styles.previewHeader, 
+                        styles.previewHeader,
                         !activity.image_url && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
                         isSmallScreen && { paddingBottom: Spacing.md, marginBottom: Spacing.md }
                     ]}>
@@ -309,7 +309,7 @@ export default function PrintPreviewScreen() {
 
                 {/* Page 2: Content */}
                 <View style={[
-                    styles.previewCard, 
+                    styles.previewCard,
                     { minHeight: 300 },
                     isSmallScreen && { padding: Spacing.lg, borderRadius: Radius.md }
                 ]}>
@@ -343,6 +343,7 @@ const styles = StyleSheet.create({
     },
     emptyTitle: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
         marginTop: Spacing.md,
@@ -372,6 +373,7 @@ const styles = StyleSheet.create({
     },
     topTitle: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
@@ -410,10 +412,12 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
     },
     previewTitle: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
@@ -421,6 +425,7 @@ const styles = StyleSheet.create({
     },
     previewMeta: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
     },
     previewImage: {

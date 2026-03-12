@@ -36,7 +36,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { ParentGate } from '@/components/ui/ParentGate';
-import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -390,12 +390,14 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['3xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
 
     sectionTitle: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
         textTransform: 'uppercase',
@@ -432,16 +434,19 @@ const styles = StyleSheet.create({
     },
     avatarText: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     profileName: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     profileMeta: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         color: Colors.textSecondary,
         marginTop: 2,
         fontWeight: FontWeight.medium,
@@ -470,6 +475,7 @@ const styles = StyleSheet.create({
     },
     addProfileText: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
@@ -494,11 +500,13 @@ const styles = StyleSheet.create({
     },
     settingLabel: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         color: Colors.textPrimary,
         fontWeight: FontWeight.semibold,
     },
     settingValue: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         color: Colors.textSecondary,
         fontWeight: FontWeight.medium,
     },

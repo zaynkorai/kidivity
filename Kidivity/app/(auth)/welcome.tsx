@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 // Refined colors based on standard design philosophy from the screenshots
 const ScreenColors = {
@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     squiggleText: {
         fontSize: 32,
         color: '#FFADAD',
+        fontFamily: Fonts.bold,
         fontWeight: 'bold',
         transform: [{ rotate: '45deg' }]
     },
@@ -133,12 +134,14 @@ const styles = StyleSheet.create({
     },
     authTitle: {
         fontSize: 36,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.extrabold,
         color: ScreenColors.textMain,
         marginBottom: Spacing.sm,
     },
     authSubtitle: {
         fontSize: 14,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
@@ -165,11 +168,13 @@ const styles = StyleSheet.create({
     },
     oauthTypeletter: {
         fontSize: 20,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.extrabold,
-        color: '#4285F4', // Google blue mockup
+        color: '#4285F4',
     },
     oauthButtonLabel: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: ScreenColors.textMain,
     },
@@ -193,6 +198,7 @@ const styles = StyleSheet.create({
     },
     emailButtonLabel: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: ScreenColors.textPrimary,
     },
@@ -203,10 +209,12 @@ const styles = StyleSheet.create({
     },
     signUpText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
     },
     signUpBold: {
         color: ScreenColors.textMain,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.extrabold,
     }
 });

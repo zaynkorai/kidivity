@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -8,7 +8,7 @@ import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -35,6 +35,12 @@ function formatShortDate(dateIso: string): string {
 export default function HomeScreen() {
   const router = useRouter();
   const { isCompact, isSmallMobile, isShort } = useResponsive();
+
+  // Calculate dynamic card width for perfect grid consistency
+  const horizontalPadding = isCompact ? Spacing.lg : Spacing.xl;
+  const gridGap = Spacing.md;
+  const { width: screenWidth } = Dimensions.get('window');
+  const categoryCardWidth = (screenWidth - (horizontalPadding * 2) - gridGap) / 2;
 
   // Stable action selectors
   const fetchProfiles = useProfileStore((state) => state.fetchProfiles);
@@ -213,11 +219,6 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.magicRightColumn}>
-              <View style={styles.magicIconContainer}>
-                <View style={styles.magicIconGlow}>
-                  <Wand2 size={28} color={Colors.white} />
-                </View>
-              </View>
 
               {lastActivity && (
                 <TouchableOpacity
@@ -287,6 +288,7 @@ export default function HomeScreen() {
                 key={cat.id}
                 style={[
                   styles.categoryCard,
+                  { width: categoryCardWidth },
                   isCompact && { height: 132 },
                   isShort && { height: 110 },
                   {
@@ -368,8 +370,9 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: FontSize.md,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary, // Kept typography color
+    color: Colors.textPrimary,
   },
   profileDropdownBtn: {
     flexDirection: 'row',
@@ -397,6 +400,7 @@ const styles = StyleSheet.create({
   },
   profileInitial: {
     fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   },
@@ -409,16 +413,19 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
   profileMeta: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.sans,
     color: Colors.textPrimary,
     marginTop: 1,
   },
   dropdownBtnText: {
     fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.semibold,
     color: Colors.textPrimary,
   },
@@ -473,12 +480,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSize['3xl'],
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: FontSize.md,
+    fontFamily: Fonts.sans,
     color: Colors.textPrimary,
     marginTop: Spacing.xs,
     lineHeight: 22,
@@ -488,7 +497,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: Radius.xl,
     padding: Spacing.xl,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
     ...Shadows.md,
     shadowColor: Colors.primary,
   },
@@ -503,12 +512,14 @@ const styles = StyleSheet.create({
   },
   magicCardTitle: {
     fontSize: FontSize.xl,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.white,
     letterSpacing: -0.3,
   },
   magicCardSubtitle: {
     fontSize: FontSize.sm,
+    fontFamily: Fonts.sans,
     color: 'rgba(255, 255, 255, 0.9)',
     marginTop: Spacing.xs,
     lineHeight: 20,
@@ -523,6 +534,7 @@ const styles = StyleSheet.create({
   },
   magicCardBadgeText: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   },
@@ -561,6 +573,7 @@ const styles = StyleSheet.create({
   },
   magicOpenLastText: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.primaryDark,
   },
@@ -576,12 +589,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: FontSize.xl,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     letterSpacing: -0.3,
   },
   statsDate: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.medium,
     fontWeight: FontWeight.medium,
     color: Colors.textSecondary,
   },
@@ -611,11 +626,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
   },
   statLabel: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
     fontWeight: FontWeight.medium,
     marginTop: 2,
@@ -626,11 +643,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
-    justifyContent: 'space-between',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   categoryCard: {
-    width: '47.5%',
     height: 152,
     borderRadius: Radius.lg,
     padding: Spacing.md,
@@ -668,6 +683,7 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     width: '100%',
@@ -675,6 +691,7 @@ const styles = StyleSheet.create({
   },
   categorySub: {
     fontSize: FontSize.xs,
+    fontFamily: Fonts.sans,
     color: Colors.textSecondary,
     marginTop: 3,
     width: '100%',

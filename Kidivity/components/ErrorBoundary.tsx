@@ -1,6 +1,6 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
 import { AlertCircle } from 'lucide-react-native';
 import { Button } from './ui/Button';
 
@@ -82,12 +82,14 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize.xl,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
     },
     message: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginTop: Spacing.sm,

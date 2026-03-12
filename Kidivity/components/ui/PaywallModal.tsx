@@ -8,7 +8,7 @@ import {
     Pressable,
 } from 'react-native';
 import { Zap, Check, X } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts } from '@/constants/theme';
 
 const FEATURES = [
     'Unlimited activity generation',
@@ -102,12 +102,14 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },
     subtitle: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xl,
@@ -125,6 +127,7 @@ const styles = StyleSheet.create({
     },
     featureText: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
     },
     cta: {
@@ -141,11 +144,13 @@ const styles = StyleSheet.create({
     },
     ctaText: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.surface,
     },
     resetNote: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
     },
 });

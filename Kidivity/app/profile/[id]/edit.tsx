@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     },
     avatarInitial: {
         fontSize: FontSize['4xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -304,6 +305,7 @@ const styles = StyleSheet.create({
     // Fields
     fieldLabel: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
@@ -317,6 +319,7 @@ const styles = StyleSheet.create({
 
     error: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.accent,
         marginTop: Spacing.lg,
         textAlign: 'center',
@@ -336,6 +339,7 @@ const styles = StyleSheet.create({
     },
     deleteBtnText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.accent,
     },
@@ -352,6 +356,7 @@ const styles = StyleSheet.create({
     },
     notFoundText: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },

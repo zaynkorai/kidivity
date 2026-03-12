@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ArrowRight, Sparkles, Check } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, FontSize, FontWeight, Radius, Shadows } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius, Shadows } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 
 // Minimal local state for the questionnaire. 
@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         lineHeight: 34,
@@ -246,12 +247,14 @@ const styles = StyleSheet.create({
     },
     optionText: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         flex: 1,
     },
     optionTextSelected: {
         color: Colors.textPrimary,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
     },
     checkWrap: {
@@ -277,6 +280,7 @@ const styles = StyleSheet.create({
     },
     backText: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
@@ -297,6 +301,7 @@ const styles = StyleSheet.create({
     },
     transitionTitle: {
         fontSize: FontSize['3xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.md,
@@ -304,12 +309,14 @@ const styles = StyleSheet.create({
     },
     transitionSubtitle: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         lineHeight: 28,
     },
     transitionGoalLabel: {
         color: Colors.textPrimary,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
     },
     transitionSubtitleMargin: {

@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { Card } from '@/components/ui/Card';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import type { GradeLevel } from '@/constants/grades';
 
@@ -310,6 +310,7 @@ const styles = StyleSheet.create({
     },
     stepTitle: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
@@ -317,6 +318,7 @@ const styles = StyleSheet.create({
     },
     stepSubtitle: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
     },
@@ -341,6 +343,7 @@ const styles = StyleSheet.create({
     },
     avatarInitial: {
         fontSize: 40,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -367,6 +370,7 @@ const styles = StyleSheet.create({
     // Fields
     fieldLabel: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
@@ -385,6 +389,7 @@ const styles = StyleSheet.create({
     // Error
     error: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.accent,
         textAlign: 'center',
         marginBottom: Spacing.md,
@@ -407,6 +412,7 @@ const styles = StyleSheet.create({
     },
     backBtnText: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
@@ -440,16 +446,19 @@ const styles = StyleSheet.create({
     },
     previewInitial: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     previewName: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },
     previewMeta: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         marginTop: 2,
     },
@@ -467,12 +476,14 @@ const styles = StyleSheet.create({
     },
     buildingTitle: {
         fontSize: FontSize['2xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },
     buildingSubtitle: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
     },

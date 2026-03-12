@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, type ViewStyle } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { Colors, Radius, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 
 interface ChipProps {
     label: string;
@@ -48,7 +48,7 @@ export function Chip({
                 style={[
                     styles.label,
                     isSmall && styles.labelSmall,
-                    selected && { color: activeColor, fontWeight: FontWeight.bold },
+                    selected && { color: activeColor, fontFamily: Fonts.bold, fontWeight: FontWeight.bold },
                 ]}
             >
                 {label}
@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
     },

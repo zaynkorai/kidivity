@@ -7,7 +7,7 @@ import {
     type ViewStyle,
     type TextStyle,
 } from 'react-native';
-import { Colors, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface ButtonProps {
@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
 
     // Text
     text: {
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
     },
     text_primary: {

@@ -7,7 +7,7 @@ import {
     type TextInputProps,
     type ViewStyle,
 } from 'react-native';
-import { Colors, Radius, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface InputProps extends TextInputProps {
@@ -53,18 +53,20 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginLeft: Spacing.xs,
     },
     input: {
-        backgroundColor: '#F8F9FE', // Very soft off-white background
+        backgroundColor: '#F8F9FE',
         borderWidth: 2,
         borderColor: 'transparent',
-        borderRadius: 9999, // Perfect pill
+        borderRadius: 9999,
         paddingHorizontal: Spacing['xl'],
         paddingVertical: 18,
         fontSize: FontSize.md,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
     },
     inputShort: {
@@ -80,6 +82,7 @@ const styles = StyleSheet.create({
     },
     error: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.accent,
         marginLeft: Spacing.xs,
     },

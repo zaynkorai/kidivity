@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Wand2, ShieldCheck, TrendingUp, ArrowRight } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
-import { Colors, Spacing, FontSize, FontWeight, Radius } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 
 
@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['3xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         textAlign: 'center',
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         lineHeight: 28,

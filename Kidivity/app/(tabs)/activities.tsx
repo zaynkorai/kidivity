@@ -18,7 +18,7 @@ import { useProfileStore } from '@/store/profileStore';
 import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { WeeklyCalendar } from '@/components/ui/WeeklyCalendar';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import type { Activity } from '@/types/activity';
 
@@ -373,6 +373,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize['3xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         letterSpacing: -0.5,
@@ -403,6 +404,7 @@ const styles = StyleSheet.create({
     },
     filterLabel: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
         textTransform: 'uppercase',
@@ -424,6 +426,7 @@ const styles = StyleSheet.create({
     },
     clearText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         color: Colors.accent,
         fontWeight: FontWeight.medium,
     },
@@ -433,6 +436,7 @@ const styles = StyleSheet.create({
     },
     resultCountText: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
     },
     list: {
@@ -481,6 +485,7 @@ const styles = StyleSheet.create({
     },
     catChipText: {
         fontSize: 9,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.2,
     },
@@ -488,6 +493,7 @@ const styles = StyleSheet.create({
     // Title
     gridTopic: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: '800',
         color: Colors.textPrimary,
         lineHeight: 18,
@@ -533,11 +539,13 @@ const styles = StyleSheet.create({
     },
     diffLabel: {
         fontSize: 9,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.2,
     },
     dateLabel: {
         fontSize: 9,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textTertiary,
     },
@@ -557,6 +565,7 @@ const styles = StyleSheet.create({
     },
     kidBadgeText: {
         fontSize: 9,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textSecondary,
     },
@@ -577,12 +586,14 @@ const styles = StyleSheet.create({
     },
     emptyTitle: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.xs,
     },
     emptySubtitle: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         maxWidth: '80%',

@@ -14,7 +14,7 @@ import { X, Lock } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Button } from './Button';
 import { Input } from './Input';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 interface ParentGateProps {
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize.lg,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
@@ -177,6 +178,7 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         marginBottom: Spacing.xl,
         lineHeight: 20,
@@ -191,6 +193,7 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: Colors.accent,
+        fontFamily: Fonts.sans,
         fontSize: FontSize.sm,
         marginTop: Spacing.sm,
         textAlign: 'center',

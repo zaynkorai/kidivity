@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import { Home, Wand2, History, Settings } from 'lucide-react-native';
-import { Colors, Shadows, Spacing, Radius } from '@/constants/theme';
+import { Colors, Shadows, Spacing, Radius, Fonts } from '@/constants/theme';
 import { HapticTab } from '@/components/haptic-tab';
 export default function TabLayout() {
   return (
@@ -28,6 +28,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
+          fontFamily: Fonts.bold,
           fontWeight: '600',
           marginTop: 2,
         },

@@ -551,6 +551,7 @@ const styles = StyleSheet.create({
     },
     profileInitial: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -563,26 +564,31 @@ const styles = StyleSheet.create({
     },
     profileName: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     profileMeta: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         marginTop: 1,
     },
     profileNameDrop: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     profileMetaDrop: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         marginTop: 1,
     },
     dropdownBtnText: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,
     },

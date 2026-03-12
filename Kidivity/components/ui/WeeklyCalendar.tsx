@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable, useWindowDimensions } from 'react-native';
 import { Flame, Star, CheckCircle2, Zap } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import type { Activity } from '@/types/activity';
 
 interface WeeklyCalendarProps {
@@ -294,6 +294,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: FontSize.md,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         letterSpacing: -0.3,
@@ -326,6 +327,7 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
     },
 
@@ -343,11 +345,13 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     dayLetter: {
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textSecondary,
         letterSpacing: 0.3,
     },
     dayNum: {
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
@@ -360,6 +364,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 3,
     },
     countBadgeText: {
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -404,6 +409,7 @@ const styles = StyleSheet.create({
     },
     perfectWeekText: {
         fontSize: FontSize.xs,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.primary,
         letterSpacing: 0.3,

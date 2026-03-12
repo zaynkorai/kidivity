@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Animated, Easing, Modal, StyleSheet } from 'react-native';
 import { Wand2 } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts } from '@/constants/theme';
 
 const FUN_MESSAGES = [
     'Mixing creative juices...',
@@ -106,12 +106,14 @@ const loadingStyles = StyleSheet.create({
     iconWrap: { marginBottom: Spacing.lg },
     title: {
         fontSize: FontSize.xl,
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: Spacing.sm,
     },
     message: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xl,

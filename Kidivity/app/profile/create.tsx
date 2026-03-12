@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, FontSize, FontWeight } from '@/constants/theme';
+import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
     },
     avatarInitial: {
         fontSize: FontSize['4xl'],
+        fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
@@ -217,6 +218,7 @@ const styles = StyleSheet.create({
     // Fields
     fieldLabel: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.medium,
         fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
         marginTop: Spacing.xl,
@@ -230,6 +232,7 @@ const styles = StyleSheet.create({
 
     error: {
         fontSize: FontSize.sm,
+        fontFamily: Fonts.sans,
         color: Colors.accent,
         marginTop: Spacing.lg,
         textAlign: 'center',
