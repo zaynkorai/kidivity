@@ -76,7 +76,7 @@ export default function RootLayout() {
   }, [session, isInitialized, segments, profiles.length]);
 
   // Show loading spinner until auth state is resolved or fonts load
-  if (!isInitialized || !hasLoadedProfiles) {
+  if (!isInitialized || !hasLoadedProfiles || !fontsLoaded) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.primary} />

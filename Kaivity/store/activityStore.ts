@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { getApiUrl } from '@/lib/network';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
@@ -38,7 +40,9 @@ type ActivityStore = ActivityState & ActivityActions;
 
 const DEFAULT_RATE_LIMIT: RateLimitState = { hit: false, used: 0, limit: 10, resetAt: null };
 
-export const useActivityStore = create<ActivityStore>()((set, get) => ({
+export const useActivityStore = create<ActivityStore>()(
+    persist(
+        (set, get) => ({
             recentActivities: [],
             savedActivities: [],
             kidStats: {},
@@ -250,5 +254,14 @@ export const useActivityStore = create<ActivityStore>()((set, get) => ({
                 isFetchingSaved: false,
                 rateLimitState: DEFAULT_RATE_LIMIT,
             }),
-        })
+        }),
+        {
+            name: 'kaivity-activity-cache',
+            storage: createJSONStorage(() => AsyncStorage),
+            partialize: (state) => ({
+                recentActivities: state.recentActivities.slice(0, 20),
+                savedActivities: state.savedActivities,
+            }),
+        }
+    )
 );

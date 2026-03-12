@@ -59,7 +59,7 @@ async function main() {
 
     // ── Plugins ──────────────────────────────────────────
     await fastify.register(cors, {
-        origin: true, // Allow all origins in dev; lock down in production
+        origin: isDev ? true : process.env.ALLOWED_ORIGINS?.split(',') || false,
         credentials: true,
     });
 

@@ -57,6 +57,7 @@ export async function uploadBase64Image(base64Data: string, logger: FastifyBaseL
             Key: filename,
             Body: buffer,
             ContentType: mimeType,
+            CacheControl: 'public, max-age=31536000, immutable',
             // R2 doesn't always need ACLs, public access is managed at bucket level
         });
 

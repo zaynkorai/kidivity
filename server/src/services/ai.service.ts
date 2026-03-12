@@ -7,6 +7,7 @@ interface GenerateActivityParams {
     sysInstruction: string;
     promptText: string;
     buildImagePrompt?: (dynamicPrompt: string) => string;
+    model: string;
     isVisualCategory: boolean;
     logger: FastifyBaseLogger;
 }
@@ -83,6 +84,7 @@ export async function generateActivityContent({
     geminiKey,
     sysInstruction,
     promptText,
+    model,
     buildImagePrompt,
     isVisualCategory,
     logger
@@ -105,7 +107,7 @@ export async function generateActivityContent({
                     ? ''
                     : '\n\nIMPORTANT: Return ONLY valid JSON matching the schema. Do not include Markdown code fences or any extra text.';
             const res = await ai.models.generateContent({
-                model: "gemini-3-flash-preview",
+                model: model,
                 contents: `${promptText}${retrySuffix}`,
                 config: {
                     systemInstruction: sysInstruction,
