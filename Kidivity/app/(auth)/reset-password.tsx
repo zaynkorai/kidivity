@@ -62,14 +62,14 @@ export default function ResetPasswordScreen() {
             setSuccessMessage('Password has been updated successfully!');
             setPassword('');
             setConfirmPassword('');
-            
+
             // Allow them to read the success message for 1.5 seconds, then go home
             setTimeout(() => {
                 router.replace('/(tabs)');
             }, 1500);
 
-        } catch (err: any) {
-            setError(err.message || 'An unexpected error occurred.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
             setIsLoading(false);
         }
     };
@@ -82,7 +82,7 @@ export default function ResetPasswordScreen() {
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <ScrollView 
+                <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled"
                 >

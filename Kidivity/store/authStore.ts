@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from './profileStore';
@@ -10,6 +8,7 @@ interface AuthState {
     session: Session | null;
     isLoading: boolean;
     isInitialized: boolean;
+    _authSubscription: (() => void) | null;
 }
 
 interface AuthActions {
@@ -46,16 +45,19 @@ async function ensureUserRow(user: User) {
 }
 
 export const useAuthStore = create<AuthStore>()(
-    persist(
         (set, get) => ({
             // State
             user: null,
             session: null,
             isLoading: false,
             isInitialized: false,
+            _authSubscription: null,
 
             // Actions
             initialize: async () => {
+                // Unsubscribe any existing listener before re-init
+                get()._authSubscription?.();
+
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
                     set({
@@ -64,22 +66,21 @@ export const useAuthStore = create<AuthStore>()(
                         isInitialized: true,
                     });
 
-                    // Ensure user row exists for current session
                     if (session?.user) {
                         ensureUserRow(session.user);
                     }
 
-                    // Listen for auth changes
-                    supabase.auth.onAuthStateChange((_event, session) => {
+                    // Listen for auth changes — store unsubscribe fn for cleanup
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
                         set({
                             session,
                             user: session?.user ?? null,
                         });
-                        // Ensure user row on every SIGNED_IN event
                         if (session?.user) {
                             ensureUserRow(session.user);
                         }
                     });
+                    set({ _authSubscription: () => subscription.unsubscribe() });
                 } catch {
                     set({ isInitialized: true });
                 }
@@ -93,7 +94,11 @@ export const useAuthStore = create<AuthStore>()(
                     if (error) {
                         console.warn('[auth] signUp error:', error.message);
                         set({ isLoading: false });
-                        return { error: error.message };
+                        // Map common error codes to user-friendly messages
+                        if (error.message.toLowerCase().includes('already registered')) {
+                            return { error: 'An account with this email already exists. Try signing in.' };
+                        }
+                        return { error: 'Failed to create account. Please try again.' };
                     }
 
                     // Supabase v2 returns a user with empty identities (no error)
@@ -112,15 +117,12 @@ export const useAuthStore = create<AuthStore>()(
                         session: data.session,
                         isLoading: false,
                     });
-                    // Create public.users row for new sign-up
                     if (data.user) {
                         ensureUserRow(data.user);
                     }
                     return { error: null };
                 } catch (err: unknown) {
-                    const message =
-                        err instanceof Error ? err.message : 'An unexpected error occurred';
-                    console.error('[auth] signUp exception:', message);
+                    console.error('[auth] signUp exception:', err instanceof Error ? err.message : err);
                     set({ isLoading: false });
                     return { error: 'An unexpected error occurred. Please try again.' };
                 }
@@ -133,22 +135,20 @@ export const useAuthStore = create<AuthStore>()(
                     if (error) {
                         console.warn('[auth] signIn error:', error.message);
                         set({ isLoading: false });
-                        return { error: error.message };
+                        // Use a generic message to avoid confirming whether email exists
+                        return { error: 'Invalid email or password.' };
                     }
                     set({
                         user: data.user,
                         session: data.session,
                         isLoading: false,
                     });
-                    // Ensure public.users row exists
                     if (data.user) {
                         ensureUserRow(data.user);
                     }
                     return { error: null };
                 } catch (err: unknown) {
-                    const message =
-                        err instanceof Error ? err.message : 'An unexpected error occurred';
-                    console.error('[auth] signIn exception:', message);
+                    console.error('[auth] signIn exception:', err instanceof Error ? err.message : err);
                     set({ isLoading: false });
                     return { error: 'An unexpected error occurred. Please try again.' };
                 }
@@ -156,15 +156,20 @@ export const useAuthStore = create<AuthStore>()(
 
             signOut: async () => {
                 set({ isLoading: true });
+
+                // Cleanup listener before signing out
+                get()._authSubscription?.();
+
                 await supabase.auth.signOut();
-                
+
                 // Clear profiles to prevent routing leaks for subsequent sign-ins
                 useProfileStore.getState().clearProfiles();
-                
+
                 set({
                     user: null,
                     session: null,
                     isLoading: false,
+                    _authSubscription: null,
                 });
             },
 
@@ -174,14 +179,5 @@ export const useAuthStore = create<AuthStore>()(
                     user: session?.user ?? null,
                 });
             },
-        }),
-        {
-            name: 'kidivity-auth',
-            storage: createJSONStorage(() => AsyncStorage),
-            partialize: (state) => ({
-                session: state.session,
-                user: state.user,
-            }),
-        }
-    )
+        })
 );

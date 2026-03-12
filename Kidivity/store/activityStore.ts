@@ -183,8 +183,6 @@ export const useActivityStore = create<ActivityStore>()(
                         apiUrl = apiUrl.replace('localhost', '172.16.162.13'); 
                     }
 
-                    console.log('[Generate Activity] Sending payload:', JSON.stringify(input, null, 2));
-
                     const response = await fetch(`${apiUrl}/api/activities/generate`, {
                         method: 'POST',
                         headers: {

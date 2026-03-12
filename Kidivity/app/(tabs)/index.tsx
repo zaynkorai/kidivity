@@ -479,14 +479,14 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   title: {
-    fontSize: FontSize['3xl'],
+    fontSize: FontSize['xl'],
     fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.textPrimary,
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: FontSize.md,
+    fontSize: FontSize.sm,
     fontFamily: Fonts.sans,
     color: Colors.textPrimary,
     marginTop: Spacing.xs,
