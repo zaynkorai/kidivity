@@ -11,3 +11,10 @@ export const generateSchema = z.object({
 });
 
 export type GenerateBody = z.infer<typeof generateSchema>;
+
+export const feedbackSchema = z.object({
+    rating: z.number().min(-1).max(1),
+    feedback_text: z.string().max(500).optional(),
+});
+
+export type FeedbackBody = z.infer<typeof feedbackSchema>;

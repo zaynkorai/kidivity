@@ -233,12 +233,13 @@ export default function SettingsScreen() {
                                             </Text>
                                         </View>
                                     </View>
-                                    <View style={styles.profileActions}>                                        <GHTouchableOpacity
-                                        style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
-                                        onPress={() => openGate('edit', profile.id)}
-                                    >
-                                        <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
-                                    </GHTouchableOpacity>
+                                    <View style={styles.profileActions}>
+                                        <GHTouchableOpacity
+                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
+                                            onPress={() => openGate('edit', profile.id)}
+                                        >
+                                            <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
+                                        </GHTouchableOpacity>
                                         <GHTouchableOpacity
                                             style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
                                             onPress={() => openGate('delete', profile.id)}

@@ -47,12 +47,28 @@ export default async function activityRoutes(fastify: FastifyInstance) {
             return reply.code(403).send({ error: 'Profile not found' });
         }
 
+        // 3b. Fetch recent feedback for personalization
+        const { data: recentFeedback } = await supabase
+            .from('activities')
+            .select('category, topic, rating, feedback_text')
+            .eq('kid_profile_id', input.kid_profile_id)
+            .neq('rating', 0)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        const feedbackStrings = (recentFeedback || []).map(f => {
+            const sentiment = f.rating === 1 ? 'LIKED' : 'DISLIKED';
+            let str = `${sentiment}: ${f.category} activity about "${f.topic}"`;
+            if (f.feedback_text) str += ` (Reason: ${f.feedback_text})`;
+            return str;
+        });
+
         const geminiKey = process.env.GEMINI_API_KEY;
         if (!geminiKey) {
             throw new Error('GEMINI_API_KEY is not configured');
         }
 
-        const sysInstruction = buildSystemInstruction(kidProfile);
+        const sysInstruction = buildSystemInstruction(kidProfile, feedbackStrings);
         const promptText = buildPromptUser(kidProfile, input);
         const buildImagePromptFn = (dynOp: string) => buildImagePrompt(kidProfile, input, dynOp);
         
@@ -96,6 +112,30 @@ export default async function activityRoutes(fastify: FastifyInstance) {
             throw new Error('Failed to save activity to database');
         }
 
+
         return activity;
+    });
+
+    fastify.post<{ Params: { id: string }; Body: { rating: number; feedback_text?: string } }>('/api/activities/:id/feedback', async (request, reply) => {
+        const { id } = request.params;
+        const supabase = getUserClient(request.accessToken);
+
+        const { data, error } = await supabase
+            .from('activities')
+            .update({
+                rating: request.body.rating,
+                feedback_text: request.body.feedback_text
+            })
+            .eq('id', id)
+            .eq('user_id', request.userId)
+            .select()
+            .single();
+
+        if (error || !data) {
+            fastify.log.error('Feedback update error: %o', error);
+            return reply.code(404).send({ error: 'Activity not found or update failed' });
+        }
+
+        return data;
     });
 }

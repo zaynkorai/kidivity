@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { safeStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import type { KidProfile, CreateKidProfileInput, UpdateKidProfileInput } from '@/types/profile';
 
@@ -198,7 +198,7 @@ export const useProfileStore = create<ProfileStore>()(
         }),
         {
             name: 'kaivity-profiles',
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => safeStorage),
             partialize: (state) => ({
                 profiles: state.profiles,
                 activeProfileId: state.activeProfileId,

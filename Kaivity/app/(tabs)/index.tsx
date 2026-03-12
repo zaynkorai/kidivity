@@ -215,9 +215,8 @@ export default function HomeScreen() {
             <View style={styles.magicHeaderRow}>
               <View style={styles.magicHeaderLeft}>
                 <View style={styles.magicHeaderText}>
-                  <Text style={styles.magicEyebrow} {...noScale}>Create Activity</Text>
                   <Text style={styles.magicTitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
-                    Print-ready in minutes
+                    Print ready in minutes
                   </Text>
                 </View>
               </View>
@@ -237,7 +236,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <Text style={styles.magicSubtitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
+            <Text style={styles.magicSubtitle} numberOfLines={2} ellipsizeMode="tail" {...noScale}>
               {activeProfile
                 ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
                 : 'Add a profile to generate your first printable activity.'}
@@ -553,18 +552,18 @@ const styles = StyleSheet.create({
   },
   magicTitle: {
     marginTop: 2,
-    fontSize: FontSize['2xl'],
+    fontSize: FontSize['xl'],
     fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.white,
     letterSpacing: -0.4,
-    lineHeight: 32,
+    lineHeight: 28,
   },
   magicSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: Fonts.sans,
     color: 'rgba(255, 255, 255, 0.92)',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   magicFooterRow: {
     flexDirection: 'row',

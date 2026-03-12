@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { safeStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { getApiUrl } from '@/lib/network';
 import { prefetchActivityImages } from '@/lib/image';
@@ -33,6 +33,7 @@ interface ActivityActions {
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
+    submitFeedback: (id: string, rating: number, feedbackText?: string) => Promise<void>;
     clearRateLimit: () => void;
     reset: () => void;
 }
@@ -255,6 +256,52 @@ export const useActivityStore = create<ActivityStore>()(
                 }
             },
 
+            submitFeedback: async (id, rating, feedbackText) => {
+                const snapshot = get();
+                const activity = [...snapshot.recentActivities, ...snapshot.savedActivities].find(a => a.id === id);
+                if (!activity) return;
+
+                // Optimistic update
+                set((state) => ({
+                    recentActivities: state.recentActivities.map(a =>
+                        a.id === id ? { ...a, rating, feedback_text: feedbackText } : a
+                    ),
+                    savedActivities: state.savedActivities.map(a =>
+                        a.id === id ? { ...a, rating, feedback_text: feedbackText } : a
+                    ),
+                }));
+
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/activities/${id}/feedback`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                        body: JSON.stringify({ rating, feedback_text: feedbackText }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Feedback submission failed');
+                    }
+                } catch (error) {
+                    console.error('[submitFeedback] Failed:', error);
+                    // Rollback on error
+                    set((state) => ({
+                        recentActivities: state.recentActivities.map(a =>
+                            a.id === id ? { ...a, rating: activity.rating, feedback_text: activity.feedback_text } : a
+                        ),
+                        savedActivities: state.savedActivities.map(a =>
+                            a.id === id ? { ...a, rating: activity.rating, feedback_text: activity.feedback_text } : a
+                        ),
+                    }));
+                }
+            },
+
             clearRateLimit: () => set({ rateLimitState: DEFAULT_RATE_LIMIT }),
 
             reset: () => set({
@@ -269,7 +316,7 @@ export const useActivityStore = create<ActivityStore>()(
         }),
         {
             name: 'kaivity-activity-cache',
-            storage: createJSONStorage(() => AsyncStorage),
+            storage: createJSONStorage(() => safeStorage),
             partialize: (state) => ({
                 recentActivities: state.recentActivities.slice(0, 20),
                 savedActivities: state.savedActivities,

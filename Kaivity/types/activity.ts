@@ -14,6 +14,8 @@ export interface Activity {
     content: string;
     image_url: string | null;
     is_saved: boolean;
+    rating?: number;
+    feedback_text?: string;
     created_at: string;
     // Joined from kid_profiles
     kid_name?: string;

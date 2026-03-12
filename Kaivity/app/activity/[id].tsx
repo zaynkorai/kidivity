@@ -26,6 +26,8 @@ import {
     Search,
     ImageIcon,
     Tag,
+    Heart,
+    ThumbsDown,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useJourneyStore } from '@/store/journeyStore';
@@ -43,7 +45,7 @@ const VISUAL_CATEGORIES = new Set(['puzzles', 'tracing', 'science', 'art', 'math
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { recentActivities, savedActivities, toggleSaved, generateActivity, isGenerating } = useActivityStore();
+    const { recentActivities, savedActivities, toggleSaved, generateActivity, submitFeedback, isGenerating } = useActivityStore();
     const completeActivityAdhoc = useJourneyStore((state) => state.completeActivityAdhoc);
     const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
     const insets = useSafeAreaInsets();
@@ -95,6 +97,52 @@ export default function ActivityDetailScreen() {
         } catch {
             // user cancelled
         }
+    };
+
+    const handleLoveIt = async () => {
+        if (!activity) return;
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        await submitFeedback(activity.id, 1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    };
+
+    const handleRedo = () => {
+        if (!activity) return;
+        Alert.prompt(
+            'Improve this activity',
+            'What would you like to change? (e.g., "Too many numbers", "Change theme to space")',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Redo Now',
+                    onPress: async (feedback?: string) => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        
+                        // Submit negative feedback first
+                        await submitFeedback(activity.id, -1, feedback);
+
+                        // Then regenerate
+                        const { data, error: err } = await generateActivity({
+                            kid_profile_id: activity.kid_profile_id,
+                            category: activity.category,
+                            topic: activity.topic,
+                            difficulty: activity.difficulty || 'medium',
+                            style: activity.style || 'colorful',
+                        });
+
+                        if (err) {
+                            Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate');
+                        } else if (data) {
+                            router.replace({
+                                pathname: '/activity/[id]',
+                                params: { id: data.id },
+                            });
+                        }
+                    },
+                },
+            ],
+            'plain-text'
+        );
     };
 
     const handleRegenerate = () => {
@@ -292,6 +340,37 @@ export default function ActivityDetailScreen() {
                     </View>
                     <MarkdownContent content={activity.content} compact={isSmallMobile} />
                 </Card>
+
+                {/* Rating / Feedback Loop */}
+                <View style={[styles.feedbackSection, isSmallMobile && { marginBottom: Spacing.lg }]}>
+                    <Text style={[styles.feedbackTitle, isSmallMobile && { fontSize: FontSize.sm }]}>
+                        How was this activity?
+                    </Text>
+                    <View style={styles.feedbackRow}>
+                        <TouchableOpacity 
+                            onPress={handleLoveIt} 
+                            style={[styles.feedbackBtn, activity.rating === 1 && styles.feedbackBtnActive]}
+                        >
+                            <Heart 
+                                size={isSmallMobile ? 20 : 24} 
+                                color={activity.rating === 1 ? Colors.white : Colors.primary} 
+                                fill={activity.rating === 1 ? Colors.white : 'transparent'} 
+                            />
+                            <Text style={[styles.feedbackBtnText, activity.rating === 1 && styles.feedbackBtnTextActive]}>Love it</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            onPress={handleRedo} 
+                            style={[styles.feedbackBtn, activity.rating === -1 && styles.feedbackBtnActive]}
+                        >
+                            <RefreshCw 
+                                size={isSmallMobile ? 18 : 22} 
+                                color={activity.rating === -1 ? Colors.white : Colors.textPrimary} 
+                            />
+                            <Text style={[styles.feedbackBtnText, activity.rating === -1 && styles.feedbackBtnTextActive, { color: activity.rating === -1 ? Colors.white : Colors.textPrimary }]}>Redo</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                 {/* Action buttons */}
                 <View style={styles.actionRow}>
@@ -539,5 +618,50 @@ const styles = StyleSheet.create({
     },
     bottomSpacer: {
         height: Spacing['5xl'],
+    },
+    feedbackSection: {
+        backgroundColor: Colors.white,
+        borderRadius: Radius.lg,
+        padding: Spacing.lg,
+        marginBottom: Spacing.xl,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        alignItems: 'center',
+    },
+    feedbackTitle: {
+        fontFamily: Fonts.medium,
+        fontSize: FontSize.md,
+        color: Colors.textPrimary,
+        marginBottom: Spacing.md,
+    },
+    feedbackRow: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+        width: '100%',
+    },
+    feedbackBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: Radius.md,
+        backgroundColor: Colors.surface,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    feedbackBtnActive: {
+        backgroundColor: Colors.primary,
+        borderColor: Colors.primary,
+    },
+    feedbackBtnText: {
+        fontFamily: Fonts.medium,
+        fontSize: FontSize.sm,
+        color: Colors.primary,
+    },
+    feedbackBtnTextActive: {
+        color: Colors.white,
     },
 });

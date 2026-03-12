@@ -7,9 +7,10 @@ We have successfully executed the **Phase 0-8 Roadmap** outlined in the implemen
 **Key Accomplishments:**
 - **Rock-Solid Foundation:** A complete React Native (Expo) app with file-based routing and a well-architected Supabase + Fastify backend.
 - **Robust Auth & Profiles:** Secure authentication seamlessly integrated with Kid Profile management (CRUD operations, syncing, and intuitive UI).
-- **AI-Powered Core Loop:** Fully functional activity generation leveraging Google Gemini for rich text and Google's Banana API (Imagen) for visually engaging, age-appropriate activities.
-- **Premium User Experience:** Advanced monetization features including rate-limiting, premium visual-first activities, and parent-convenience toggles.
-- **Polish & Distribution-Ready:** Implementation of smooth transitions, error boundaries, print-to-PDF capabilities, and native print dialogs.
+- **AI-Powered Core Loop:** Fully functional activity generation leveraging Google Gemini 2.5 (Flash/Pro) for rich text and Google's Banana API (Imagen) for visually engaging, age-appropriate activities.
+- **Personalized Feedback Loop:** Implementation of a rating system ("Love it" / "Redo") that allows the AI to learn child preferences and adapt future generations.
+- **Polish & Distribution-Ready:** Implementation of smooth transitions, error boundaries, professional print-to-PDF with A4/Letter scaling, and native print dialogs.
+- **Offline Resilience:** Robust local caching engine for both data (Zustand) and assets (Image pre-fetching) ensures a seamless experience without internet.
 
 ## 2. Rating: A+ (Outstanding)
 
@@ -32,5 +33,5 @@ Now that the core loop is functional, we need to focus on retention, community, 
 - **Public Activity Gallery:** An opt-in "Community" tab where parents can share their best generated activities.
 - **Deep Linking:** Allow parents to send a link to a specific activity directly to another parent.
 
-### Phase 12: Offline Mode (Resilience)
-- **Local Caching Engine:** Automatically cache generated activity assets (images, markdown) for fully offline viewing, crucial for "On the Go" environments.
+### Phase 12: Offline Mode (Resilient & Fast) [DONE]
+- **Local Caching Engine:** Automatically cache generated activity assets (images, markdown) for fully offline viewing, using `expo-image` pre-fetch.

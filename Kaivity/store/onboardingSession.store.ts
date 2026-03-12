@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { safeStorage } from '@/lib/storage';
 import { getApiUrl } from '@/lib/network';
 import { useAuthStore } from './authStore';
 
@@ -94,7 +94,7 @@ export const useOnboardingSessionStore = create<OnboardingState>()(
     }),
     {
       name: 'kaivity-onboarding-session',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
     }
   )
 );

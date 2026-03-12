@@ -9,10 +9,12 @@ flowchart TB
         NAV["Expo Router<br/>(File-based Navigation)"]
         STATE["Zustand Stores<br/>(Profile, Activity, Auth)"]
         PERSIST["AsyncStorage<br/>(Local Persistence)"]
+        PREFETCH["Image Pre-fetching<br/>(expo-image)"]
         
         UI --> NAV
         UI --> STATE
         STATE --> PERSIST
+        STATE --> PREFETCH
     end
     
     subgraph Supabase["☁️ Supabase"]
@@ -28,7 +30,7 @@ flowchart TB
     end
     
     subgraph AI["🤖 AI Services"]
-        GEMINI["Google Gemini API<br/>(Text Generation)"]
+        GEMINI["Google Gemini 2.5<br/>(Flash & Pro)"]
         IMGGEN["Image Generation API<br/>(Visual Content)"]
     end
     
@@ -169,6 +171,8 @@ sequenceDiagram
 | **SQL migrations** | Supabase CLI | Version-controlled schema changes, reproducible deploys |
 | **Lazy Supabase client** | Proxy pattern in `lib/supabase.ts` | Avoids `window is not defined` crash during Expo Router SSR |
 | **Pinned dependencies** | `async-storage@2.2.0`, `expo-print@15.0.8`, etc. | Match Expo 54's expected versions to avoid runtime errors |
+| **Edge Caching** | Cloudflare R2 + Cache-Control | Long-term caching (1yr) for generated images via `immutable` headers |
+| **AI Personalization** | Rating-based prompt injection | Feedback loop uses historical ratings to refine system instructions |
 
 ---
 

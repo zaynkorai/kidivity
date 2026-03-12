@@ -47,6 +47,8 @@ erDiagram
         text content
         text image_url
         boolean is_saved
+        int rating
+        text feedback_text
         timestamp created_at
     }
 ```
@@ -126,6 +128,8 @@ CREATE TABLE public.activities (
     content TEXT NOT NULL,
     image_url TEXT,
     is_saved BOOLEAN DEFAULT false,
+    rating INTEGER CHECK (rating IN (-1, 1)),
+    feedback_text TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -189,6 +193,7 @@ interface ActivityStore {
   isGenerating: boolean;
   generateActivity: (params: GenerateParams) => Promise<Activity>;
   toggleSaved: (id: string) => void;
+  submitFeedback: (id: string, rating: number, feedback?: string) => Promise<void>;
 }
 ```
 

@@ -1,7 +1,13 @@
 import { GenerateBody } from '../schemas/activity.schema.js';
 
 // ── System instruction ───────────────────────────────────
-export function buildSystemInstruction(profile: any): string {
+export function buildSystemInstruction(profile: any, feedback?: string[]): string {
+    const feedbackSection = feedback && feedback.length > 0
+        ? `\n\nUSER FEEDBACK & PREFERENCES (PERSONALIZATION):
+${feedback.map(f => `- ${f}`).join('\n')}
+Follow these preferences strictly to improve quality for this specific child.`
+        : '';
+
     return `You are Kaivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
 
 OUTPUT FORMAT (STRICT):
@@ -20,7 +26,7 @@ QUALITY / ACCURACY:
 Child Profile:
 - Name: ${profile.name}
 - Age: ${profile.age}
-- Grade: ${profile.grade_level}`;
+- Grade: ${profile.grade_level}${feedbackSection}`;
 }
 
 // ── Prompt builders ─────────────────────────────────────
