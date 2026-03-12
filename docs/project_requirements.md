@@ -66,19 +66,7 @@
 
 ---
 
-## 4. Deferred Features (v0.2+)
-
-| Feature | Description | Phase |
-|---|---|---|
-| **Journey Map** | Weekly calendar to schedule activities per day | v0.2 |
-| **Progress Tracking** | Track completed activities per child | v0.2 |
-| **Monetization** | Freemium with generation credits + premium subscription | v0.3 |
-| **Sharing** | Share activities with other parents | v0.3 |
-| **Offline Mode** | Cache generated activities for offline viewing | v0.3 |
-
----
-
-## 5. Tech Stack
+## 4. Tech Stack
 
 | Layer | Technology | Why |
 |---|---|---|
@@ -93,7 +81,7 @@
 
 ---
 
-## 6. Design Principles
+## 5. Design Principles
 
 1. **Playful but professional** — Parents use it, but kids see it. Bright colors, rounded shapes, friendly typography. We use vector icons (`lucide-react-native`) instead of emojis for a cohesive, premium look.
 2. **Print-first for activities** — Generated content must look great on paper (proper margins, contrast, sizing). Visuals adapt in complexity based on the child's age/grade level.
@@ -102,7 +90,7 @@
 
 ---
 
-## 7. Success Metrics
+## 6. Success Metrics
 
 | Metric | Target (3 months post-launch) |
 |---|---|

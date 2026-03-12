@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { ArrowRight, Sparkles, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius, Shadows } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -77,7 +77,7 @@ export default function QuestionnaireScreen() {
             setStep(3);
             setTimeout(() => {
                 router.push('/(auth)/sign-up');
-            }, 3500);
+            }, 1800);
         }
     };
 
@@ -99,12 +99,12 @@ export default function QuestionnaireScreen() {
             <SafeAreaView style={styles.safe}>
                 <ScreenBackground variant="vibrant" />
                 <View style={[styles.container, styles.centerAll, { paddingTop: Spacing['3xl'] + insets.top }]}>
-                    <Text style={styles.transitionTitle}>We've got you covered.</Text>
+                    <Text style={styles.transitionTitle}>We&apos;ve got you covered.</Text>
                     <Text style={styles.transitionSubtitle}>
                         We specialize in turning mindless screen time into productive, <Text style={styles.transitionGoalLabel}>{goalLabel}</Text>.
                     </Text>
                     <Text style={[styles.transitionSubtitle, styles.transitionSubtitleMargin]}>
-                        Let's set up your child's profile to get started.
+                        Let&apos;s set up your child&apos;s profile to get started.
                     </Text>
                 </View>
             </SafeAreaView>

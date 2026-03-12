@@ -31,6 +31,7 @@ function getGreetingIcon() {
 export default function HomeScreen() {
   const router = useRouter();
   const { isCompact, isShort } = useResponsive();
+  const noScale = { allowFontScaling: false, maxFontSizeMultiplier: 1 };
   const tabBarHeight = useBottomTabBarHeight();
   const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
   const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
@@ -214,8 +215,10 @@ export default function HomeScreen() {
             <View style={styles.magicHeaderRow}>
               <View style={styles.magicHeaderLeft}>
                 <View style={styles.magicHeaderText}>
-                  <Text style={styles.magicEyebrow}>Create Activity</Text>
-                  <Text style={styles.magicTitle}>Print-ready in minutes</Text>
+                  <Text style={styles.magicEyebrow} {...noScale}>Create Activity</Text>
+                  <Text style={styles.magicTitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
+                    Print-ready in minutes
+                  </Text>
                 </View>
               </View>
 
@@ -229,32 +232,22 @@ export default function HomeScreen() {
                   }}
                 >
                   <Clock size={16} color={Colors.primary} />
-                  <Text style={styles.magicOpenLastText}>Open last</Text>
+                  <Text style={styles.magicOpenLastText} {...noScale}>Open last</Text>
                 </TouchableOpacity>
               )}
             </View>
 
-            <Text style={styles.magicSubtitle}>
+            <Text style={styles.magicSubtitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
               {activeProfile
                 ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
                 : 'Add a profile to generate your first printable activity.'}
             </Text>
 
             <View style={styles.magicFooterRow}>
-              <View style={styles.magicChipRow}>
-                <View style={styles.magicChip}>
-                  <Text style={styles.magicChipText}>Printable</Text>
-                </View>
-                <View style={styles.magicChip}>
-                  <Text style={styles.magicChipText}>Screen-free</Text>
-                </View>
-                <View style={styles.magicChip}>
-                  <Text style={styles.magicChipText}>5-10 min</Text>
-                </View>
-              </View>
+
 
               <View style={styles.magicCTA}>
-                <Text style={styles.magicCTAText}>Generate</Text>
+                <Text style={styles.magicCTAText} {...noScale}>Generate</Text>
                 <ChevronRight size={18} color={Colors.primary} />
               </View>
             </View>
@@ -556,6 +549,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
+    lineHeight: 16,
   },
   magicTitle: {
     marginTop: 2,
@@ -564,12 +558,13 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.bold,
     color: Colors.white,
     letterSpacing: -0.4,
+    lineHeight: 32,
   },
   magicSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: Fonts.sans,
     color: 'rgba(255, 255, 255, 0.92)',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   magicFooterRow: {
     flexDirection: 'row',
@@ -596,6 +591,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     fontWeight: FontWeight.medium,
     color: Colors.white,
+    lineHeight: 18,
   },
   magicCTA: {
     flexDirection: 'row',
@@ -612,6 +608,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.primary,
+    lineHeight: 20,
   },
   magicOpenLastBtn: {
     flexDirection: 'row',
@@ -629,6 +626,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontWeight: FontWeight.bold,
     color: Colors.primaryDark,
+    lineHeight: 18,
   },
 
   sectionTitle: {

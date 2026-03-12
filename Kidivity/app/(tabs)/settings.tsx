@@ -106,7 +106,7 @@ export default function SettingsScreen() {
     const handleShare = async () => {
         try {
             await Share.share({
-                message: 'Check out Kidivity - The best app for supercharging your kid\'s development!',
+                message: `Check out Kidivity - The best app for supercharging your kid's development!`,
             });
         } catch (error) {
             console.error('Share failed', error);
@@ -209,21 +209,21 @@ export default function SettingsScreen() {
                     <Card variant="elevated">
                         {profiles.map((profile, index) => (
                             <View key={profile.id}>
-                                <View style={styles.profileRow}>
+                                <View style={[styles.profileRow, isMobile && { paddingVertical: Spacing.sm }]}>
                                     <View style={styles.profileInfo}>
                                         <View
                                             style={[
                                                 styles.avatar,
-                                                isMobile && { width: 48, height: 48, borderRadius: 24 },
+                                                isMobile && { width: 40, height: 40, borderRadius: 20 },
                                                 { backgroundColor: profile.avatar_color },
                                             ]}
                                         >
-                                            <Text style={[styles.avatarText, isMobile && { fontSize: FontSize.md }]}>
+                                            <Text style={[styles.avatarText, isMobile && { fontSize: FontSize.sm }]}>
                                                 {profile.name.charAt(0).toUpperCase()}
                                             </Text>
                                         </View>
                                         <View>
-                                            <Text style={[styles.profileName, isMobile && { fontSize: FontSize.md }]}>{profile.name}</Text>
+                                            <Text style={[styles.profileName, isMobile && { fontSize: FontSize.sm }]}>{profile.name}</Text>
                                             <Text style={[styles.profileMeta, isMobile && { fontSize: FontSize.xs }]}>
                                                 {profile.age}yo · {profile.grade_level}
                                             </Text>
@@ -231,13 +231,13 @@ export default function SettingsScreen() {
                                     </View>
                                     <View style={styles.profileActions}>
                                         <GHTouchableOpacity
-                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.yellow }]}
+                                            style={[styles.actionIconBtn, isMobile && { width: 30, height: 30, borderRadius: 15 }, { backgroundColor: Colors.yellow }]}
                                             onPress={() => router.push(`/profile/${profile.id}/edit`)}
                                         >
                                             <Edit3 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
                                         </GHTouchableOpacity>
                                         <GHTouchableOpacity
-                                            style={[styles.actionIconBtn, isMobile && { width: 34, height: 34, borderRadius: 17 }, { backgroundColor: Colors.rad }]}
+                                            style={[styles.actionIconBtn, isMobile && { width: 30, height: 30, borderRadius: 15 }, { backgroundColor: Colors.rad }]}
                                             onPress={() => openGate('delete', profile.id)}
                                         >
                                             <Trash2 size={isMobile ? 16 : 16} color={Colors.textPrimary} />
@@ -252,10 +252,10 @@ export default function SettingsScreen() {
                             style={styles.addProfileBtn}
                             onPress={() => openGate('add')}
                         >
-                            <View style={[styles.iconContainer, isMobile && { width: 32, height: 32, borderRadius: 16 }, { backgroundColor: Colors.purple }]}>
+                            <View style={[styles.iconContainer, isMobile && { width: 28, height: 28, borderRadius: 14 }, { backgroundColor: Colors.purple }]}>
                                 <Plus size={isMobile ? 16 : 18} color={Colors.textPrimary} />
                             </View>
-                            <Text style={[styles.addProfileText, isMobile && { fontSize: FontSize.sm }]}>Add Kid Profile</Text>
+                            <Text style={[styles.addProfileText, isMobile && { fontSize: FontSize.xs }]}>Add Kid Profile</Text>
                         </GHTouchableOpacity>
                     </Card>
 
@@ -385,9 +385,9 @@ export default function SettingsScreen() {
                 onSuccess={handleGateSuccess}
                 title="Password Required"
                 description={
-                    pendingAction === 'add' ? 'Enter your password to add a new kid.' :
-                        pendingAction === 'delete' ? 'Enter your password to manage profiles.' :
-                            pendingAction === 'delete_account' ? 'Enter your password to verify your identity.' :
+                    pendingAction === 'add' ? `Enter your password to add a new kid's profile.` :
+                        pendingAction === 'delete' ? `Enter your password to manage profiles.` :
+                            pendingAction === 'delete_account' ? `Enter your password to verify your identity.` :
                                 'Enter your password to access account settings.'
                 }
                 userEmail={user?.email}
@@ -454,17 +454,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: Spacing.md,
+        paddingVertical: Spacing.sm,
     },
     profileInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.md,
+        gap: Spacing.sm,
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
@@ -476,22 +476,22 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     avatarText: {
-        fontSize: FontSize.lg,
+        fontSize: FontSize.md,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.white,
     },
     profileName: {
-        fontSize: FontSize.lg,
+        fontSize: FontSize.md,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
     profileMeta: {
-        fontSize: FontSize.sm,
+        fontSize: FontSize.xs,
         fontFamily: Fonts.medium,
         color: Colors.textSecondary,
-        marginTop: 2,
+        marginTop: 1,
         fontWeight: FontWeight.medium,
     },
     profileActions: {
@@ -499,9 +499,9 @@ const styles = StyleSheet.create({
         gap: Spacing.sm,
     },
     actionIconBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -511,13 +511,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: Spacing.sm,
-        paddingVertical: Spacing.md,
-        marginTop: Spacing.sm,
+        paddingVertical: Spacing.sm,
+        marginTop: Spacing.xs,
         borderTopWidth: 1,
         borderTopColor: Colors.border,
     },
     addProfileText: {
-        fontSize: FontSize.md,
+        fontSize: FontSize.sm,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textPrimary,

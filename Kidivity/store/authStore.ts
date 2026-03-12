@@ -184,17 +184,21 @@ export const useAuthStore = create<AuthStore>()(
                 // Cleanup listener before signing out
                 get()._authSubscription?.();
 
-                await supabase.auth.signOut();
+                try {
+                    await supabase.auth.signOut();
+                } catch (err: unknown) {
+                    console.warn('[auth] signOut failed:', err instanceof Error ? err.message : err);
+                } finally {
+                    // Clear profiles to prevent routing leaks for subsequent sign-ins
+                    useProfileStore.getState().clearProfiles();
 
-                // Clear profiles to prevent routing leaks for subsequent sign-ins
-                useProfileStore.getState().clearProfiles();
-
-                set({
-                    user: null,
-                    session: null,
-                    isLoading: false,
-                    _authSubscription: null,
-                });
+                    set({
+                        user: null,
+                        session: null,
+                        isLoading: false,
+                        _authSubscription: null,
+                    });
+                }
             },
 
             setSession: (session) => {

@@ -28,10 +28,6 @@ Now that the core loop is functional, we need to focus on retention, community, 
 - **Activity Tracker:** Mark activities as "Completed" and track a child's progress over time (e.g., "5 puzzle activities completed this week!").
 - **Achievement System:** Simple visual badges (using Lucide icons) for kids when they hit milestones.
 
-### Phase 10: Advanced Export & Workbooks (Utility)
-- **Multi-Activity Packs:** Allow parents to select 3-5 saved activities and package them into a single coherent "Workbook."
-- **Professional PDF Generation:** Add dynamic cover pages tailored to the child's name and the selected theme.
-
 ### Phase 11: Community & Sharing (Growth)
 - **Public Activity Gallery:** An opt-in "Community" tab where parents can share their best generated activities.
 - **Deep Linking:** Allow parents to send a link to a specific activity directly to another parent.
