@@ -61,8 +61,8 @@ export default async function activityRoutes(fastify: FastifyInstance) {
         // Select model based on category complexity
         const simpleCategories = ['tracing', 'math', 'reading'];
         const model = simpleCategories.includes(input.category) 
-            ? 'gemini-1.5-flash' 
-            : 'gemini-1.5-pro';
+            ? 'gemini-2.5-flash' 
+            : 'gemini-2.5-pro';
 
         // 4. Generate content and then image sequentially via ai.service
         const { content, image_url } = await generateActivityContent({

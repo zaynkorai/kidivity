@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { getApiUrl } from '@/lib/network';
+import { prefetchActivityImages } from '@/lib/image';
 import type { Activity, GenerateActivityInput } from '@/types/activity';
 
 interface RateLimitState {
@@ -67,6 +68,9 @@ export const useActivityStore = create<ActivityStore>()(
                             kid_profiles: undefined,
                         }));
                         set({ recentActivities: activities });
+                        
+                        // Prefetch images for the latest activities
+                        prefetchActivityImages(activities.slice(0, 20).map(a => a.image_url));
                     }
                 } finally {
                     set({ isFetchingRecent: false });
@@ -89,6 +93,9 @@ export const useActivityStore = create<ActivityStore>()(
                             kid_profiles: undefined,
                         }));
                         set({ savedActivities: activities });
+                        
+                        // Prefetch saved images
+                        prefetchActivityImages(activities.map(a => a.image_url));
                     }
                 } finally {
                     set({ isFetchingSaved: false });
@@ -181,6 +188,11 @@ export const useActivityStore = create<ActivityStore>()(
                         recentActivities: [activity, ...state.recentActivities].slice(0, 50),
                         isGenerating: false,
                     }));
+
+                    // Prefetch the new image immediately
+                    if (activity.image_url) {
+                        prefetchActivityImages([activity.image_url]);
+                    }
 
                     return { data: activity, error: null };
                 } catch (error) {
