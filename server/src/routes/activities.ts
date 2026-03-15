@@ -4,6 +4,7 @@ import { checkQuota } from '../utils/quotas.js';
 import { generateSchema, GenerateBody } from '../schemas/activity.schema.js';
 import { buildSystemInstruction, buildPromptUser, buildImagePrompt } from '../services/prompt.service.js';
 import { generateActivityContent } from '../services/ai.service.js';
+import { ActivityService } from '../services/activity.service.js';
 
 // ── Route ───────────────────────────────────────────────
 export default async function activityRoutes(fastify: FastifyInstance) {
@@ -137,5 +138,33 @@ export default async function activityRoutes(fastify: FastifyInstance) {
         }
 
         return data;
+    });
+
+    // Optimized listing routes for egress reduction
+    fastify.get('/api/activities', async (request) => {
+        const supabase = getUserClient(request.accessToken);
+        const activityService = new ActivityService(supabase);
+        return activityService.getRecentActivities();
+    });
+
+    fastify.get('/api/activities/saved', async (request) => {
+        const supabase = getUserClient(request.accessToken);
+        const activityService = new ActivityService(supabase);
+        return activityService.getSavedActivities();
+    });
+
+    fastify.get<{ Params: { id: string } }>('/api/activities/:id', async (request, reply) => {
+        const { id } = request.params;
+        const supabase = getUserClient(request.accessToken);
+        const activityService = new ActivityService(supabase);
+
+        try {
+            const data = await activityService.getActivityDetail(id, request.userId);
+            if (!data) return reply.code(404).send({ error: 'Activity not found' });
+            return data;
+        } catch (error: any) {
+            fastify.log.error('Failed to fetch activity detail: %o', error);
+            return reply.code(500).send({ error: 'Internal server error' });
+        }
     });
 }

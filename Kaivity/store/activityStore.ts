@@ -30,6 +30,7 @@ interface ActivityActions {
     fetchRecent: () => Promise<void>;
     fetchSaved: () => Promise<void>;
     fetchKidStats: (kidProfileId: string) => Promise<void>;
+    fetchActivityDetail: (id: string) => Promise<Activity | null>;
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
     deleteActivity: (id: string) => Promise<void>;
@@ -56,23 +57,25 @@ export const useActivityStore = create<ActivityStore>()(
             fetchRecent: async () => {
                 set({ isFetchingRecent: true });
                 try {
-                    const { data, error } = await supabase
-                        .from('activities')
-                        .select('*, kid_profiles(name)')
-                        .order('created_at', { ascending: false })
-                        .limit(50);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
 
-                    if (!error && data) {
-                        const activities: Activity[] = data.map((row: any) => ({
-                            ...row,
-                            kid_name: row.kid_profiles?.name,
-                            kid_profiles: undefined,
-                        }));
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/activities`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const activities = await response.json();
                         set({ recentActivities: activities });
                         
-                        // Prefetch images for the latest activities
-                        prefetchActivityImages(activities.slice(0, 20).map(a => a.image_url));
+                        // Prefetch images for the latest activities - CAP AT 5 for egress optimization
+                        prefetchActivityImages(activities.slice(0, 5).map((a: any) => a.image_url));
                     }
+                } catch (error) {
+                    console.error('Failed to fetch recent activities:', error);
                 } finally {
                     set({ isFetchingRecent: false });
                 }
@@ -81,23 +84,25 @@ export const useActivityStore = create<ActivityStore>()(
             fetchSaved: async () => {
                 set({ isFetchingSaved: true });
                 try {
-                    const { data, error } = await supabase
-                        .from('activities')
-                        .select('*, kid_profiles(name)')
-                        .eq('is_saved', true)
-                        .order('created_at', { ascending: false });
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
 
-                    if (!error && data) {
-                        const activities: Activity[] = data.map((row: any) => ({
-                            ...row,
-                            kid_name: row.kid_profiles?.name,
-                            kid_profiles: undefined,
-                        }));
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/activities/saved`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const activities = await response.json();
                         set({ savedActivities: activities });
                         
-                        // Prefetch saved images
-                        prefetchActivityImages(activities.map(a => a.image_url));
+                        // Prefetch saved images - CAP AT 5 for egress optimization
+                        prefetchActivityImages(activities.slice(0, 5).map((a: any) => a.image_url));
                     }
+                } catch (error) {
+                    console.error('Failed to fetch saved activities:', error);
                 } finally {
                     set({ isFetchingSaved: false });
                 }
@@ -133,6 +138,33 @@ export const useActivityStore = create<ActivityStore>()(
                     console.error('[fetchKidStats] Exception:', err);
                     // Non-critical: home can still render without stats.
                 }
+            },
+
+            fetchActivityDetail: async (id) => {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return null;
+
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/activities/${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const fullActivity = await response.json();
+                        // Update the local store lists with the full data if they exist
+                        set((state) => ({
+                            recentActivities: state.recentActivities.map(a => a.id === id ? fullActivity : a),
+                            savedActivities: state.savedActivities.map(a => a.id === id ? fullActivity : a),
+                        }));
+                        return fullActivity;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch activity detail:', error);
+                }
+                return null;
             },
 
             generateActivity: async (input) => {

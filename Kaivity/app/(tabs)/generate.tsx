@@ -323,10 +323,12 @@ export default function GenerateScreen() {
                                             borderColor: cat.accent,
                                             borderWidth: 1.2,
                                             backgroundColor: cat.accent + '18',
-                                            shadowColor: cat.accent,
-                                            shadowOpacity: 0.3,
-                                            shadowRadius: 10,
-                                            shadowOffset: { width: 0, height: 4 },
+                                            boxShadow: [{
+                                                offsetX: 0,
+                                                offsetY: 4,
+                                                blurRadius: 10,
+                                                color: cat.accent,
+                                            }],
                                             elevation: 6,
                                         },
                                     ]}

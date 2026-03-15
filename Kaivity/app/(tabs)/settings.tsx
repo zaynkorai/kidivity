@@ -430,8 +430,13 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        ...Shadows.md,
-        shadowColor: Colors.primary,
+        boxShadow: [{
+            offsetX: 0,
+            offsetY: 4,
+            blurRadius: 10,
+            color: Colors.primary,
+        }],
+        elevation: 2,
     },
     title: {
         fontSize: FontSize['3xl'],
@@ -558,8 +563,13 @@ const styles = StyleSheet.create({
     signOutBtn: {
         marginTop: Spacing['3xl'],
         backgroundColor: Colors.primary,
-        ...Shadows.md,
-        shadowColor: Colors.primary,
+        boxShadow: [{
+            offsetX: 0,
+            offsetY: 4,
+            blurRadius: 10,
+            color: Colors.primary,
+        }],
+        elevation: 2,
     },
     bottomSpacer: {
         height: Spacing['3xl'],

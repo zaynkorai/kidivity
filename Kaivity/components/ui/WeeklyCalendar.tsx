@@ -96,10 +96,12 @@ function DayPill({
                         width: pillSize,
                         transform: [{ scale }],
                         ...(isActiveState && {
-                            shadowColor: Colors.primary,
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.4,
-                            shadowRadius: 8,
+                            boxShadow: [{
+                                offsetX: 0,
+                                offsetY: 4,
+                                blurRadius: 8,
+                                color: Colors.primary,
+                            }],
                             elevation: 6,
                         }),
                     },

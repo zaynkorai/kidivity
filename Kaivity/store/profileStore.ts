@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { safeStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
+import { getApiUrl } from '@/lib/network';
 import type { KidProfile, CreateKidProfileInput, UpdateKidProfileInput } from '@/types/profile';
 
 interface ProfileState {
@@ -51,17 +52,18 @@ export const useProfileStore = create<ProfileStore>()(
                         return;
                     }
 
-                    const { data, error } = await supabase
-                        .from('kid_profiles')
-                        .select('*')
-                        .order('created_at', { ascending: true });
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/profiles`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                    });
 
-                    if (error) {
-                        console.error('Failed to fetch profiles:', error);
-                        set({ isLoading: false, hasLoadedProfiles: true });
-                        return;
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch profiles from backend');
                     }
 
+                    const data = await response.json();
                     const profiles = data as KidProfile[];
                     const { activeProfileId } = get();
 
@@ -74,7 +76,8 @@ export const useProfileStore = create<ProfileStore>()(
                             ? activeProfileId
                             : profiles[0]?.id ?? null,
                     });
-                } catch {
+                } catch (error) {
+                    console.error('Failed to fetch profiles:', error);
                     set({ isLoading: false, hasLoadedProfiles: true });
                 }
             },
@@ -154,15 +157,23 @@ export const useProfileStore = create<ProfileStore>()(
                 if (get().isLoading) return { error: 'Action in progress' };
                 set({ isLoading: true });
                 try {
-                    const { error } = await supabase
-                        .from('kid_profiles')
-                        .delete()
-                        .eq('id', id);
-
-                    if (error) {
-                        console.error('[profile] deleteProfile error:', error.message);
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
                         set({ isLoading: false });
-                        return { error: 'Failed to delete profile. Please try again.' };
+                        return { error: 'Not authenticated' };
+                    }
+
+                    const apiUrl = getApiUrl();
+                    const response = await fetch(`${apiUrl}/api/profiles/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                        },
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || 'Failed to delete profile from backend');
                     }
 
                     set((state) => {
@@ -177,9 +188,10 @@ export const useProfileStore = create<ProfileStore>()(
                     });
 
                     return { error: null };
-                } catch {
+                } catch (error: any) {
+                    console.error('[profile] deleteProfile error:', error.message);
                     set({ isLoading: false });
-                    return { error: 'An unexpected error occurred' };
+                    return { error: error.message || 'An unexpected error occurred' };
                 }
             },
 

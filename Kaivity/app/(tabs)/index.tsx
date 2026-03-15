@@ -277,7 +277,12 @@ export default function HomeScreen() {
                   {
                     backgroundColor: cat.color + '50',
                     borderColor: cat.color,
-                    shadowColor: cat.accent,
+                    boxShadow: [{
+                      offsetX: 0,
+                      offsetY: 6,
+                      blurRadius: 14,
+                      color: cat.accent,
+                    }],
                   }
                 ]}
                 activeOpacity={0.82}
@@ -484,8 +489,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.35)',
     overflow: 'hidden',
-    ...Shadows.lg,
-    shadowColor: Colors.primary,
+    boxShadow: [{
+      offsetX: 0,
+      offsetY: 8,
+      blurRadius: 20,
+      color: Colors.primary,
+    }],
+    elevation: 4,
   },
   magicBackdrop: {
     position: 'absolute',
@@ -653,9 +663,12 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderWidth: 1.5,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
+    boxShadow: [{
+      offsetX: 0,
+      offsetY: 6,
+      blurRadius: 14,
+      color: 'rgba(0,0,0,0.18)',
+    }],
     elevation: 4,
   },
   categoryChevron: {

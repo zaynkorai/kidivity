@@ -3,7 +3,8 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useProfileStore } from './profileStore';
 import { useActivityStore } from './activityStore';
-import { useOnboardingSessionStore } from './onboardingSession.store';
+// Removing static import to break circular dependency
+// import { useOnboardingSessionStore } from './onboardingSession.store';
 
 interface AuthState {
     user: User | null;
@@ -193,7 +194,11 @@ export const useAuthStore = create<AuthStore>()(
                 } finally {
                     // Clear all user-specific stores to prevent session leakage
                     useProfileStore.getState().clearProfiles();
+                    
+                    // Dynamic import to break require cycle
+                    const { useOnboardingSessionStore } = require('./onboardingSession.store');
                     useOnboardingSessionStore.getState().reset();
+                    
                     useActivityStore.getState().reset();
 
                     set({

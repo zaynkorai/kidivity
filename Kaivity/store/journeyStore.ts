@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { getApiUrl } from '@/lib/network';
 import { toLocalDateString } from '@/lib/dates';
 import type { ActivityCompletion, JourneyItem, ScheduleActivityInput } from '@/types/journey';
 
@@ -64,22 +65,27 @@ export const useJourneyStore = create<JourneyStore>()((set, get) => ({
                 return { data: null, error: 'Not authenticated' };
             }
 
-            const { data, error } = await supabase
-                .from('journey_items')
-                .insert({
-                    ...input,
-                    user_id: session.user.id,
-                })
-                .select('*')
-                .single();
+            const apiUrl = getApiUrl();
+            const response = await fetch(`${apiUrl}/api/journey/schedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify(input),
+            });
 
-            if (error || !data) {
-                return { data: null, error: error?.message || 'Failed to schedule activity' };
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                return { data: null, error: errorData.error || 'Failed to schedule activity' };
             }
 
+            const data = await response.json();
             const items = get().journeyItems;
             set({ journeyItems: [...items, data as JourneyItem] });
             return { data: data as JourneyItem, error: null };
+        } catch (error: any) {
+            return { data: null, error: error.message || 'An unexpected error occurred' };
         } finally {
             set({ isSaving: false });
         }

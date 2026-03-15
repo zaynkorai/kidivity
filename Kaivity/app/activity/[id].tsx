@@ -45,11 +45,21 @@ const VISUAL_CATEGORIES = new Set(['puzzles', 'tracing', 'science', 'art', 'math
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { recentActivities, savedActivities, toggleSaved, generateActivity, submitFeedback, isGenerating } = useActivityStore();
+    const { 
+        recentActivities, 
+        savedActivities, 
+        toggleSaved, 
+        generateActivity, 
+        submitFeedback, 
+        isGenerating,
+        fetchActivityDetail 
+    } = useActivityStore();
     const completeActivityAdhoc = useJourneyStore((state) => state.completeActivityAdhoc);
     const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
     const insets = useSafeAreaInsets();
     const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['5xl']);
+
+    const [loadingDetail, setLoadingDetail] = React.useState(false);
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
@@ -59,13 +69,24 @@ export default function ActivityDetailScreen() {
         return ACTIVITY_CATEGORIES.find((c) => c.id === activity?.category);
     }, [activity?.category]);
 
-    if (!activity) {
+    React.useEffect(() => {
+        if (id && (!activity || !activity.content)) {
+            setLoadingDetail(true);
+            fetchActivityDetail(id).finally(() => setLoadingDetail(false));
+        }
+    }, [id, activity?.id, activity?.content, fetchActivityDetail]);
+
+    if (!activity || loadingDetail) {
         return (
             <SafeAreaView style={styles.safe}>
                 <ScreenBackground />
                 <View style={styles.centered}>
-                    <Search size={48} color={Colors.textPrimary} style={styles.emptyEmoji} />
-                    <Text style={styles.emptyTitle}>Activity not found</Text>
+                    {loadingDetail ? (
+                        <RefreshCw size={32} color={Colors.primary} style={styles.rotate} />
+                    ) : (
+                        <Search size={48} color={Colors.textPrimary} style={styles.emptyEmoji} />
+                    )}
+                    <Text style={styles.emptyTitle}>{loadingDetail ? 'Loading details...' : 'Activity not found'}</Text>
                     <Button
                         title="Go Back"
                         onPress={() => router.back()}
@@ -663,5 +684,8 @@ const styles = StyleSheet.create({
     },
     feedbackBtnTextActive: {
         color: Colors.white,
+    },
+    rotate: {
+        marginBottom: Spacing.md,
     },
 });
