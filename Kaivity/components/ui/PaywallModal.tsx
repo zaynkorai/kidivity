@@ -8,13 +8,13 @@ import {
     Pressable,
 } from 'react-native';
 import { Zap, Check, X } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 
 const FEATURES = [
-    'Unlimited activity generation',
-    'Workbook & multi-pack exports',
-    'Hyper-personalized AI imagery',
-    'Ad-free experience',
+    'Personalized AI activities',
+    'Creative tools for kids',
+    'Interactive learning guides',
+    'Family friendly content',
 ];
 
 interface Props {
@@ -44,9 +44,9 @@ export function PaywallModal({ visible, used, limit, onClose }: Props) {
                     <Zap size={32} color={Colors.surface} fill={Colors.surface} />
                 </View>
 
-                <Text style={styles.title}>You&apos;ve hit your limit</Text>
+                <Text style={styles.title}>Daily limit hit</Text>
                 <Text style={styles.subtitle}>
-                    {used}/{limit} free activities used today. Upgrade for unlimited access.
+                    You&apos;ve hit your daily limit. It resets at midnight.
                 </Text>
 
                 {/* Features */}
@@ -60,12 +60,12 @@ export function PaywallModal({ visible, used, limit, onClose }: Props) {
                 </View>
 
                 {/* CTA */}
-                <TouchableOpacity style={styles.cta} activeOpacity={0.85}>
-                    <Zap size={18} color={Colors.surface} fill={Colors.surface} />
-                    <Text style={styles.ctaText}>Upgrade to Premium</Text>
+                <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={onClose}>
+                    <Check size={18} color={Colors.surface} />
+                    <Text style={styles.ctaText}>Understood</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.resetNote}>Free limit resets at midnight</Text>
+                <Text style={styles.resetNote}>Resets at midnight</Text>
             </View>
         </Modal>
     );
@@ -75,14 +75,16 @@ const styles = StyleSheet.create({
     backdrop: {
         flex: 1,
         backgroundColor: Colors.overlayBackground,
+        justifyContent: 'center', // Center the floating card
+        padding: Spacing.xl,      // Give some room around the card
     },
     sheet: {
         backgroundColor: Colors.surface,
-        borderTopLeftRadius: Radius.xl,
-        borderTopRightRadius: Radius.xl,
+        borderRadius: Radius['2xl'], // Full border radius for premium look
         padding: Spacing['2xl'],
-        paddingBottom: Spacing['4xl'],
+        paddingBottom: Spacing['3xl'],
         alignItems: 'center',
+        ...Shadows.lg,               // Depth (lg is highest in theme)
     },
     closeBtn: {
         position: 'absolute',

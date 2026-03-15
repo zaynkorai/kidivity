@@ -1,16 +1,18 @@
 import { useEffect } from 'react';
-import { usePathname, useRouter, Href } from 'expo-router';
+import { usePathname, useRouter, Href, useLocalSearchParams } from 'expo-router';
 import { useOnboardingSessionStore } from '../store/onboardingSession.store';
 import { useAuthStore } from '../store/authStore';
 
 export function useOnboardingGuard(currentStep: number) {
   const router = useRouter();
   const pathname = usePathname();
+  const { skipGuard } = useLocalSearchParams<{ skipGuard?: string }>();
   const { step, status } = useOnboardingSessionStore();
   const session = useAuthStore((s) => s.session);
   const isAuthenticated = !!session;
 
   useEffect(() => {
+    if (skipGuard === 'true') return;
     const go = (target: Href) => {
       if (pathname !== target) router.replace(target);
     };
@@ -32,5 +34,5 @@ export function useOnboardingGuard(currentStep: number) {
 
       go(stepMap[step] || ('/(onboarding)/welcome' as Href));
     }
-  }, [currentStep, step, status, isAuthenticated, pathname, router]);
+  }, [currentStep, step, status, isAuthenticated, pathname, router, skipGuard]);
 }

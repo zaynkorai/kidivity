@@ -11,22 +11,15 @@ export default async function activityRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: GenerateBody }>('/api/activities/generate', async (request, reply) => {
         const parsed = generateSchema.safeParse(request.body);
         if (!parsed.success) {
-            const logPayload =
-                process.env.NODE_ENV === 'production'
-                    ? { errors: parsed.error.errors, bodyKeys: Object.keys(request.body ?? {}) }
-                    : { errors: parsed.error.errors, body: request.body };
-            fastify.log.error(logPayload, 'Validation failed');
-            return reply.code(400).send({
-                error: 'Invalid request data',
-                details: parsed.error.errors,
-            });
+            return reply.code(400).send({ error: 'Invalid request data' });
         }
 
         const input = parsed.data;
+        const timezone = (request.headers['x-timezone'] as string) || 'UTC';
 
-        // 2. Check per-user daily quota
+        // 2. Check per-user daily quota and Reserve
         const adminClient = getAdminClient();
-        const quota = await checkQuota(adminClient, request.userId);
+        const quota = await checkQuota(adminClient, request.userId, timezone);
         if (!quota.allowed) {
             return reply.code(429).send({
                 error: 'Daily generation limit reached',
@@ -36,64 +29,9 @@ export default async function activityRoutes(fastify: FastifyInstance) {
             });
         }
 
-        // 3. Fetch kid profile (RLS ensures ownership)
+        // 3. ATOMIC RESERVATION: Insert placeholder activity first
         const supabase = getUserClient(request.accessToken);
-        const { data: kidProfile, error: profileError } = await supabase
-            .from('kid_profiles')
-            .select('*')
-            .eq('id', input.kid_profile_id)
-            .single();
-
-        if (profileError || !kidProfile) {
-            return reply.code(403).send({ error: 'Profile not found' });
-        }
-
-        // 3b. Fetch recent feedback for personalization
-        const { data: recentFeedback } = await supabase
-            .from('activities')
-            .select('category, topic, rating, feedback_text')
-            .eq('kid_profile_id', input.kid_profile_id)
-            .neq('rating', 0)
-            .order('created_at', { ascending: false })
-            .limit(5);
-
-        const feedbackStrings = (recentFeedback || []).map(f => {
-            const sentiment = f.rating === 1 ? 'LIKED' : 'DISLIKED';
-            let str = `${sentiment}: ${f.category} activity about "${f.topic}"`;
-            if (f.feedback_text) str += ` (Reason: ${f.feedback_text})`;
-            return str;
-        });
-
-        const geminiKey = process.env.GEMINI_API_KEY;
-        if (!geminiKey) {
-            throw new Error('GEMINI_API_KEY is not configured');
-        }
-
-        const sysInstruction = buildSystemInstruction(kidProfile, feedbackStrings);
-        const promptText = buildPromptUser(kidProfile, input);
-        const buildImagePromptFn = (dynOp: string) => buildImagePrompt(kidProfile, input, dynOp);
-        
-        const isVisualCategory = true;
-
-        // Select model based on category complexity
-        const simpleCategories = ['tracing', 'math', 'reading'];
-        const model = simpleCategories.includes(input.category) 
-            ? 'gemini-2.5-flash' 
-            : 'gemini-2.5-pro';
-
-        // 4. Generate content and then image sequentially via ai.service
-        const { content, image_url } = await generateActivityContent({
-            geminiKey,
-            sysInstruction,
-            promptText,
-            model,
-            buildImagePrompt: buildImagePromptFn,
-            isVisualCategory,
-            logger: fastify.log
-        });
-
-        // 5. Save to database
-        const { data: activity, error: insertError } = await supabase
+        const { data: placeholder, error: reserveError } = await supabase
             .from('activities')
             .insert({
                 user_id: request.userId,
@@ -102,19 +40,93 @@ export default async function activityRoutes(fastify: FastifyInstance) {
                 topic: input.topic,
                 difficulty: input.difficulty,
                 style: input.style,
-                content,
-                image_url,
+                status: 'generating',
+                content: 'Generating activity...', // Temporary content
             })
             .select()
             .single();
 
-        if (insertError) {
-            fastify.log.error('Insert error: %o', insertError);
-            throw new Error('Failed to save activity to database');
+        if (reserveError || !placeholder) {
+            fastify.log.error('Reservation error: %o', reserveError);
+            throw new Error('Failed to reserve activity quota');
         }
 
+        try {
+            // 4. Fetch kid profile (RLS ensures ownership)
+            const { data: kidProfile, error: profileError } = await supabase
+                .from('kid_profiles')
+                .select('*')
+                .eq('id', input.kid_profile_id)
+                .single();
 
-        return activity;
+            if (profileError || !kidProfile) {
+                // Refund quota if profile not found
+                await adminClient.from('activities').delete().eq('id', placeholder.id);
+                return reply.code(403).send({ error: 'Profile not found' });
+            }
+
+            // 5. Build AI prompts and background context...
+            const { data: recentFeedback } = await supabase
+                .from('activities')
+                .select('category, topic, rating, feedback_text')
+                .eq('kid_profile_id', input.kid_profile_id)
+                .neq('rating', 0)
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            const feedbackStrings = (recentFeedback || []).map(f => {
+                const sentiment = f.rating === 1 ? 'LIKED' : 'DISLIKED';
+                let str = `${sentiment}: ${f.category} activity about "${f.topic}"`;
+                if (f.feedback_text) str += ` (Reason: ${f.feedback_text})`;
+                return str;
+            });
+
+            const geminiKey = process.env.GEMINI_API_KEY;
+            if (!geminiKey) throw new Error('GEMINI_API_KEY is not configured');
+
+            const sysInstruction = buildSystemInstruction(kidProfile, feedbackStrings);
+            const promptText = buildPromptUser(kidProfile, input);
+            const buildImagePromptFn = (dynOp: string) => buildImagePrompt(kidProfile, input, dynOp);
+            
+            const simpleCategories = ['tracing', 'math', 'reading'];
+            const model = simpleCategories.includes(input.category) ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
+
+            // 6. Generate content
+            const { content, image_url } = await generateActivityContent({
+                geminiKey,
+                sysInstruction,
+                promptText,
+                model,
+                buildImagePrompt: buildImagePromptFn,
+                isVisualCategory: true,
+                logger: fastify.log
+            });
+
+            // 7. Success: Finalize activity
+            const { data: activity, error: updateError } = await adminClient
+                .from('activities')
+                .update({
+                    content,
+                    image_url,
+                    status: 'completed'
+                })
+                .eq('id', placeholder.id)
+                .select()
+                .single();
+
+            if (updateError) throw updateError;
+            return activity;
+
+        } catch (err: any) {
+            fastify.log.error('Generation execution failed: %s', err.message);
+            // 8. Failure: Mark as failed so it doesn't count against quota or delete it
+            await adminClient
+                .from('activities')
+                .update({ status: 'failed' })
+                .eq('id', placeholder.id);
+            
+            return reply.code(500).send({ error: 'Failed to generate activity. Please try again.' });
+        }
     });
 
     fastify.post<{ Params: { id: string }; Body: { rating: number; feedback_text?: string } }>('/api/activities/:id/feedback', async (request, reply) => {
@@ -138,6 +150,12 @@ export default async function activityRoutes(fastify: FastifyInstance) {
         }
 
         return data;
+    });
+
+    fastify.get('/api/activities/quota', async (request) => {
+        const adminClient = getAdminClient();
+        const timezone = (request.headers['x-timezone'] as string) || 'UTC';
+        return checkQuota(adminClient, request.userId, timezone);
     });
 
     // Optimized listing routes for egress reduction

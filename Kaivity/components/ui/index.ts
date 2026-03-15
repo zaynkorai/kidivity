@@ -5,4 +5,6 @@ export { Chip } from './Chip';
 export { PaywallModal } from './PaywallModal';
 export { ScreenBackground } from './ScreenBackground';
 export { PromptModal } from './PromptModal';
+export { QuotaMeter } from './QuotaMeter';
+export { GeneratingOverlay } from './GeneratingOverlay';
 

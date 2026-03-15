@@ -34,13 +34,14 @@ interface ActivityActions {
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
     submitFeedback: (id: string, rating: number, feedbackText?: string) => Promise<void>;
+    fetchQuota: () => Promise<void>;
     clearRateLimit: () => void;
     reset: () => void;
 }
 
 type ActivityStore = ActivityState & ActivityActions;
 
-const DEFAULT_RATE_LIMIT: RateLimitState = { hit: false, used: 0, limit: 10, resetAt: null };
+const DEFAULT_RATE_LIMIT: RateLimitState = { hit: false, used: 0, limit: 0, resetAt: null };
 
 export const useActivityStore = create<ActivityStore>()(
     persist(
@@ -58,6 +59,9 @@ export const useActivityStore = create<ActivityStore>()(
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) return;
+
+                    // Update quota status
+                    get().fetchQuota();
 
                     const apiUrl = getApiUrl();
                     const response = await fetch(`${apiUrl}/api/activities`, {
@@ -186,11 +190,13 @@ export const useActivityStore = create<ActivityStore>()(
 
                     const apiUrl = getApiUrl();
 
+                    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
                     const response = await fetch(`${apiUrl}/api/activities/generate`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${session.access_token}`,
+                            'x-timezone': timezone,
                         },
                         body: JSON.stringify(input),
                     });
@@ -210,8 +216,8 @@ export const useActivityStore = create<ActivityStore>()(
                             isGenerating: false,
                             rateLimitState: {
                                 hit: true,
-                                used: data.used ?? 10,
-                                limit: data.limit ?? 10,
+                                used: data.used ?? 0,
+                                limit: data.limit ?? 0,
                                 resetAt: data.reset_at ?? null,
                             },
                         });
@@ -228,6 +234,11 @@ export const useActivityStore = create<ActivityStore>()(
                     set((state) => ({
                         recentActivities: [activity, ...state.recentActivities].slice(0, 50),
                         isGenerating: false,
+                        rateLimitState: {
+                            ...state.rateLimitState,
+                            used: (state.rateLimitState.used || 0) + 1,
+                            hit: (state.rateLimitState.used || 0) + 1 >= state.rateLimitState.limit
+                        }
                     }));
 
                     // Prefetch the new image immediately
@@ -326,6 +337,36 @@ export const useActivityStore = create<ActivityStore>()(
                 }
             },
 
+            fetchQuota: async () => {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+
+                    const apiUrl = getApiUrl();
+                    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+                    const response = await fetch(`${apiUrl}/api/activities/quota`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`,
+                            'x-timezone': timezone,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        set({
+                            rateLimitState: {
+                                hit: data.used >= data.limit,
+                                used: data.used,
+                                limit: data.limit,
+                                resetAt: data.reset_at,
+                            },
+                        });
+                    }
+                } catch (error) {
+                    console.error('[fetchQuota] Failed:', error);
+                }
+            },
+
             clearRateLimit: () => set({ rateLimitState: DEFAULT_RATE_LIMIT }),
 
             reset: () => set({
@@ -344,6 +385,7 @@ export const useActivityStore = create<ActivityStore>()(
             partialize: (state) => ({
                 recentActivities: state.recentActivities.slice(0, 10),
                 savedActivities: state.savedActivities.slice(0, 5),
+                rateLimitState: state.rateLimitState,
             }),
         }
     )

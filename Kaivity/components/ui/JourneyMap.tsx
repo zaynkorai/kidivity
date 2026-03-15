@@ -268,6 +268,16 @@ export function JourneyMap({ kidProfileId, activities, activityStreak }: Journey
                                     {filteredActivities.length === 0 ? (
                                         <View style={styles.modalEmpty}>
                                             <Text style={styles.modalEmptyText}>No recent activities yet.</Text>
+                                            <TouchableOpacity
+                                                style={styles.modalCreateBtn}
+                                                onPress={() => {
+                                                    setPickerOpen(false);
+                                                    router.push('/(tabs)/generate');
+                                                }}
+                                            >
+                                                <Plus size={16} color={Colors.white} />
+                                                <Text style={styles.modalCreateText}>Create New</Text>
+                                            </TouchableOpacity>
                                         </View>
                                     ) : (
                                         filteredActivities.slice(0, 20).map((a) => {
@@ -640,12 +650,30 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     modalEmpty: {
-        paddingVertical: Spacing.lg,
+        paddingVertical: Spacing.xl,
         alignItems: 'center',
+        gap: Spacing.md,
     },
     modalEmptyText: {
         fontFamily: Fonts.medium,
         color: Colors.textSecondary,
         fontSize: FontSize.xs,
+        textAlign: 'center',
+    },
+    modalCreateBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.xs,
+        backgroundColor: Colors.primary,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.sm,
+        borderRadius: Radius.full,
+        ...Shadows.sm,
+    },
+    modalCreateText: {
+        fontFamily: Fonts.bold,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+        fontSize: FontSize.sm,
     },
 });

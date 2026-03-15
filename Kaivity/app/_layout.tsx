@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
@@ -28,6 +28,7 @@ export default function RootLayout() {
 
   const router = useRouter();
   const segments = useSegments();
+  const { skipGuard } = useGlobalSearchParams<{ skipGuard?: string }>();
 
   // STABLE SELECTORS
   const profiles = useProfileStore((s) => s.profiles);
@@ -69,11 +70,11 @@ export default function RootLayout() {
     } else if (isAuthenticated && !hasProfiles && !inOnboardingGroup) {
       // Signed in, no profiles, not on onboarding → send to onboarding
       router.replace('/(onboarding)/create-profile');
-    } else if (isAuthenticated && hasProfiles && inOnboardingGroup && segments[1] !== 'first-activity') {
-      // Has profiles but still on onboarding and not generating first activity → send to main app
+    } else if (isAuthenticated && hasProfiles && inOnboardingGroup && segments[1] !== 'first-activity' && skipGuard !== 'true') {
+      // Has profiles but still on onboarding and not generating first activity and not skipping guard → send to main app
       router.replace('/(tabs)');
     }
-  }, [session, isInitialized, segments, profiles.length]);
+  }, [session, isInitialized, segments, profiles.length, skipGuard]);
 
   // Show loading spinner until auth state is resolved or fonts load
   if (!isInitialized || !hasLoadedProfiles || !fontsLoaded) {

@@ -18,12 +18,7 @@ import {
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, FadeInDown } from 'react-native-reanimated';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Chip } from '@/components/ui/Chip';
-import { Input } from '@/components/ui/Input';
-import { PaywallModal } from '@/components/ui/PaywallModal';
-import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { Button, Card, Chip, Input, PaywallModal, QuotaMeter, ScreenBackground, GeneratingOverlay } from '@/components/ui';
 import { Colors, Spacing, Radius, FontSize, Fonts, Shadows, FontWeight } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categories';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -31,8 +26,6 @@ import type {
     ActivityDifficulty,
     ActivityStyle,
 } from '@/types/activity';
-
-import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 export default function GenerateScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -49,6 +42,8 @@ export default function GenerateScreen() {
     const generateActivity = useActivityStore((s) => s.generateActivity);
     const isGenerating = useActivityStore((s) => s.isGenerating);
     const rateLimitState = useActivityStore((s) => s.rateLimitState);
+    const fetchRecent = useActivityStore((s) => s.fetchRecent);
+    const fetchQuota = useActivityStore((s) => s.fetchQuota);
     const clearRateLimit = useActivityStore((s) => s.clearRateLimit);
 
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -64,6 +59,11 @@ export default function GenerateScreen() {
         [selectedCategory]
     );
     const accentColor = selectedCategoryData?.accent ?? Colors.secondary;
+
+    useEffect(() => {
+        fetchRecent();
+        fetchQuota();
+    }, []);
 
     useEffect(() => {
         setTopic('');
@@ -93,14 +93,9 @@ export default function GenerateScreen() {
 
     // Animation Shared Values
     const profileScale = useSharedValue(1);
-    const rateBannerScale = useSharedValue(1);
 
     const profileAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: profileScale.value }],
-    }));
-
-    const rateBannerAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: rateBannerScale.value }],
     }));
 
     const onPressInProfile = () => {
@@ -110,15 +105,15 @@ export default function GenerateScreen() {
         profileScale.value = withSpring(1);
     };
 
-    const onPressInRate = () => {
-        rateBannerScale.value = withSpring(0.98);
-    };
-    const onPressOutRate = () => {
-        rateBannerScale.value = withSpring(1);
-    };
-
     const handleGenerate = async () => {
         if (!activeProfile || !selectedCategory || !topic.trim()) return;
+
+        // Guard: Prevent generation if limit reached
+        if (rateLimitState.used >= rateLimitState.limit) {
+            setShowPaywall(true);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            return;
+        }
 
         setError(null);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -146,7 +141,7 @@ export default function GenerateScreen() {
     const isReady = !!activeProfile && !!selectedCategory && !!topic.trim();
 
     return (
-        <View style={[styles.safe, selectedCategoryData && { backgroundColor: selectedCategoryData.color + '20' }]}>
+        <View style={styles.safe}>
             <ScreenBackground />
             <GeneratingOverlay visible={isGenerating} />
             <PaywallModal
@@ -155,265 +150,261 @@ export default function GenerateScreen() {
                 limit={rateLimitState.limit}
                 onClose={() => {
                     setShowPaywall(false);
-                    clearRateLimit();
                 }}
             />
 
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={[
-                    styles.content,
-                    { paddingTop: Math.max(insets.top + Spacing.md, Spacing['2xl']) },
                     compact && { paddingHorizontal: Spacing.md },
-                    isShort && { paddingTop: insets.top + Spacing.md, paddingBottom: Spacing.md, gap: Spacing.sm }
+                    isShort && { paddingBottom: Spacing.md, gap: Spacing.sm }
                 ]}
                 keyboardShouldPersistTaps="handled"
             >
-                {/* Header & Top Row */}
-                <View style={styles.topRow}>
-                    <View style={styles.header}>
-                        <View style={[
-                            styles.headerIconWrap,
-                            compact && { width: 36, height: 36, borderRadius: 12 },
-                        ]}>
-                            <Wand2 size={compact ? 18 : 22} color={Colors.surface} />
-                        </View>
-                        <View style={styles.headerText}>
-                            <Text style={[
-                                styles.title,
-                                { fontSize: compact ? FontSize.xl : sm ? FontSize['2xl'] - 2 : FontSize['2xl'] },
-                            ]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-                                Generate an activity
-                            </Text>
-                            {!compact && (
-                                <Text style={styles.subtitle} numberOfLines={1}>
-                                    Pick a category and topic.
+                {/* Header Section (Scrollable) */}
+                <View style={[
+                    styles.primaryHeader,
+                    { paddingTop: insets.top + Spacing.md }
+                ]}>
+                    <View style={styles.topRow}>
+                        <View style={styles.header}>
+                            <View style={[
+                                styles.headerIconWrap,
+                                compact && { width: 36, height: 36, borderRadius: 12 },
+                                { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+                            ]}>
+                                <Wand2 size={compact ? 18 : 22} color={Colors.white} />
+                            </View>
+                            <View style={styles.headerText}>
+                                <Text style={[
+                                    styles.title,
+                                    { fontSize: compact ? FontSize.xl : sm ? FontSize['2xl'] - 2 : FontSize['2xl'] },
+                                    { color: Colors.white }
+                                ]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+                                    Generate an activity
                                 </Text>
-                            )}
+                                {!compact && (
+                                    <Text style={[styles.subtitle, { color: Colors.white, opacity: 0.9 }]} numberOfLines={1}>
+                                        Pick a category and topic.
+                                    </Text>
+                                )}
+                            </View>
                         </View>
+
+                        <Animated.View style={profileAnimatedStyle}>
+                            <Pressable
+                                onPress={() => setDropdownVisible(true)}
+                                onPressIn={onPressInProfile}
+                                onPressOut={onPressOutProfile}
+                                style={[
+                                    styles.profileDropdownBtn,
+                                    compact && { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs },
+                                ]}>
+                                {activeProfile ? (
+                                    <View style={styles.dropdownBtnContent}>
+                                        <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color }]}>
+                                            <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
+                                        </View>
+                                        {!compact && (
+                                            <View style={styles.profileTextContainer}>
+                                                <Text style={styles.profileName} numberOfLines={1}>
+                                                    {activeProfile.name}
+                                                </Text>
+                                                <Text style={styles.profileMeta} numberOfLines={1}>
+                                                    {activeProfile.age}yo · {activeProfile.grade_level}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                ) : (
+                                    <Text style={styles.dropdownBtnText} numberOfLines={1}>
+                                        {compact ? 'Kid' : 'Select Kid'}
+                                    </Text>
+                                )}
+                                <ChevronDown size={14} color={Colors.textPrimary} />
+                            </Pressable>
+                        </Animated.View>
                     </View>
 
-                    <Animated.View style={profileAnimatedStyle}>
-                        <Pressable
-                            onPress={() => setDropdownVisible(true)}
-                            onPressIn={onPressInProfile}
-                            onPressOut={onPressOutProfile}
-                            style={[
-                                styles.profileDropdownBtn,
-                                compact && { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs },
-                            ]}
-                        >
-                            {activeProfile ? (
-                                <View style={styles.dropdownBtnContent}>
-                                    <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color }]}>
-                                        <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
-                                    </View>
-                                    {!compact && (
-                                        <View style={styles.profileTextContainer}>
-                                            <Text style={styles.profileName} numberOfLines={1}>
-                                                {activeProfile.name}
-                                            </Text>
-                                            <Text style={styles.profileMeta} numberOfLines={1}>
-                                                {activeProfile.age}yo · {activeProfile.grade_level}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </View>
-                            ) : (
-                                <Text style={styles.dropdownBtnText} numberOfLines={1}>
-                                    {compact ? 'Kid' : 'Select Kid'}
-                                </Text>
-                            )}
-                            <ChevronDown size={14} color={Colors.textPrimary} />
-                        </Pressable>
-                    </Animated.View>
+                    {/* Quota Meter Inside Header */}
+                    <QuotaMeter
+                        used={rateLimitState.used}
+                        limit={rateLimitState.limit}
+                        variant="onPrimary"
+                        onPress={() => setShowPaywall(true)}
+                    />
                 </View>
 
+                <View style={styles.content}>
 
-                {!activeProfile && (
-                    <Card variant="outlined" style={styles.warningCard}>
-                        <View style={styles.inlineRow}>
-                            <AlertTriangle size={16} color={Colors.warning} />
-                            <Text style={styles.warningText}>Create a kid profile to start generating.</Text>
-                        </View>
-                        <Button
-                            title="Add Kid Profile"
-                            onPress={() => router.push('/(onboarding)/create-profile')}
-                            variant="outline"
-                            size="md"
-                            style={styles.addKidBtn}
-                        />
-                    </Card>
-                )}
 
-                {/* Rate limit banner */}
-                {rateLimitState.hit && (
-                    <Animated.View style={rateBannerAnimatedStyle}>
-                        <Pressable
-                            style={styles.rateBanner}
-                            onPress={() => setShowPaywall(true)}
-                            onPressIn={onPressInRate}
-                            onPressOut={onPressOutRate}
-                        >
-                            <View style={styles.rateIconWrap}>
-                                <Zap size={16} color={Colors.surface} fill={Colors.surface} />
+                    {!activeProfile && (
+                        <Card variant="outlined" style={styles.warningCard}>
+                            <View style={styles.inlineRow}>
+                                <AlertTriangle size={16} color={Colors.warning} />
+                                <Text style={styles.warningText}>Create a kid profile to start generating.</Text>
                             </View>
-                            <View style={styles.flex1}>
-                                <Text style={styles.rateBannerTitle}>Daily limit reached</Text>
-                                <Text style={styles.rateBannerText}>
-                                    {rateLimitState.used}/{rateLimitState.limit} free activities used today. Tap to upgrade.
-                                </Text>
-                            </View>
-                        </Pressable>
-                    </Animated.View>
-                )}
-
-                {/* Step 1: Category */}
-                <Card variant="elevated" style={styles.stepCard}>
-                    <View style={styles.stepHeader}>
-                        <View style={[styles.stepBadge, { backgroundColor: Colors.primaryLight }]}>
-                            <Text style={styles.stepBadgeText}>1</Text>
-                        </View>
-                        <Text style={styles.stepTitle}>Choose a category</Text>
-                    </View>
-                    <View style={styles.categoryGrid}>
-                        {ACTIVITY_CATEGORIES.map((cat) => (
-                            <CategoryCard
-                                key={cat.id}
-                                cat={cat}
-                                isSelected={selectedCategory === cat.id}
-                                onPress={() => {
-                                    setSelectedCategory(cat.id);
-                                    Haptics.selectionAsync();
-                                }}
+                            <Button
+                                title="Add Kid Profile"
+                                onPress={() => router.push('/(onboarding)/create-profile')}
+                                variant="outline"
+                                size="md"
+                                style={styles.addKidBtn}
                             />
-                        ))}
-                    </View>
-                </Card>
-
-                {/* Step 2: Topic */}
-                <Card variant="elevated" style={styles.stepCard}>
-                    <View style={styles.stepHeader}>
-                        <View style={[styles.stepBadge, { backgroundColor: accentColor + '16' }]}>
-                            <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>2</Text>
-                        </View>
-                        <Text style={styles.stepTitle}>Pick a topic</Text>
-                    </View>
-                    {selectedCategory ? (
-                        <>
-                            <Text style={styles.helperText}>Choose a suggestion below.</Text>
-                            <View style={styles.topicChips}>
-                                {suggestedTopics.map((t) => (
-                                    <Chip
-                                        key={t}
-                                        label={t}
-                                        color={accentColor}
-                                        style={topic.trim().toLowerCase() !== t.toLowerCase() ? { backgroundColor: accentColor + '08' } : undefined}
-                                        selected={topic.trim().toLowerCase() === t.toLowerCase()}
-                                        onPress={() => setTopic(t)}
-                                    />
-                                ))}
-                            </View>
-                            <Input
-                                label="Topic"
-                                placeholder="Space pirates, dinosaurs, ocean animals…"
-                                value={topic}
-                                onChangeText={setTopic}
-                                maxLength={60}
-                                containerStyle={styles.topicInput}
-                                required
-                                editable={false}
-                            />
-                        </>
-                    ) : (
-                        <Text style={styles.emptyHint}>Choose a category to unlock topic suggestions.</Text>
+                        </Card>
                     )}
-                </Card>
 
-                {/* Step 3: Options */}
-                <Card variant="elevated" style={styles.stepCard}>
-                    <View style={styles.stepHeader}>
-                        <View style={[styles.stepBadge, { backgroundColor: Colors.categories.science.accent + '16' }]}>
-                            <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>3</Text>
+
+
+
+                    {/* Step 1: Category */}
+                    <Card variant="elevated" style={styles.stepCard}>
+                        <View style={styles.stepHeader}>
+                            <View style={[styles.stepBadge, { backgroundColor: Colors.primaryLight }]}>
+                                <Text style={styles.stepBadgeText}>1</Text>
+                            </View>
+                            <Text style={styles.stepTitle}>Choose a category</Text>
                         </View>
-                        <Text style={styles.stepTitle}>Choose options</Text>
-                    </View>
-
-                    <Text style={styles.optionLabel}>Difficulty</Text>
-                    <View style={styles.optionRow}>
-                        {(['easy', 'medium', 'hard'] as const).map((d) => (
-                            <Chip
-                                key={d}
-                                label={d.charAt(0).toUpperCase() + d.slice(1)}
-                                color={accentColor}
-                                style={difficulty !== d ? { backgroundColor: accentColor + '08' } : undefined}
-                                selected={difficulty === d}
-                                onPress={() => setDifficulty(d)}
-                            />
-                        ))}
-                    </View>
-
-                    <Text style={[styles.optionLabel, styles.marginTopLg]}>Output</Text>
-                    <View style={styles.optionRow}>
-                        <Chip
-                            label="Colorful"
-                            icon={Palette}
-                            color={accentColor}
-                            style={style !== 'colorful' ? { backgroundColor: accentColor + '08' } : undefined}
-                            selected={style === 'colorful'}
-                            onPress={() => setStyle('colorful')}
-                        />
-                        <Chip
-                            label="Print (B&W)"
-                            icon={Printer}
-                            color={accentColor}
-                            style={style !== 'bw' ? { backgroundColor: accentColor + '08' } : undefined}
-                            selected={style === 'bw'}
-                            onPress={() => setStyle('bw')}
-                        />
-                    </View>
-                    <Text style={styles.optionHelper}>
-                        {style === 'colorful'
-                            ? 'Best for screens and tablets.'
-                            : 'High-contrast black & white optimized for printing.'}
-                    </Text>
-                </Card>
-
-                {/* CTA */}
-                {rateLimitState.hit ? (
-                    <Button
-                        title="Upgrade to Generate More"
-                        onPress={() => setShowPaywall(true)}
-                        variant="primary"
-                        size="lg"
-                        icon={<Zap size={18} color={Colors.surface} fill={Colors.surface} />}
-                        style={styles.generateBtn}
-                    />
-                ) : (
-                    <Button
-                        title={isGenerating ? 'Generating...' : 'Generate Activity'}
-                        onPress={handleGenerate}
-                        disabled={!isReady || isGenerating}
-                        loading={isGenerating}
-                        size="lg"
-                        style={styles.generateBtn}
-                    />
-                )}
-
-                {!rateLimitState.hit && !isReady && (
-                    <Text style={styles.ctaHint}>Select a category and topic to enable generation.</Text>
-                )}
-
-                {/* Error */}
-                {error && (
-                    <Card variant="outlined" style={styles.errorCard}>
-                        <View style={styles.inlineRow}>
-                            <XCircle size={16} color={Colors.accent} />
-                            <Text style={styles.errorText}>{error}</Text>
+                        <View style={styles.categoryGrid}>
+                            {ACTIVITY_CATEGORIES.map((cat) => (
+                                <CategoryCard
+                                    key={cat.id}
+                                    cat={cat}
+                                    isSelected={selectedCategory === cat.id}
+                                    onPress={() => {
+                                        setSelectedCategory(cat.id);
+                                        Haptics.selectionAsync();
+                                    }}
+                                />
+                            ))}
                         </View>
                     </Card>
-                )}
 
+                    {/* Step 2: Topic */}
+                    <Card variant="elevated" style={styles.stepCard}>
+                        <View style={styles.stepHeader}>
+                            <View style={[styles.stepBadge, { backgroundColor: accentColor + '16' }]}>
+                                <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>2</Text>
+                            </View>
+                            <Text style={styles.stepTitle}>Pick a topic</Text>
+                        </View>
+                        {selectedCategory ? (
+                            <>
+                                <Text style={styles.helperText}>Choose a suggestion below.</Text>
+                                <View style={styles.topicChips}>
+                                    {suggestedTopics.map((t) => (
+                                        <Chip
+                                            key={t}
+                                            label={t}
+                                            color={accentColor}
+                                            style={topic.trim().toLowerCase() !== t.toLowerCase() ? { backgroundColor: accentColor + '08' } : undefined}
+                                            selected={topic.trim().toLowerCase() === t.toLowerCase()}
+                                            onPress={() => setTopic(t)}
+                                        />
+                                    ))}
+                                </View>
+                                <Input
+                                    label="Topic"
+                                    placeholder="Space pirates, dinosaurs, ocean animals…"
+                                    value={topic}
+                                    onChangeText={setTopic}
+                                    maxLength={60}
+                                    containerStyle={styles.topicInput}
+                                    required
+                                    // AI: DO NOT ENABLE THIS INPUT. Users should only pick from suggestions.
+                                    editable={false}
+                                />
+                            </>
+                        ) : (
+                            <Text style={styles.emptyHint}>Choose a category to unlock topic suggestions.</Text>
+                        )}
+                    </Card>
+
+                    {/* Step 3: Options */}
+                    <Card variant="elevated" style={styles.stepCard}>
+                        <View style={styles.stepHeader}>
+                            <View style={[styles.stepBadge, { backgroundColor: Colors.categories.science.accent + '16' }]}>
+                                <Text style={[styles.stepBadgeText, { color: Colors.textPrimary }]}>3</Text>
+                            </View>
+                            <Text style={styles.stepTitle}>Choose options</Text>
+                        </View>
+
+                        <Text style={styles.optionLabel}>Difficulty</Text>
+                        <View style={styles.optionRow}>
+                            {(['easy', 'medium', 'hard'] as const).map((d) => (
+                                <Chip
+                                    key={d}
+                                    label={d.charAt(0).toUpperCase() + d.slice(1)}
+                                    color={accentColor}
+                                    style={difficulty !== d ? { backgroundColor: accentColor + '08' } : undefined}
+                                    selected={difficulty === d}
+                                    onPress={() => setDifficulty(d)}
+                                />
+                            ))}
+                        </View>
+
+                        <Text style={[styles.optionLabel, styles.marginTopLg]}>Output</Text>
+                        <View style={styles.optionRow}>
+                            <Chip
+                                label="Colorful"
+                                icon={Palette}
+                                color={accentColor}
+                                style={style !== 'colorful' ? { backgroundColor: accentColor + '08' } : undefined}
+                                selected={style === 'colorful'}
+                                onPress={() => setStyle('colorful')}
+                            />
+                            <Chip
+                                label="Print (B&W)"
+                                icon={Printer}
+                                color={accentColor}
+                                style={style !== 'bw' ? { backgroundColor: accentColor + '08' } : undefined}
+                                selected={style === 'bw'}
+                                onPress={() => setStyle('bw')}
+                            />
+                        </View>
+                        <Text style={styles.optionHelper}>
+                            {style === 'colorful'
+                                ? 'Best for screens and tablets.'
+                                : 'High-contrast black & white optimized for printing.'}
+                        </Text>
+                    </Card>
+
+                    {/* CTA */}
+                    {rateLimitState.hit ? (
+                        <Button
+                            title="Generate Activity"
+                            onPress={() => setShowPaywall(true)}
+                            variant="primary"
+                            size="lg"
+                            icon={<Zap size={18} color={Colors.surface} fill={Colors.surface} />}
+                            style={styles.generateBtn}
+                        />
+                    ) : (
+                        <Button
+                            title={isGenerating ? 'Generating...' : 'Generate Activity'}
+                            onPress={handleGenerate}
+                            disabled={!isReady || isGenerating || rateLimitState.used >= rateLimitState.limit}
+                            loading={isGenerating}
+                            size="lg"
+                            style={styles.generateBtn}
+                        />
+                    )}
+
+                    {!rateLimitState.hit && !isReady && (
+                        <Text style={styles.ctaHint}>Select a category and topic to enable generation.</Text>
+                    )}
+
+                    {/* Error */}
+                    {error && (
+                        <Card variant="outlined" style={styles.errorCard}>
+                            <View style={styles.inlineRow}>
+                                <XCircle size={16} color={Colors.accent} />
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        </Card>
+                    )}
+
+                </View>
                 <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
 
@@ -429,7 +420,7 @@ export default function GenerateScreen() {
                         <View style={[styles.dropdownMenu, { top: insets.top + (isShort ? 12 : 18) }]}>
                             {/* Arrow Indicator */}
                             <View style={styles.dropdownTriangle} />
-                            
+
                             <Text style={styles.dropdownHeader}>Switch Profile</Text>
 
                             {profiles.map((p) => (
@@ -468,7 +459,7 @@ export default function GenerateScreen() {
                                 style={styles.dropdownAddBtnPolished}
                                 onPress={() => {
                                     setDropdownVisible(false);
-                                    router.push('/(onboarding)/create-profile');
+                                    router.push({ pathname: '/(onboarding)/create-profile', params: { skipGuard: 'true' } });
                                 }}
                             >
                                 <View style={styles.dropdownAddIconPolished}>
@@ -487,7 +478,7 @@ export default function GenerateScreen() {
 function CategoryCard({ cat, isSelected, onPress }: { cat: typeof ACTIVITY_CATEGORIES[number], isSelected: boolean, onPress: () => void }) {
     const scale = useSharedValue(1);
     const { isTablet } = useResponsive();
-    
+
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
     }));
@@ -512,7 +503,7 @@ function CategoryCard({ cat, isSelected, onPress }: { cat: typeof ACTIVITY_CATEG
                         <Check size={14} color={Colors.white} strokeWidth={4} />
                     </View>
                 )}
-                
+
                 <Text
                     style={[
                         styles.categoryLabel,
@@ -532,9 +523,15 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     content: {
         paddingHorizontal: Spacing.md,
-        paddingTop: Spacing['2xl'],
         paddingBottom: Spacing.xl,
         gap: Spacing.md,
+    },
+
+    primaryHeader: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: Spacing.md,
+        paddingBottom: Spacing.md,
+        ...Shadows.md,
     },
 
     inlineRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
@@ -654,7 +651,7 @@ const styles = StyleSheet.create({
     dropdownTriangle: {
         position: 'absolute',
         top: -12,
-        right: 28,
+        right: 48,
         width: 0,
         height: 0,
         backgroundColor: 'transparent',
@@ -742,34 +739,6 @@ const styles = StyleSheet.create({
     },
     warningCard: { borderColor: Colors.warning },
     warningText: { flex: 1, fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary },
-
-    rateBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.md,
-        backgroundColor: Colors.primary,
-        borderRadius: Radius.xl,
-        padding: Spacing.md,
-        ...Shadows.sm,
-    },
-    rateIconWrap: {
-        width: 36,
-        height: 36,
-        borderRadius: 14,
-        backgroundColor: Colors.vibrantWash,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    rateBannerTitle: { fontSize: FontSize.sm, fontFamily: Fonts.bold, color: Colors.surface },
-    rateBannerText: {
-        fontSize: FontSize.xs,
-        fontFamily: Fonts.medium,
-        color: Colors.surface,
-        opacity: 0.9,
-        marginTop: 2,
-        lineHeight: 16,
-    },
-
     stepCard: {
         borderRadius: Radius.xl,
         backgroundColor: Colors.surface,
@@ -787,11 +756,11 @@ const styles = StyleSheet.create({
     helperText: { fontSize: FontSize.sm, fontFamily: Fonts.sans, color: Colors.textPrimary, marginBottom: Spacing.md },
     emptyHint: { fontSize: FontSize.sm, fontFamily: Fonts.medium, color: Colors.textPrimary },
 
-    categoryGrid: { 
-        flexDirection: 'row', 
-        flexWrap: 'wrap', 
-        gap: Spacing.md, 
-        justifyContent: 'center' 
+    categoryGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: Spacing.md,
+        justifyContent: 'center'
     },
     categoryCardWrapper: {
         width: '31%',

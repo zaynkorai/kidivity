@@ -42,7 +42,7 @@ export const useProfileStore = create<ProfileStore>()(
 
             // Actions
             fetchProfiles: async () => {
-                set({ isLoading: true });
+                set({ isLoading: true, hasLoadedProfiles: false });
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) {

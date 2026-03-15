@@ -292,7 +292,7 @@ export default function HomeScreen() {
         />
 
         <View style={styles.statsHeader}>
-          <Text style={styles.sectionTitle}>Explore Categories</Text>
+          <Text style={styles.sectionTitle}>Create by Categories</Text>
         </View>
         <View style={styles.categoryGrid}>
           {ACTIVITY_CATEGORIES.map((cat) => (
@@ -324,7 +324,7 @@ export default function HomeScreen() {
             <View style={[styles.dropdownMenu, { top: insets.top + (isShort ? 12 : 18) }]}>
               {/* Arrow Indicator */}
               <View style={styles.dropdownTriangle} />
-              
+
               <Text style={styles.dropdownHeader}>Switch Profile</Text>
 
               {profiles.map((p) => (
@@ -363,7 +363,7 @@ export default function HomeScreen() {
                 style={styles.dropdownAddBtnPolished}
                 onPress={() => {
                   setDropdownVisible(false);
-                  router.push('/(onboarding)/create-profile');
+                  router.push({ pathname: '/(onboarding)/create-profile', params: { skipGuard: 'true' } });
                 }}
               >
                 <View style={styles.dropdownAddIconPolished}>
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
   dropdownTriangle: {
     position: 'absolute',
     top: -12,
-    right: 28,
+    right: 48,
     width: 0,
     height: 0,
     backgroundColor: 'transparent',
