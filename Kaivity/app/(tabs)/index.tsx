@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback, Dimensions, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, Modal, TouchableWithoutFeedback, Dimensions, Platform, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Plus, Sun, Sunset, Moon, Clock, ChevronDown, ChevronRight } from 'lucide-react-native';
+import { Plus, Sun, Sunset, Moon, Clock, ChevronDown, ChevronRight, Check } from 'lucide-react-native';
 import { useProfileStore } from '@/store/profileStore';
 import { useActivityStore } from '@/store/activityStore';
 import { JourneyMap } from '@/components/ui/JourneyMap';
@@ -20,20 +21,77 @@ function getGreeting(): string {
   return 'Good evening';
 }
 
-function getGreetingIcon() {
+function getGreetingIcon(color: string = Colors.primary) {
   const hour = new Date().getHours();
-  if (hour < 12) return <Sun size={18} color={Colors.primary} />;
-  if (hour < 18) return <Sunset size={18} color={Colors.primary} />;
-  return <Moon size={18} color={Colors.primary} />;
+  if (hour < 12) return <Sun size={18} color={color} />;
+  if (hour < 18) return <Sunset size={18} color={color} />;
+  return <Moon size={18} color={color} />;
+}
+
+function CategoryCard({ cat, categoryCardWidth, isCompact, isShort, onPress }: {
+  cat: (typeof ACTIVITY_CATEGORIES)[number];
+  categoryCardWidth: number;
+  isCompact: boolean;
+  isShort: boolean;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const Icon = cat.icon;
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => {
+        scale.value = withSpring(0.94, { damping: 12, stiffness: 200 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1);
+      }}
+    >
+      <Animated.View
+        style={[
+          styles.categoryCard,
+          { width: categoryCardWidth },
+          isCompact && { height: 132 },
+          isShort && { height: 110 },
+          { backgroundColor: cat.color },
+          animatedStyle,
+        ]}
+      >
+        <View style={[styles.categoryChevron, { backgroundColor: cat.color }, isShort && { top: Spacing.sm, right: Spacing.sm }]}>
+          <ChevronRight size={13} color={cat.accent} strokeWidth={2.5} />
+        </View>
+
+        <View style={styles.categoryCardContent}>
+          <View style={[styles.categoryIconWrapper, isShort && { width: 28, height: 28 }]}>
+            <Icon size={isShort ? 24 : 30} color={cat.accent} />
+          </View>
+
+          <View style={styles.categoryTextWrapper}>
+            <Text style={styles.categoryName} numberOfLines={1}>
+              {cat.label}
+            </Text>
+            <Text style={styles.categorySub} numberOfLines={2}>
+              {cat.description}
+            </Text>
+          </View>
+        </View>
+      </Animated.View>
+    </Pressable>
+  );
 }
 
 export default function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { isCompact, isShort } = useResponsive();
   const noScale = { allowFontScaling: false, maxFontSizeMultiplier: 1 };
   const tabBarHeight = useBottomTabBarHeight();
-  const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
-  const bottomPad = Math.max(tabBarHeight + tabBarOffset - Spacing.md, Spacing['3xl']);
+  const bottomPad = Math.max(tabBarHeight + insets.bottom + Spacing.lg, Spacing['3xl']);
 
   // Calculate dynamic card width for perfect grid consistency
   const horizontalPadding = isCompact ? Spacing.lg : Spacing.xl;
@@ -59,7 +117,18 @@ export default function HomeScreen() {
   const stats = useActivityStore((state) => activeProfileId ? state.kidStats[activeProfileId] : undefined);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [dropdownShown, setDropdownVisible] = useState(false);
+
+  const magicScale = useSharedValue(1);
+  const headerScale = useSharedValue(1);
+
+  const magicAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: magicScale.value }],
+  }));
+
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: headerScale.value }],
+  }));
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
@@ -90,14 +159,14 @@ export default function HomeScreen() {
   }, [activeProfileId, fetchKidStats, fetchProfiles, fetchRecent]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.safe}>
       <ScreenBackground />
       <ScrollView
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          isCompact && { paddingHorizontal: Spacing.lg },
-          isShort && { paddingTop: Spacing.xl, paddingBottom: Spacing.md }
+          isCompact && { paddingHorizontal: Spacing.md },
+          isShort && { paddingBottom: Spacing.md }
         ]}
         refreshControl={
           <RefreshControl
@@ -108,146 +177,113 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={[styles.header, isShort && { marginBottom: Spacing.md }]}>
-          <View style={styles.topRow}>
-            <View style={styles.greetingRow}>
-              {getGreetingIcon()}
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setDropdownVisible(true)}
-              style={styles.profileDropdownBtn}
-              activeOpacity={0.85}
-            >
-              {activeProfile ? (
-                <View style={styles.dropdownBtnContent}>
-                  <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color }]}>
-                    <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
-                  </View>
-                  <View style={styles.profileTextContainer}>
-                    <Text style={styles.profileName} numberOfLines={1}>
-                      {activeProfile.name}
-                    </Text>
-                    <Text style={styles.profileMeta} numberOfLines={1}>
-                      {activeProfile.age}yo · {activeProfile.grade_level}
-                    </Text>
-                  </View>
-                </View>
-              ) : (
-                <Text style={styles.dropdownBtnText} numberOfLines={1}>
-                  Select Kid
-                </Text>
-              )}
-              <ChevronDown size={16} color={Colors.textPrimary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Dropdown Menu Modal */}
-        <Modal visible={dropdownVisible} transparent animationType="fade">
-          <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
-            <View style={styles.dropdownOverlay}>
-              <TouchableWithoutFeedback>
-                <View style={[styles.dropdownMenu, isCompact && { width: 190 }]}>
-                  <ScrollView style={{ maxHeight: 300 }} bounces={false} showsVerticalScrollIndicator={false}>
-                    {profiles.map(p => (
-                      <TouchableOpacity
-                        key={p.id}
-                        style={[styles.dropdownItem, p.id === activeProfileId && styles.dropdownItemActive]}
-                        onPress={() => {
-                          setActiveProfile(p.id);
-                          setDropdownVisible(false);
-                          Haptics.selectionAsync();
-                        }}
-                      >
-                        <View style={[styles.profileAvatar, { backgroundColor: p.avatar_color }]}>
-                          <Text style={styles.profileInitial}>{p.name.charAt(0).toUpperCase()}</Text>
-                        </View>
-                        <View style={styles.profileTextContainerDropdown}>
-                          <Text style={[styles.profileName, p.id === activeProfileId && styles.dropdownItemTextActive]} numberOfLines={1}>
-                            {p.name}
-                          </Text>
-                          <Text style={styles.profileMeta} numberOfLines={1}>
-                            {p.age}yo · {p.grade_level}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                  <TouchableOpacity
-                    style={styles.dropdownAddBtn}
-                    onPress={() => {
-                      setDropdownVisible(false);
-                      router.push('/profile/create');
-                    }}
-                  >
-                    <View style={styles.dropdownAddIcon}>
-                      <Plus size={16} color={Colors.textPrimary} />
-                    </View>
-                    <Text style={styles.profileName}>Add Kid</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-
-        <TouchableOpacity
-          activeOpacity={0.9}
+        <Pressable
           onPress={() => {
             router.push('/(tabs)/generate');
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           }}
-          style={[
+          onPressIn={() => {
+            magicScale.value = withSpring(0.96);
+          }}
+          onPressOut={() => {
+            magicScale.value = withSpring(1);
+          }}
+          style={({ pressed }) => [
             styles.magicCard,
             isCompact && { padding: Spacing.lg },
-            isShort && { paddingVertical: Spacing.md, marginBottom: Spacing.md }
+            isShort && { paddingVertical: Spacing.md, marginBottom: Spacing.md },
           ]}
         >
-          <View style={styles.magicBackdropSoft} />
+          <Animated.View style={magicAnimatedStyle}>
+            {/* Header Integrated into Magic Card */}
+            <View style={[
+              styles.magicHeaderTopRow,
+              { paddingTop: Math.max(insets.top + Spacing.md, Spacing.xl) }
+            ]}>
+              <View style={styles.magicGreetingRow}>
+                {getGreetingIcon(Colors.white)}
+                <Text style={styles.magicGreetingText}>{getGreeting()}</Text>
+              </View>
 
-          <View style={styles.magicContent}>
-            <View style={styles.magicHeaderRow}>
-              <View style={styles.magicHeaderLeft}>
-                <View style={styles.magicHeaderText}>
-                  <Text style={styles.magicTitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
-                    Print ready in minutes
-                  </Text>
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setDropdownVisible(true);
+                  Haptics.selectionAsync();
+                }}
+                onPressIn={() => {
+                  headerScale.value = withSpring(0.95);
+                }}
+                onPressOut={() => {
+                  headerScale.value = withSpring(1);
+                }}
+              >
+                <Animated.View style={[styles.magicProfileBtn, headerAnimatedStyle]}>
+                  {activeProfile ? (
+                    <View style={styles.dropdownBtnContent}>
+                      <View style={[styles.profileAvatar, { backgroundColor: activeProfile.avatar_color, borderWidth: 1.5, borderColor: Colors.white + '40' }]}>
+                        <Text style={styles.profileInitial}>{activeProfile.name.charAt(0).toUpperCase()}</Text>
+                      </View>
+                      <View style={styles.profileTextContainer}>
+                        <Text style={[styles.profileName, { color: Colors.white }]} numberOfLines={1}>
+                          {activeProfile.name}
+                        </Text>
+                        <Text style={[styles.profileMeta, { color: Colors.white + 'CC' }]} numberOfLines={1}>
+                          {activeProfile.age}yo · {activeProfile.grade_level}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <Text style={[styles.dropdownBtnText, { color: Colors.white }]} numberOfLines={1}>
+                      Select Kid
+                    </Text>
+                  )}
+                  <ChevronDown size={14} color={Colors.white} />
+                </Animated.View>
+              </Pressable>
+            </View>
+
+            <View style={styles.magicBackdropSoft} />
+            <View style={styles.magicContent}>
+              <View style={styles.magicHeaderRow}>
+                <View style={styles.magicHeaderLeft}>
+                  <View style={styles.magicHeaderText}>
+                    <Text style={styles.magicTitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
+                      Print ready in minutes
+                    </Text>
+                  </View>
+                </View>
+
+                {lastActivity && (
+                  <TouchableOpacity
+                    style={styles.magicOpenLastBtn}
+                    activeOpacity={0.85}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      router.push(`/activity/${lastActivity.id}` as any);
+                    }}
+                  >
+                    <Clock size={16} color={Colors.primary} />
+                    <Text style={styles.magicOpenLastText} {...noScale}>Open last</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Text style={styles.magicSubtitle} numberOfLines={2} ellipsizeMode="tail" {...noScale}>
+                {activeProfile
+                  ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
+                  : 'Add a profile to generate your first printable activity.'}
+              </Text>
+
+              <View style={styles.magicFooterRow}>
+                <View style={styles.magicCTA}>
+                  <Text style={styles.magicCTAText} {...noScale}>Generate</Text>
+                  <ChevronRight size={18} color={Colors.primary} />
                 </View>
               </View>
-
-              {lastActivity && (
-                <TouchableOpacity
-                  style={styles.magicOpenLastBtn}
-                  activeOpacity={0.85}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    router.push(`/activity/${lastActivity.id}` as any);
-                  }}
-                >
-                  <Clock size={16} color={Colors.primary} />
-                  <Text style={styles.magicOpenLastText} {...noScale}>Open last</Text>
-                </TouchableOpacity>
-              )}
             </View>
-
-            <Text style={styles.magicSubtitle} numberOfLines={2} ellipsizeMode="tail" {...noScale}>
-              {activeProfile
-                ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
-                : 'Add a profile to generate your first printable activity.'}
-            </Text>
-
-            <View style={styles.magicFooterRow}>
-
-
-              <View style={styles.magicCTA}>
-                <Text style={styles.magicCTAText} {...noScale}>Generate</Text>
-                <ChevronRight size={18} color={Colors.primary} />
-              </View>
-            </View>
-
-          </View>
-        </TouchableOpacity>
+          </Animated.View>
+        </Pressable>
 
         <JourneyMap
           kidProfileId={activeProfileId ?? null}
@@ -259,62 +295,87 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Explore Categories</Text>
         </View>
         <View style={styles.categoryGrid}>
-          {ACTIVITY_CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                style={[
-                  styles.categoryCard,
-                  { width: categoryCardWidth },
-                  isCompact && { height: 132 },
-                  isShort && { height: 110 },
-                  {
-                    backgroundColor: cat.color + '50',
-                    boxShadow: [{
-                      offsetX: 0,
-                      offsetY: 4,
-                      blurRadius: 10,
-                      color: cat.accent + '30', // More subtle alpha
-                    }],
-                  }
-                ]}
-                activeOpacity={0.82}
-                onPress={() => {
-                  router.push({ pathname: '/(tabs)/generate', params: { category: cat.id } } as any);
-                  Haptics.selectionAsync();
-                }}
-              >
-
-                {/* Chevron */}
-                <View style={[styles.categoryChevron, { backgroundColor: cat.accent + '20' }, isShort && { top: Spacing.sm, right: Spacing.sm }]}>
-                  <ChevronRight size={13} color={cat.accent} strokeWidth={2.5} />
-                </View>
-
-                <View style={styles.categoryCardContent}>
-                  {/* Icon Block */}
-                  <View style={[styles.categoryIconWrapper, isShort && { width: 28, height: 28 }]}>
-                    <Icon size={isShort ? 24 : 30} color={cat.accent} />
-                  </View>
-
-                  {/* Text */}
-                  <View style={styles.categoryTextWrapper}>
-                    <Text style={styles.categoryName} numberOfLines={1}>
-                      {cat.label}
-                    </Text>
-                    <Text style={styles.categorySub} numberOfLines={2}>
-                      {cat.description}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+          {ACTIVITY_CATEGORIES.map((cat) => (
+            <CategoryCard
+              key={cat.id}
+              cat={cat}
+              categoryCardWidth={categoryCardWidth}
+              isCompact={isCompact}
+              isShort={isShort}
+              onPress={() => {
+                router.push({ pathname: '/(tabs)/generate', params: { category: cat.id } } as any);
+                Haptics.selectionAsync();
+              }}
+            />
+          ))}
         </View>
 
         <View style={[styles.bottomSpacer, { height: bottomPad }]} />
       </ScrollView>
-    </SafeAreaView>
+
+      <Modal
+        visible={dropdownShown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+          <View style={styles.dropdownOverlay}>
+            <View style={[styles.dropdownMenu, { top: insets.top + (isShort ? 12 : 18) }]}>
+              {/* Arrow Indicator */}
+              <View style={styles.dropdownTriangle} />
+              
+              <Text style={styles.dropdownHeader}>Switch Profile</Text>
+
+              {profiles.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  style={[
+                    styles.dropdownItem,
+                    activeProfileId === p.id && styles.dropdownItemActive
+                  ]}
+                  onPress={() => {
+                    setActiveProfile(p.id);
+                    setDropdownVisible(false);
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }}
+                >
+                  <View style={[styles.profileAvatar, { backgroundColor: p.avatar_color, width: 34, height: 34 }]}>
+                    <Text style={[styles.profileInitial, { fontSize: 13 }]}>{p.name.charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.profileTextContainerDropdown}>
+                    <Text style={[styles.profileName, activeProfileId === p.id && styles.dropdownItemTextActive]} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                    <Text style={styles.profileMetaLabel}>{p.age}yo · {p.grade_level}</Text>
+                  </View>
+                  {activeProfileId === p.id && (
+                    <View style={styles.checkBadge}>
+                      <Check size={12} color={Colors.white} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+
+              <View style={styles.dropdownDivider} />
+
+              <TouchableOpacity
+                style={styles.dropdownAddBtnPolished}
+                onPress={() => {
+                  setDropdownVisible(false);
+                  router.push('/(onboarding)/create-profile');
+                }}
+              >
+                <View style={styles.dropdownAddIconPolished}>
+                  <Plus size={16} color={Colors.primary} />
+                </View>
+                <Text style={styles.dropdownAddText}>Add another kid</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </View>
   );
 }
 
@@ -327,44 +388,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing['2xl'],
+    paddingHorizontal: Spacing.md,
+    paddingTop: 0,
     paddingBottom: Spacing.xl,
   },
 
   header: {
-    marginBottom: Spacing.xl,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
-  },
-  greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.6)', // subtle white wash to make text pop against new bg
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-  },
-  greeting: {
-    fontSize: FontSize.md,
-    fontFamily: Fonts.bold,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textPrimary,
-  },
-  profileDropdownBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.white,
-    borderRadius: Radius.full,
-    ...Shadows.sm,
+    display: 'none',
   },
   dropdownBtnContent: {
     flexDirection: 'row',
@@ -411,50 +441,109 @@ const styles = StyleSheet.create({
   },
   dropdownOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 80,
     right: Spacing.xl,
-    width: 220,
+    width: 240,
     backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    padding: Spacing.xs,
-    ...Shadows.md,
+    borderRadius: Radius['2xl'],
+    padding: Spacing.sm,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
+  },
+  dropdownTriangle: {
+    position: 'absolute',
+    top: -12,
+    right: 28,
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 12,
+    borderRightWidth: 12,
+    borderBottomWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: Colors.white,
+  },
+  dropdownHeader: {
+    fontSize: FontSize.xs,
+    fontFamily: Fonts.bold,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
   },
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.sm,
-    borderRadius: Radius.lg,
+    gap: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: Radius.xl,
+    marginBottom: 4,
   },
   dropdownItemActive: {
-    backgroundColor: Colors.primary + '0A',
+    backgroundColor: Colors.primary + '10',
   },
   dropdownItemTextActive: {
     color: Colors.primaryDark,
   },
-  dropdownAddBtn: {
+  dropdownDivider: {
+    height: 1,
+    backgroundColor: Colors.border + '40',
+    marginVertical: Spacing.sm,
+    marginHorizontal: Spacing.sm,
+  },
+  dropdownAddBtnPolished: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.sm,
-    marginTop: Spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    gap: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: Radius.xl,
   },
-  dropdownAddIcon: {
+  dropdownAddIconPolished: {
     width: 34,
     height: 34,
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.background,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
+    backgroundColor: Colors.primary + '08',
+    borderWidth: 1,
+    borderColor: Colors.primary + '20',
     borderStyle: 'dashed',
+  },
+  dropdownAddText: {
+    fontSize: FontSize.sm,
+    fontFamily: Fonts.bold,
+    color: Colors.primary,
+  },
+  profileMetaLabel: {
+    fontSize: FontSize.xs,
+    fontFamily: Fonts.sans,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  checkBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
   },
   title: {
     fontSize: FontSize['xl'],
@@ -473,11 +562,14 @@ const styles = StyleSheet.create({
 
   magicCard: {
     backgroundColor: Colors.primary,
-    borderRadius: Radius['2xl'],
-    padding: Spacing.xl,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: Radius['2xl'],
+    borderBottomRightRadius: Radius['2xl'],
+    marginHorizontal: -Spacing.md,
     marginBottom: Spacing.md,
     overflow: 'hidden',
-    elevation: 2,
+    ...Shadows.lg,
   },
   magicBackdrop: {
     position: 'absolute',
@@ -486,19 +578,56 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: Colors.vibrantWash,
   },
   magicBackdropSoft: {
     position: 'absolute',
-    bottom: -72,
+    bottom: -60,
     left: -40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Colors.primaryPurple //'rgba(255,255,255,0.12)',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: Colors.secondary,
+    opacity: 0.15,
   },
   magicContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.md,
     gap: Spacing.md,
+  },
+  magicHeaderTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.sm,
+  },
+  magicGreetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.full,
+  },
+  magicGreetingText: {
+    fontSize: FontSize.md,
+    fontFamily: Fonts.bold,
+    fontWeight: FontWeight.semibold,
+    color: Colors.white,
+  },
+  magicProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.sm + 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   magicHeaderRow: {
     flexDirection: 'row',
@@ -520,15 +649,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: Colors.vibrantWash,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: Colors.vibrantWash,
   },
   magicEyebrow: {
     fontSize: FontSize.xs,
     fontFamily: Fonts.medium,
     fontWeight: FontWeight.medium,
-    color: 'rgba(255,255,255,0.9)',
+    color: Colors.white,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
     lineHeight: 16,
@@ -545,7 +674,7 @@ const styles = StyleSheet.create({
   magicSubtitle: {
     fontSize: FontSize.sm,
     fontFamily: Fonts.sans,
-    color: 'rgba(255, 255, 255, 0.92)',
+    color: Colors.white,
     lineHeight: 20,
   },
   magicFooterRow: {
@@ -561,12 +690,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   magicChip: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.vibrantWash,
+    paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
+    borderColor: Colors.vibrantWash,
   },
   magicChipText: {
     fontSize: FontSize.xs,
@@ -596,8 +725,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.white,
+    paddingHorizontal: Spacing.md,
     paddingVertical: 7,
     borderRadius: Radius.full,
     alignSelf: 'flex-start',
@@ -628,6 +757,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
+    justifyContent: 'center',
     marginBottom: Spacing.xl,
   },
   categoryCard: {
@@ -635,13 +765,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     overflow: 'hidden',
-    boxShadow: [{
-      offsetX: 0,
-      offsetY: 4,
-      blurRadius: 10,
-      color: 'rgba(0,0,0,0.12)', // Subtle
-    }],
-    elevation: 2,
+    ...Shadows.md,
   },
   categoryChevron: {
     position: 'absolute',

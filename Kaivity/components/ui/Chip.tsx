@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, type ViewStyle } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { Colors, Radius, Spacing, FontSize, Fonts } from '@/constants/theme';
 
 interface ChipProps {
@@ -28,7 +29,10 @@ export function Chip({
 
     return (
         <TouchableOpacity
-            onPress={onPress}
+            onPress={() => {
+                Haptics.selectionAsync();
+                onPress?.();
+            }}
             activeOpacity={0.7}
             style={[
                 styles.chip,
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.surface,
     },
     chipSmall: {
-        paddingHorizontal: Spacing.sm,
+        paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.xs,
         borderWidth: 1,
     },

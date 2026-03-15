@@ -7,7 +7,8 @@ import {
     type TextInputProps,
     type ViewStyle,
 } from 'react-native';
-import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
+import * as Haptics from 'expo-haptics';
+import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface InputProps extends TextInputProps {
@@ -37,8 +38,9 @@ export function Input({ label, error, required, containerStyle, style, ...props 
                     error && styles.inputError,
                     style,
                 ]}
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor={Colors.textSecondary + '70'}
                 onFocus={(e) => {
+                    Haptics.selectionAsync();
                     setIsFocused(true);
                     props.onFocus?.(e);
                 }}
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.bold,
     },
     input: {
-        backgroundColor: Colors.light.background,
+        backgroundColor: Colors.primaryLight,
         borderWidth: 2,
         borderColor: 'transparent',
         borderRadius: Radius.full,
@@ -97,6 +99,11 @@ const styles = StyleSheet.create({
     inputFocused: {
         borderColor: Colors.primary,
         backgroundColor: Colors.white,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
     },
     inputError: {
         borderColor: Colors.accent,

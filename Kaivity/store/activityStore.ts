@@ -33,7 +33,6 @@ interface ActivityActions {
     fetchActivityDetail: (id: string) => Promise<Activity | null>;
     generateActivity: (input: GenerateActivityInput) => Promise<{ data: Activity | null; error: string | null }>;
     toggleSaved: (id: string) => Promise<void>;
-    deleteActivity: (id: string) => Promise<void>;
     submitFeedback: (id: string, rating: number, feedbackText?: string) => Promise<void>;
     clearRateLimit: () => void;
     reset: () => void;
@@ -154,11 +153,20 @@ export const useActivityStore = create<ActivityStore>()(
 
                     if (response.ok) {
                         const fullActivity = await response.json();
-                        // Update the local store lists with the full data if they exist
-                        set((state) => ({
-                            recentActivities: state.recentActivities.map(a => a.id === id ? fullActivity : a),
-                            savedActivities: state.savedActivities.map(a => a.id === id ? fullActivity : a),
-                        }));
+                        // Update or add to the local store lists
+                        set((state) => {
+                            const inRecent = state.recentActivities.some(a => a.id === id);
+                            const inSaved = state.savedActivities.some(a => a.id === id);
+                            
+                            return {
+                                recentActivities: inRecent 
+                                    ? state.recentActivities.map(a => a.id === id ? fullActivity : a)
+                                    : [fullActivity, ...state.recentActivities].slice(0, 50),
+                                savedActivities: inSaved
+                                    ? state.savedActivities.map(a => a.id === id ? fullActivity : a)
+                                    : state.savedActivities
+                            };
+                        });
                         return fullActivity;
                     }
                 } catch (error) {
@@ -271,22 +279,6 @@ export const useActivityStore = create<ActivityStore>()(
                 }
             },
 
-            deleteActivity: async (id) => {
-                const snapshot = get();
-                set((state) => ({
-                    recentActivities: state.recentActivities.filter(a => a.id !== id),
-                    savedActivities: state.savedActivities.filter(a => a.id !== id),
-                }));
-                
-                const { error } = await supabase.from('activities').delete().eq('id', id);
-                if (error) {
-                    console.error('[deleteActivity] Failed to delete from db:', error);
-                    set({
-                        recentActivities: snapshot.recentActivities,
-                        savedActivities: snapshot.savedActivities,
-                    });
-                }
-            },
 
             submitFeedback: async (id, rating, feedbackText) => {
                 const snapshot = get();

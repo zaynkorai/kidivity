@@ -21,10 +21,7 @@ import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
 
-const AVATAR_COLORS = [
-    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
-    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
-];
+const AVATAR_COLORS = Colors.avatar;
 
 export default function CreateProfileScreen() {
     const router = useRouter();
@@ -36,7 +33,7 @@ export default function CreateProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
+    const [avatarColor, setAvatarColor] = useState<string>(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 

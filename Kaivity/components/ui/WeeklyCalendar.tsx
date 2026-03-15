@@ -12,8 +12,15 @@ interface WeeklyCalendarProps {
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-const CATEGORY_COLORS = Colors.accents;
-const CATEGORY_SOFT = Colors.pastels;
+const CATEGORY_COLORS = Object.entries(Colors.categories).reduce((acc, [key, val]) => {
+    acc[key] = val.accent;
+    return acc;
+}, {} as Record<string, string>);
+
+const CATEGORY_SOFT = Object.entries(Colors.categories).reduce((acc, [key, val]) => {
+    acc[key] = val.pastel;
+    return acc;
+}, {} as Record<string, string>);
 
 function toLocalDateStr(date: Date): string {
     return (
@@ -72,8 +79,8 @@ function DayPill({
 
     const hasActivity = activityCount > 0;
 
-    let pillBg: string = Colors.pastelPurple;
-    if (isSelected) pillBg = Colors.primaryPurple;
+    let pillBg: string = Colors.primaryLight;
+    if (isSelected) pillBg = Colors.secondary;
     else if (isToday) pillBg = Colors.primary;
     else if (hasActivity && softColor) pillBg = softColor;
 
@@ -81,10 +88,10 @@ function DayPill({
 
     // Proportional font + badge sizes
     const letterFontSize = Math.max(8, pillSize * 0.22);
-    const numFontSize    = Math.max(10, pillSize * 0.28);
-    const badgeFontSize  = Math.max(8,  pillSize * 0.20);
-    const badgeSize      = Math.max(14, pillSize * 0.38);
-    const iconSize       = Math.max(11, pillSize * 0.30);
+    const numFontSize = Math.max(10, pillSize * 0.28);
+    const badgeFontSize = Math.max(8, pillSize * 0.20);
+    const badgeSize = Math.max(14, pillSize * 0.38);
+    const iconSize = Math.max(11, pillSize * 0.30);
 
     return (
         <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
@@ -149,7 +156,7 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
     const pillSize = Math.floor((cardInnerWidth - GAP * (NUM_DAYS - 1)) / NUM_DAYS);
 
     const weekDates = useMemo(() => getWeekDates(), []);
-    const todayStr  = useMemo(() => toLocalDateStr(new Date()), []);
+    const todayStr = useMemo(() => toLocalDateStr(new Date()), []);
 
     const dayStats = useMemo(() => {
         const map: Record<string, { count: number; categories: string[] }> = {};
@@ -191,14 +198,14 @@ export function WeeklyCalendar({ activities, selectedDate, onSelectDate }: Weekl
                     {streak > 0 && (
                         <View style={styles.streakBadge}>
                             <Flame size={compact ? 10 : 12} color={Colors.primary} />
-                            <Text style={[styles.badgeText, { color: Colors.primary }]}>
+                            <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                 {streak}{compact ? '' : ' streak'}
                             </Text>
                         </View>
                     )}
                     <View style={styles.xpBadge}>
-                        <Zap size={compact ? 10 : 12} color={Colors.primaryPurple} />
-                        <Text style={[styles.badgeText, { color: Colors.primaryPurple }]}>
+                        <Zap size={compact ? 10 : 12} color={Colors.secondary} />
+                        <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                             {activeDaysThisWeek}/7{compact ? '' : ' days'}
                         </Text>
                     </View>
@@ -295,8 +302,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,
-        backgroundColor: Colors.pastelYellow,
-        paddingHorizontal: Spacing.sm,
+        backgroundColor: Colors.categories.art.pastel,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 3,
         borderRadius: Radius.full,
     },
@@ -304,8 +311,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,
-        backgroundColor: Colors.pastelPurple,
-        paddingHorizontal: Spacing.sm,
+        backgroundColor: Colors.primaryLight,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 3,
         borderRadius: Radius.full,
     },
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: Spacing.sm,
         borderRadius: Radius.md,
-        backgroundColor: Colors.pastelPurple,
+        backgroundColor: Colors.primaryLight,
         gap: 2,
     },
     dayLetter: {
@@ -383,7 +390,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: Spacing.xs,
         marginTop: Spacing.sm,
-        backgroundColor: Colors.pastelYellow,
+        backgroundColor: Colors.categories.art.pastel,
         borderRadius: Radius.full,
         paddingVertical: 5,
     },

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Wand2, ArrowRight, Check } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,10 +22,7 @@ import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 import { GRADE_LEVELS } from '@/constants/grades';
 import type { GradeLevel } from '@/constants/grades';
 
-const AVATAR_COLORS = [
-    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
-    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
-];
+const AVATAR_COLORS = Colors.avatar;
 
 // Steps: 0 = Name & Avatar, 1 = Age & Grade
 const STEP_COUNT = 2;
@@ -42,7 +39,7 @@ export default function OnboardingCreateProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
+    const [avatarColor, setAvatarColor] = useState<string>(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -109,7 +106,7 @@ export default function OnboardingCreateProfileScreen() {
     ];
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <View style={styles.safe}>
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -120,7 +117,7 @@ export default function OnboardingCreateProfileScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     {/* Progress Bar */}
-                    <View style={styles.progressContainer}>
+                    <View style={[styles.progressContainer, { paddingTop: insets.top }]}>
                         {Array.from({ length: STEP_COUNT }).map((_, i) => (
                             <View
                                 key={i}
@@ -278,7 +275,7 @@ export default function OnboardingCreateProfileScreen() {
                     <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 

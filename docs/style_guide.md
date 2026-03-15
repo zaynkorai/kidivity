@@ -19,24 +19,6 @@ The color strategy relies on vibrant, kid-friendly pastel/bright colors mixed wi
 
 To maintain accessibility (e.g., white text on buttons), we distinctively map the brand colors to specific semantic roles in `Kaivity/constants/theme.ts`:
 
-- **Primary / CTAs**: Orange (`#FF8A00`) — Provides strong contrast for active elements and primary buttons.
-- **Primary Light / Backgrounds**: Purple (`#E7E1FF`) — Used for subtle background tints and category chips.
-- **Success States**: Green (`#A2DDC2`)
-- **Accents**: Rad (`#FECAC3`) and Yellow (`#FFE3C1`)
-
-### Category Colors
-
-Each activity domain has a designated color to create visual anchors for users:
-
-- **Math**: Blue (`#8AE3FF`)
-- **Reading**: Orange (`#FF8A00`)
-- **Science**: Green (`#A2DDC2`)
-- **Art**: Yellow (`#FFE3C1`)
-- **Tracing**: Rad (`#FECAC3`)
-- **Puzzles**: Purple (`#E7E1FF`)
-
----
-
 ## 2. Typography
 
 The application uses **Poppins** exclusively across all platforms. Poppins is a geometric sans-serif typeface that perfectly complements the playful and modern aesthetic of Kaivity.

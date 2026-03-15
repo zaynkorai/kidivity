@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeInDown, FadeInUp, Layout, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { Pressable } from 'react-native-gesture-handler';
 import { Check, Trash2, Search, AlertTriangle } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useProfileStore } from '@/store/profileStore';
@@ -25,10 +27,7 @@ import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';
 
-const AVATAR_COLORS = [
-    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
-    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
-];
+const AVATAR_COLORS = Colors.avatar;
 
 export default function EditProfileScreen() {
     const router = useRouter();
@@ -44,11 +43,17 @@ export default function EditProfileScreen() {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [gradeLevel, setGradeLevel] = useState<GradeLevel | null>(null);
-    const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
+    const [avatarColor, setAvatarColor] = useState<string>(AVATAR_COLORS[0]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const [gateVisible, setGateVisible] = useState(false);
+
+    // Animation Shared Values
+    const deleteScale = useSharedValue(1);
+    const deleteAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: deleteScale.value }],
+    }));
 
     // Pre-fill form with existing profile data
     useEffect(() => {
@@ -163,9 +168,9 @@ export default function EditProfileScreen() {
                     keyboardShouldPersistTaps="handled"
                 >
                     {/* Avatar Preview */}
-                    <View style={styles.avatarSection}>
-                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && { width: 64, height: 64, borderRadius: Radius.full }]}>
-                            <Text style={[styles.avatarInitial, isCompact && { fontSize: FontSize['3xl'] }]}>
+                    <Animated.View entering={FadeInDown.delay(100)} style={styles.avatarSection}>
+                        <View style={[styles.avatar, { backgroundColor: avatarColor }, isCompact && styles.avatarCompact]}>
+                            <Text style={[styles.avatarInitial, isCompact && styles.avatarInitialCompact]}>
                                 {name ? name.charAt(0).toUpperCase() : '?'}
                             </Text>
                         </View>
@@ -190,60 +195,63 @@ export default function EditProfileScreen() {
                                 </TouchableOpacity>
                             ))}
                         </View>
-                    </View>
+                    </Animated.View>
 
-                    {/* Name */}
-                    <Input
-                        label="Name"
-                        placeholder="Child's name"
-                        value={name}
-                        onChangeText={(text) => {
-                            setName(text);
-                            if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
-                        }}
-                        autoCapitalize="words"
-                        required
-                        error={errors.name}
-                    />
+                    <Animated.View entering={FadeInDown.delay(200)}>
+                        <Input
+                            label="Name"
+                            placeholder="Child's name"
+                            value={name}
+                            onChangeText={(text) => {
+                                setName(text);
+                                if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                            }}
+                            autoCapitalize="words"
+                            required
+                            error={errors.name}
+                        />
+                    </Animated.View>
 
-                    {/* Age */}
-                    <Input
-                        label="Age"
-                        placeholder="How old are they?"
-                        value={age}
-                        onChangeText={(text) => {
-                            setAge(text);
-                            if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
-                        }}
-                        keyboardType="number-pad"
-                        maxLength={2}
-                        containerStyle={styles.ageInput}
-                        required
-                        error={errors.age}
-                    />
+                    <Animated.View entering={FadeInDown.delay(300)}>
+                        <Input
+                            label="Age"
+                            placeholder="How old are they?"
+                            value={age}
+                            onChangeText={(text) => {
+                                setAge(text);
+                                if (errors.age) setErrors(prev => ({ ...prev, age: '' }));
+                            }}
+                            keyboardType="number-pad"
+                            maxLength={2}
+                            containerStyle={styles.ageInput}
+                            required
+                            error={errors.age}
+                        />
+                    </Animated.View>
 
-                    {/* Grade Level */}
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.fieldLabel}>Grade Level</Text>
-                        <Text style={styles.requiredStar}>*</Text>
-                    </View>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.gradeList}
-                    >
-                        {GRADE_LEVELS.map((grade) => (
-                            <Chip
-                                key={grade}
-                                label={grade}
-                                selected={gradeLevel === grade}
-                                onPress={() => {
-                                    setGradeLevel(grade);
-                                    if (errors.gradeLevel) setErrors(prev => ({ ...prev, gradeLevel: '' }));
-                                }}
-                            />
-                        ))}
-                    </ScrollView>
+                    <Animated.View entering={FadeInDown.delay(400)}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.fieldLabel}>Grade Level</Text>
+                            <Text style={styles.requiredStar}>*</Text>
+                        </View>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.gradeList}
+                        >
+                            {GRADE_LEVELS.map((grade) => (
+                                <Chip
+                                    key={grade}
+                                    label={grade}
+                                    selected={gradeLevel === grade}
+                                    onPress={() => {
+                                        setGradeLevel(grade);
+                                        if (errors.gradeLevel) setErrors(prev => ({ ...prev, gradeLevel: '' }));
+                                    }}
+                                />
+                            ))}
+                        </ScrollView>
+                    </Animated.View>
 
                     {/* Error */}
                     {(errors.form || errors.gradeLevel) && (
@@ -265,10 +273,17 @@ export default function EditProfileScreen() {
                     />
 
                     {/* Delete */}
-                    <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-                        <Trash2 size={16} color={Colors.accent} />
-                        <Text style={styles.deleteBtnText}>Delete Profile</Text>
-                    </TouchableOpacity>
+                    <Animated.View style={deleteAnimatedStyle}>
+                        <Pressable
+                            onPress={handleDelete}
+                            onPressIn={() => (deleteScale.value = withSpring(0.96))}
+                            onPressOut={() => (deleteScale.value = withSpring(1))}
+                            style={styles.deleteBtn}
+                        >
+                            <Trash2 size={16} color={Colors.accent} />
+                            <Text style={styles.deleteBtnText}>Delete Profile</Text>
+                        </Pressable>
+                    </Animated.View>
 
                     <View style={[styles.bottomSpacer, { height: bottomPad }]} />
                 </ScrollView>
@@ -311,6 +326,14 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.bold,
         color: Colors.white,
     },
+    avatarCompact: {
+        width: 64,
+        height: 64,
+        borderRadius: Radius.full,
+    },
+    avatarInitialCompact: {
+        fontSize: FontSize['3xl'],
+    },
     colorPicker: {
         flexDirection: 'row',
         gap: Spacing.sm,
@@ -338,7 +361,7 @@ const styles = StyleSheet.create({
     labelContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 2,
+        gap: Spacing.xs / 2,
     },
     requiredStar: {
         color: Colors.accent,
@@ -346,6 +369,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.bold,
         marginTop: Spacing.xl,
         marginBottom: Spacing.sm,
+        marginLeft: 2,
     },
 
     gradeList: {

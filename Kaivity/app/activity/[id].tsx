@@ -38,31 +38,49 @@ import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 import { useResponsive } from '@/hooks/useResponsive';
 import { MarkdownContent } from '@/components/ui/MarkdownContent';
+import { PromptModal } from '@/components/ui/PromptModal';
+import { toLocalDateString, getWeekDates } from '@/lib/dates';
+
 
 const VISUAL_CATEGORIES = new Set(['puzzles', 'tracing', 'science', 'art', 'math', 'reading']);
 
 export default function ActivityDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { 
-        recentActivities, 
-        savedActivities, 
-        toggleSaved, 
-        generateActivity, 
-        submitFeedback, 
+    const {
+        recentActivities,
+        savedActivities,
+        toggleSaved,
+        generateActivity,
+        submitFeedback,
         isGenerating,
-        fetchActivityDetail 
+        fetchActivityDetail
     } = useActivityStore();
     const completeActivityAdhoc = useJourneyStore((state) => state.completeActivityAdhoc);
     const { isCompact, isSmallMobile, isTablet } = useResponsive();
     const insets = useSafeAreaInsets();
     const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['5xl']);
 
-    const [loadingDetail, setLoadingDetail] = React.useState(false);
+
 
     const activity = useMemo(() => {
         return [...recentActivities, ...savedActivities].find((a) => a.id === id);
     }, [id, recentActivities, savedActivities]);
+
+    const [loadingDetail, setLoadingDetail] = React.useState(false);
+    const [isPromptVisible, setIsPromptVisible] = React.useState(false);
+
+    // Journey integration for completion status
+    const { completions, fetchWeek } = useJourneyStore();
+    const todayStr = useMemo(() => toLocalDateString(new Date()), []);
+
+    const isCompletedToday = useMemo(() => {
+        if (!activity) return false;
+        return completions.some(c =>
+            c.activity_id === activity.id &&
+            c.completed_date === todayStr
+        );
+    }, [activity?.id, completions, todayStr]);
 
     const category = useMemo(() => {
         return ACTIVITY_CATEGORIES.find((c) => c.id === activity?.category);
@@ -74,6 +92,16 @@ export default function ActivityDetailScreen() {
             fetchActivityDetail(id).finally(() => setLoadingDetail(false));
         }
     }, [id, activity?.id, activity?.content, fetchActivityDetail]);
+
+    // Fetch completions on mount to ensure status is accurate
+    React.useEffect(() => {
+        if (activity?.kid_profile_id) {
+            const week = getWeekDates(new Date());
+            const start = toLocalDateString(week[0]);
+            const end = toLocalDateString(week[6]);
+            fetchWeek(activity.kid_profile_id, start, end);
+        }
+    }, [activity?.kid_profile_id, fetchWeek]);
 
     if (!activity || loadingDetail) {
         return (
@@ -128,84 +156,41 @@ export default function ActivityDetailScreen() {
 
     const handleRedo = () => {
         if (!activity) return;
-        Alert.prompt(
-            'Improve this activity',
-            'What would you like to change? (e.g., "Too many numbers", "Change theme to space")',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Redo Now',
-                    onPress: async (feedback?: string) => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                        
-                        // Submit negative feedback first
-                        await submitFeedback(activity.id, -1, feedback);
-
-                        // Then regenerate
-                        const { data, error: err } = await generateActivity({
-                            kid_profile_id: activity.kid_profile_id,
-                            category: activity.category,
-                            topic: activity.topic,
-                            difficulty: activity.difficulty || 'medium',
-                            style: activity.style || 'colorful',
-                        });
-
-                        if (err) {
-                            Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate');
-                        } else if (data) {
-                            router.replace({
-                                pathname: '/activity/[id]',
-                                params: { id: data.id },
-                            });
-                        }
-                    },
-                },
-            ],
-            'plain-text'
-        );
+        setIsPromptVisible(true);
     };
 
-    const handleRegenerate = () => {
-        Alert.alert(
-            'Regenerate Activity',
-            'This will create a new activity with the same settings. Continue?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Regenerate',
-                    onPress: async () => {
-                        if (!activity) return;
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const handlePromptSubmit = async (feedback?: string) => {
+        setIsPromptVisible(false);
+        if (!activity) return;
 
-                        const { data, error: err } = await generateActivity({
-                            kid_profile_id: activity.kid_profile_id,
-                            category: activity.category,
-                            topic: activity.topic,
-                            difficulty: activity.difficulty || 'medium',
-                            style: activity.style || 'colorful',
-                        });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-                        if (err === 'rate_limit') {
-                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                            Alert.alert('Limit Reached', 'You have hit your daily generation limit.');
-                        } else if (err) {
-                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                            Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate activity');
-                        } else if (data) {
-                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                            router.push({
-                                pathname: '/activity/[id]',
-                                params: { id: data.id },
-                            });
-                        }
-                    },
-                },
-            ]
-        );
+        // Submit negative feedback first
+        await submitFeedback(activity.id, -1, feedback);
+
+        // Then regenerate
+        const { data, error: err } = await generateActivity({
+            kid_profile_id: activity.kid_profile_id,
+            category: activity.category,
+            topic: activity.topic,
+            difficulty: activity.difficulty || 'medium',
+            style: activity.style || 'colorful',
+        });
+
+        if (err) {
+            Alert.alert('Error', typeof err === 'string' ? err : 'Failed to generate');
+        } else if (data) {
+            router.replace({
+                pathname: '/activity/[id]',
+                params: { id: data.id },
+            });
+        }
     };
+
+
 
     const handleMarkCompleted = async () => {
-        if (!activity) return;
+        if (!activity || isCompletedToday) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         const res = await completeActivityAdhoc(activity.kid_profile_id, activity.id);
         if (!res.completed) {
@@ -213,6 +198,10 @@ export default function ActivityDetailScreen() {
             Alert.alert('Error', 'Could not mark as completed. Try again.');
         } else {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            // Refresh week to show immediate feedback if needed, 
+            // though the store update in completeActivityAdhoc should handle it.
+            const week = getWeekDates(new Date());
+            fetchWeek(activity.kid_profile_id, toLocalDateString(week[0]), toLocalDateString(week[6]));
         }
     };
 
@@ -242,8 +231,8 @@ export default function ActivityDetailScreen() {
                 </View>
             </View>
 
-            <ScrollView 
-                style={styles.container} 
+            <ScrollView
+                style={styles.container}
                 contentContainerStyle={[
                     styles.content,
                     isSmallMobile && { paddingHorizontal: horizontalPad, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
@@ -253,7 +242,7 @@ export default function ActivityDetailScreen() {
                 {/* Category badge + date */}
                 <View style={[styles.metaRow, isSmallMobile && { marginBottom: Spacing.sm }]}>
                     <View style={[styles.badge, {
-                        backgroundColor: (Colors.pastels as any)[activity.category] ?? Colors.primary + '15',
+                        backgroundColor: (Colors.categories as any)[activity?.category ?? '']?.pastel || (Colors as any).primaryLight,
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 4,
@@ -274,7 +263,7 @@ export default function ActivityDetailScreen() {
                     <View style={styles.dateWrapper}>
                         <Clock size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
                         <Text style={[styles.dateText, isSmallMobile && { fontSize: FontSize.xs }]}>
-                            {new Date(activity.created_at).toLocaleDateString()}
+                            {activity.created_at ? new Date(activity.created_at).toLocaleDateString() : 'Recent'}
                         </Text>
                     </View>
                 </View>
@@ -290,7 +279,7 @@ export default function ActivityDetailScreen() {
                     <View style={[styles.metaChip, isSmallMobile && { paddingHorizontal: Spacing.xs, paddingVertical: 3 }]}>
                         <Zap size={isSmallMobile ? 12 : 14} color={Colors.textPrimary} />
                         <Text style={[styles.metaChipText, isSmallMobile && { fontSize: 11 }]}>
-                            {activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)}
+                            {activity.difficulty ? (activity.difficulty.charAt(0).toUpperCase() + activity.difficulty.slice(1)) : 'Medium'}
                         </Text>
                     </View>
                     <View style={[styles.metaChip, isSmallMobile && { paddingHorizontal: Spacing.xs, paddingVertical: 3 }]}>
@@ -367,56 +356,57 @@ export default function ActivityDetailScreen() {
                         How was this activity?
                     </Text>
                     <View style={styles.feedbackRow}>
-                        <TouchableOpacity 
-                            onPress={handleLoveIt} 
+                        <TouchableOpacity
+                            onPress={handleLoveIt}
                             style={[styles.feedbackBtn, activity.rating === 1 && styles.feedbackBtnActive]}
                         >
-                            <Heart 
-                                size={isSmallMobile ? 20 : 24} 
-                                color={activity.rating === 1 ? Colors.white : Colors.primary} 
-                                fill={activity.rating === 1 ? Colors.white : 'transparent'} 
+                            <Heart
+                                size={isSmallMobile ? 20 : 24}
+                                color={activity.rating === 1 ? Colors.white : Colors.primary}
+                                fill={activity.rating === 1 ? Colors.white : 'transparent'}
                             />
                             <Text style={[styles.feedbackBtnText, activity.rating === 1 && styles.feedbackBtnTextActive]}>Love it</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity 
-                            onPress={handleRedo} 
+                        <TouchableOpacity
+                            onPress={handleRedo}
                             style={[styles.feedbackBtn, activity.rating === -1 && styles.feedbackBtnActive]}
                         >
-                            <RefreshCw 
-                                size={isSmallMobile ? 18 : 22} 
-                                color={activity.rating === -1 ? Colors.white : Colors.textPrimary} 
+                            <RefreshCw
+                                size={isSmallMobile ? 18 : 22}
+                                color={activity.rating === -1 ? Colors.white : Colors.textPrimary}
                             />
                             <Text style={[styles.feedbackBtnText, activity.rating === -1 && styles.feedbackBtnTextActive, { color: activity.rating === -1 ? Colors.white : Colors.textPrimary }]}>Redo</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Action buttons */}
                 <View style={[styles.actionRow, isSmallMobile && styles.actionRowMobile]}>
                     <Button
-                        title="Mark Completed"
+                        title={isCompletedToday ? "Completed Today" : "Mark Completed"}
                         onPress={handleMarkCompleted}
-                        variant="primary"
+                        variant={isCompletedToday ? "outline" : "primary"}
                         size={isSmallMobile ? "sm" : "lg"}
-                        icon={<CheckCircle2 size={isSmallMobile ? 16 : 18} color={Colors.white} />}
+                        icon={isCompletedToday ? <CheckCircle2 size={isSmallMobile ? 16 : 18} color={Colors.primary} /> : <CheckCircle2 size={isSmallMobile ? 16 : 18} color={Colors.white} />}
                         style={isSmallMobile ? { width: '100%' } : styles.flex1}
-                    />
-                    <Button
-                        title="Regenerate"
-                        onPress={handleRegenerate}
-                        variant="outline"
-                        size={isSmallMobile ? "sm" : "lg"}
-                        disabled={isGenerating}
-                        loading={isGenerating}
-                        icon={<RefreshCw size={isSmallMobile ? 16 : 18} color={Colors.primary} />}
-                        style={isSmallMobile ? { width: '100%' } : styles.flex1}
+                        disabled={isCompletedToday}
                     />
                 </View>
 
                 <View style={[styles.bottomSpacer, { height: bottomPad }]} />
             </ScrollView>
+
+            <PromptModal
+                visible={isPromptVisible}
+                title="Improve this activity"
+                message="What would you like to change? (e.g., 'Too many numbers', 'Change theme to space')"
+                placeholder="Enter your changes..."
+                onCancel={() => setIsPromptVisible(false)}
+                onSubmit={handlePromptSubmit}
+                submitText="Redo Now"
+            />
         </SafeAreaView>
+
     );
 }
 
@@ -503,7 +493,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 4,
         backgroundColor: Colors.surface,
-        paddingHorizontal: Spacing.sm,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 4,
         borderRadius: Radius.sm,
         borderWidth: 1,
@@ -553,44 +543,6 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         position: 'absolute',
-    },
-    tracingOverlay: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        padding: Spacing.xl,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderTopWidth: 1,
-        borderTopColor: Colors.border,
-    },
-    tracingText: {
-        fontFamily: Fonts.bold,
-        fontSize: FontSize['3xl'],
-        color: Colors.textPrimary,
-        letterSpacing: 2,
-        opacity: 0.4,
-        marginBottom: Spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-        borderStyle: 'dashed',
-        width: '90%',
-        textAlign: 'center',
-    },
-    tracingTextWord: {
-        fontFamily: Fonts.bold,
-        fontSize: FontSize['4xl'],
-        color: Colors.textPrimary,
-        letterSpacing: 8,
-        opacity: 0.4,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-        borderStyle: 'dashed',
-        width: '90%',
-        textAlign: 'center',
-        marginTop: Spacing.sm,
     },
     heroPlaceholder: {
         height: 200,

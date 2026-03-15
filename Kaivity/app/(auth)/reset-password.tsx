@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: Radius.full,
-        backgroundColor: Colors.pastelPeach,
+        backgroundColor: Colors.categories.reading.pastel,
         alignItems: 'center',
         justifyContent: 'center',
     },

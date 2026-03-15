@@ -1,110 +1,85 @@
 import { Platform } from 'react-native';
 
-// ─── Color Palette ───────────────────────────────────────────────
-// Playful, kid-friendly, but professional for parents.
+// ─── Color Palette: "Sunrise Spark & Deep Ocean" ──────────────────
+// Warm, tactile, and inviting for kids. Professional and calming for parents.
 
 export const Colors = {
-  // Brand from Style Guide
-  purple: '#E7E1FF',
-  rad: '#FECAC3',
-  blue: '#8AE3FF',
-  yellow: '#FFE3C1',
-  orange: '#FF8A00',
-  green: '#A2DDC2',
-
-  // Core semantic mapping (incorporating new style guide)
-  primary: '#fa921bff',       // Orange — main CTA, active elements (good contrast)
-  primaryLight: '#E7E1FF',  // Purple — backgrounds, chips
-  primaryDark: '#FF8A00',   // Orange — pressed states
-  primaryPurple: '#9B72DA', // Purple CTA color
-  primaryOrange: '#FF8A00', // Explicit Orange CTA
-
-  // Accent
-  accent: '#FECAC3',        // Rad 
-  accentLight: '#FFE3C1',   // Yellow
-  success: '#A2DDC2',       // Green 
-  warning: '#FFE3C1',       // Yellow 
-  danger: '#E8757A',        // Reddish for destructive actions
-
-  // Category Accent Colors (Dynamic lookup)
-  accents: {
-    puzzles: '#9B72DA',
-    tracing: '#E8757A',
-    science: '#31A87A',
-    art: '#D4920A',
-    math: '#0EAAD4',
-    reading: '#D46300',
+  primary: '#4361EE',       
+  primaryLight: '#DDE2FF',  
+  primaryDark: '#2B3A8C',   
+  secondary: '#FFB703',     
+  
+  // Accent & Feedback: Highly visible but avoiding the "system error" anxiety
+accent:  '#FF9F1C', // Vibrant Amber/Orange (Energetic & Friendly)
+  success: '#4CD137', // Bright Lime (Positive & Rewarding)
+  warning: '#FDCB6E', // Soft Gold (Cautionary but not scary)
+  danger:  '#FF4757', // Watermelon Red (Urgent but playful)
+categories: {
+    puzzles: { accent: '#FF9F1C', pastel: '#FFF4E6' }, // Warm Orange
+    tracing: { accent: '#4ECDC4', pastel: '#E6F7F6' }, // Soft Teal
+    science: { accent: '#A06CD5', pastel: '#F3EBF9' }, // Playful Purple
+    art:     { accent: '#FF6B6B', pastel: '#FFEBEB' }, // Soft Red/Pink
+    math:    { accent: '#4361EE', pastel: '#E8EDFF' }, // Royal Blue
+    reading: { accent: '#6AB04C', pastel: '#F0F7ED' }, // Leaf Green
   },
 
-  // Category Pastels (Dynamic lookup)
-  pastels: {
-    puzzles: '#F3EFFF', // pastelPurple
-    tracing: '#FFF0F5', // pastelPink
-    science: '#E8F5E9', // pastelMint
-    art: '#FFFBE6',     // pastelYellow
-    math: '#E3F2FD',    // pastelBlue
-    reading: '#FFF3E0', // pastelPeach
-  },
-
-  // Difficulty Colors
+  // Activity Difficulty Colors: Moved away from standard traffic lights for better accessibility
   difficulty: {
-    easy: '#31A87A',
-    medium: '#D4920A',
-    hard: '#E8757A',
+    easy: '#4ECDC4',   // Mint/Ocean (Calm, approachable)
+    medium: '#FFE66D', // Sunny (Requires some energy)
+    hard: '#FF6B6B',   // Coral (High energy, challenging)
   },
 
-  // Neutrals
+  // Neutrals: Warm-tinted in light mode for a paper-like feel
   white: '#FFFFFF',
-  background: '#f5f5ffff',    // Crisp white for playful watermarks
-  paleBackground: '#FDFBF7',
-  surface: '#FFFFFF',       // Cards, modals
-  border: '#E8E8F0',        // Subtle borders
-  textPrimary: '#1E1E2E',   // Near-black
-  textSecondary: '#6B7280', // Muted gray
-  textTertiary: '#9CA3AF',  // Placeholder text
-  disabled: '#D1D5DB',
+  background: '#FDFDFD',    // Off-white with a tiny hint of warmth, less clinical
+  surface: '#FFFFFF',
+  border: '#EAECEE',        // Very soft gray
+  textLight: '#FFFFFF',
+  textPrimary: '#1a2837ff',   // Deep Navy/Slate instead of black, softer on developing eyes
+  textSecondary: '#515a5bff', // Muted slate
+  textTertiary: '#BDC3C7',
+  disabled: '#D5D8DC',
 
-  // Category colors (for activity cards)
-  categoryPuzzles: '#E7E1FF', // purple
-  categoryTracing: '#FECAC3', // rad
-  categoryScience: '#A2DDC2', // green
-  categoryArt: '#FFE3C1',     // yellow
-  categoryMath: '#8AE3FF',    // blue
-  categoryReading: '#FF8A00', // orange
+  // Functional: Semantic overlays and washes
+  overlayBackground: 'rgba(0, 0, 0, 0.45)', // For modal backdrops
+  overlaySubtle: 'rgba(0, 0, 0, 0.15)',     // For dropdown overlays
+  surfaceWash: 'rgba(255, 255, 255, 0.6)',  // For subtle white overlays
+  vibrantWash: 'rgba(255, 255, 255, 0.18)', // For card highlights
+  shadowColor: 'rgba(0, 0, 0, 0.08)',
 
-  // Soft Pastels for Card Backgrounds
-  pastelPurple: '#F3EFFF',
-  pastelPink: '#FFF0F5',
-  pastelPeach: '#FFF3E0',
-  pastelYellow: '#FFFBE6',
-  pastelMint: '#E8F5E9',
-  pastelBlue: '#E3F2FD',
+  // Avatar/Profile Palettes
+  avatar: [
+    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
+    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8'
+  ],
 
-  // Dark mode
+  // UI Themes
   dark: {
-    background: '#0F0F1A',
-    surface: '#1A1A2E',
-    border: '#2D2D44',
-    textPrimary: '#F0F0F5',
-    textSecondary: '#9CA3AF',
-    textTertiary: '#6B7280',
+    background: '#0B132B',  // Deep Ocean Navy - calming, great for evening use
+    surface: '#1C2541',     // Elevated marine cards
+    border: '#3A506B',
+    textPrimary: '#F8FAFC', // Crisp ice white for readability
+    textSecondary: '#AAB7B8',
+    textTertiary: '#7F8C8D',
+    text: '#F8FAFC',
+    tint: '#FF6B6B',        // Coral pops beautifully against the deep navy
+    icon: '#AAB7B8',
+    tabIconDefault: '#7F8C8D',
+    tabIconSelected: '#FF6B6B',
   },
-
   light: {
-    text: '#1E1E2E',
-    background: '#F8F9FE',
-    tint: '#FF8A00',
-    icon: '#6B7280',
-    tabIconDefault: '#9CA3AF',
-    tabIconSelected: '#FF8A00',
-  },
-  darkTheme: {
-    text: '#F0F0F5',
-    background: '#0F0F1A',
-    tint: '#E7E1FF',
-    icon: '#9CA3AF',
-    tabIconDefault: '#6B7280',
-    tabIconSelected: '#E7E1FF',
+    background: '#FDFDFD',
+    surface: '#FFFFFF',
+    border: '#EAECEE',
+    textPrimary: '#2C3E50',
+    textSecondary: '#7F8C8D',
+    textTertiary: '#BDC3C7',
+    text: '#2C3E50',
+    tint: '#FF6B6B',
+    icon: '#7F8C8D',
+    tabIconDefault: '#BDC3C7',
+    tabIconSelected: '#FF6B6B',
   },
 } as const;
 

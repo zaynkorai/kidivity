@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
         height: 5,
     },
     inlineBold: {
-        fontFamily: Fonts.bold, 
+        fontFamily: Fonts.bold,
         fontWeight: 'bold',
     },
 });
@@ -237,7 +237,7 @@ const mdStyles = StyleSheet.create({
     blockquote: {
         backgroundColor: Colors.primaryLight + '55',
         borderLeftWidth: 3,
-        borderLeftColor: Colors.primaryPurple,
+        borderLeftColor: Colors.secondary,
         paddingVertical: Spacing.sm,
         paddingHorizontal: Spacing.md,
         borderRadius: Radius.sm,
@@ -313,9 +313,9 @@ const mdStyles = StyleSheet.create({
     blockquoteCompact: {
         backgroundColor: Colors.primaryLight + '55',
         borderLeftWidth: 2,
-        borderLeftColor: Colors.primaryPurple,
+        borderLeftColor: Colors.secondary,
         paddingVertical: Spacing.xs,
-        paddingHorizontal: Spacing.sm,
+        paddingHorizontal: Spacing.md,
         borderRadius: Radius.sm,
         marginBottom: Spacing.xs,
     },

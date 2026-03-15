@@ -18,16 +18,14 @@ interface ProfileActions {
     updateProfile: (id: string, updates: UpdateKidProfileInput) => Promise<{ error: string | null }>;
     deleteProfile: (id: string) => Promise<{ error: string | null }>;
     setActiveProfile: (id: string) => void;
-    getActiveProfile: () => KidProfile | undefined;
     clearProfiles: () => void;
 }
 
 type ProfileStore = ProfileState & ProfileActions;
 
-const AVATAR_COLORS = [
-    '#FF8A00', '#FECAC3', '#A2DDC2', '#FFE3C1', '#8AE3FF', '#E7E1FF',
-    '#FD79A8', '#00CEC9', '#E17055', '#0984E3', '#55A3E8',
-];
+import { Colors } from '@/constants/theme';
+
+const AVATAR_COLORS = Colors.avatar;
 
 function getRandomColor(): string {
     return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)];
@@ -199,10 +197,6 @@ export const useProfileStore = create<ProfileStore>()(
                 set({ activeProfileId: id });
             },
 
-            getActiveProfile: () => {
-                const { profiles, activeProfileId } = get();
-                return profiles.find(p => p.id === activeProfileId);
-            },
             
             clearProfiles: () => {
                 set({ profiles: [], activeProfileId: null, hasLoadedProfiles: false });

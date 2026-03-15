@@ -107,6 +107,6 @@ const styles = StyleSheet.create({
     devText: {
         fontSize: FontSize.xs,
         color: Colors.accent,
-        fontFamily: 'monospace',
+        fontFamily: Fonts.mono,
     },
 });

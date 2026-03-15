@@ -74,7 +74,7 @@ export function PaywallModal({ visible, used, limit, onClose }: Props) {
 const styles = StyleSheet.create({
     backdrop: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.45)',
+        backgroundColor: Colors.overlayBackground,
     },
     sheet: {
         backgroundColor: Colors.surface,

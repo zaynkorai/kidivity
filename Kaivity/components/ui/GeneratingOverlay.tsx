@@ -91,7 +91,7 @@ export function GeneratingOverlay({ visible }: { visible: boolean }) {
 const loadingStyles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: Colors.overlayBackground,
         alignItems: 'center',
         justifyContent: 'center',
     },

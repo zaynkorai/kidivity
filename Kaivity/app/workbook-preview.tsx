@@ -75,10 +75,10 @@ function buildWorkbookHtml(activities: Activity[]): string {
     html, body { height: 100%; }
     body {
       font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-      color: #1E1E2E;
+      color: ${Colors.textPrimary};
       font-size: 14px;
       line-height: 1.6;
-      background: #FFFFFF;
+      background: ${Colors.white};
     }
     .activity {
       page-break-after: always;
@@ -94,16 +94,16 @@ function buildWorkbookHtml(activities: Activity[]): string {
       text-align: center;
       padding-bottom: 16px;
       margin-bottom: 20px;
-      border-bottom: 2px solid #FF8A00;
+      border-bottom: 2px solid ${Colors.primary};
     }
     .header h1 {
       font-size: 24px;
       margin-bottom: 4px;
-      color: #FF8A00;
+      color: ${Colors.primary};
     }
     .header .meta {
       font-size: 12px;
-      color: #6B7280;
+      color: ${Colors.textSecondary};
     }
     .badge {
       display: inline-block;
@@ -112,15 +112,15 @@ function buildWorkbookHtml(activities: Activity[]): string {
       font-size: 12px;
       font-weight: 600;
       margin-bottom: 8px;
-      background: #FFEFE0;
-      color: #FF8A00;
+      background: ${Colors.categories.reading.pastel};
+      color: ${Colors.primary};
     }
     h1 { font-size: 22px; margin: 16px 0 8px; }
-    h2 { font-size: 18px; margin: 14px 0 6px; color: #4834D4; }
+    h2 { font-size: 18px; margin: 14px 0 6px; color: ${Colors.primaryDark}; }
     h3 { font-size: 16px; margin: 12px 0 4px; }
     p { margin: 6px 0; }
     li { margin: 4px 0; margin-left: 20px; }
-    hr { border: none; border-top: 1px solid #E8E8F0; margin: 16px 0; }
+    hr { border: none; border-top: 1px solid ${Colors.border}; margin: 16px 0; }
     strong { font-weight: 700; }
     .generated-image {
       max-width: 100%;

@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, ScrollView, TouchableWithoutFeedback, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Modal, ScrollView, TouchableWithoutFeedback, Pressable, TouchableOpacity } from 'react-native';
+import Animated, { FadeInRight, Layout } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Calendar, Plus, CheckCircle2, Circle, Flame, Star } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
@@ -18,6 +20,7 @@ interface JourneyMapProps {
 }
 
 export function JourneyMap({ kidProfileId, activities, activityStreak }: JourneyMapProps) {
+    const router = useRouter();
     const [selectedDate, setSelectedDate] = useState<string | null>(toLocalDateString(new Date()));
     const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -123,8 +126,8 @@ export function JourneyMap({ kidProfileId, activities, activityStreak }: Journey
                         </View>
                     )}
                     <View style={styles.weekBadge}>
-                        <Star size={12} color={Colors.primaryPurple} />
-                        <Text style={[styles.badgeText, { color: Colors.primaryPurple }]}>
+                        <Star size={12} color={Colors.secondary} />
+                        <Text style={[styles.badgeText, { color: Colors.secondary }]}>
                             {completedDaysThisWeek}/7 days
                         </Text>
                     </View>
@@ -144,42 +147,45 @@ export function JourneyMap({ kidProfileId, activities, activityStreak }: Journey
                     <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
                 )}
                 <View style={styles.pillRow}>
-                {weekDates.map((date, i) => {
-                    const ds = toLocalDateString(date);
-                    const isSelected = ds === selectedDate;
-                    const scheduledCount = itemsByDate[ds]?.length ?? 0;
-                    const doneCount = completionsByDate[ds] ?? 0;
-                    const isDoneDay = doneCount > 0 && doneCount >= scheduledCount && scheduledCount > 0;
-                    const category = itemsByDate[ds]?.[0]?.category;
-                    const accent = ACTIVITY_CATEGORIES.find((c) => c.id === category)?.accent ?? Colors.primary;
+                    {weekDates.map((date, i) => {
+                        const ds = toLocalDateString(date);
+                        const isSelected = ds === selectedDate;
+                        const scheduledCount = itemsByDate[ds]?.length ?? 0;
+                        const doneCount = completionsByDate[ds] ?? 0;
+                        const isDoneDay = doneCount > 0 && doneCount >= scheduledCount && scheduledCount > 0;
+                        const category = itemsByDate[ds]?.[0]?.category;
+                        const accent = ACTIVITY_CATEGORIES.find((c) => c.id === category)?.accent ?? Colors.primary;
 
-                    return (
-                        <Pressable
-                            key={ds}
-                            onPress={() => setSelectedDate(ds)}
-                            style={({ pressed }) => [
-                                styles.dayPill,
-                                isSelected && styles.dayPillSelected,
-                                pressed && styles.dayPillPressed,
-                                isSelected && pressed && styles.dayPillSelectedPressed,
-                            ]}
-                        >
-                            <Text style={[styles.dayLetter, isSelected && styles.textWhite]}>{DAY_LETTERS[i]}</Text>
-                            <Text style={[styles.dayNum, isSelected && styles.textWhite]}>{date.getDate()}</Text>
-                            {scheduledCount > 0 ? (
-                                isDoneDay ? (
-                                    <CheckCircle2 size={12} color={isSelected ? Colors.white : Colors.primary} />
+                        return (
+                            <Pressable
+                                key={ds}
+                                onPress={() => {
+                                    Haptics.selectionAsync();
+                                    setSelectedDate(ds);
+                                }}
+                                style={({ pressed }) => [
+                                    styles.dayPill,
+                                    isSelected && styles.dayPillSelected,
+                                    pressed && styles.dayPillPressed,
+                                    isSelected && pressed && styles.dayPillSelectedPressed,
+                                ]}
+                            >
+                                <Text style={[styles.dayLetter, isSelected && styles.textWhite]}>{DAY_LETTERS[i]}</Text>
+                                <Text style={[styles.dayNum, isSelected && styles.textWhite]}>{date.getDate()}</Text>
+                                {scheduledCount > 0 ? (
+                                    isDoneDay ? (
+                                        <CheckCircle2 size={12} color={isSelected ? Colors.white : Colors.primary} />
+                                    ) : (
+                                        <View style={[styles.countBadge, { backgroundColor: accent }]}>
+                                            <Text style={styles.countBadgeText}>{scheduledCount}</Text>
+                                        </View>
+                                    )
                                 ) : (
-                                    <View style={[styles.countBadge, { backgroundColor: accent }]}> 
-                                        <Text style={styles.countBadgeText}>{scheduledCount}</Text>
-                                    </View>
-                                )
-                            ) : (
-                                <View style={styles.emptyDot} />
-                            )}
-                        </Pressable>
-                    );
-                })}
+                                    <View style={styles.emptyDot} />
+                                )}
+                            </Pressable>
+                        );
+                    })}
                 </View>
             </View>
 
@@ -207,29 +213,43 @@ export function JourneyMap({ kidProfileId, activities, activityStreak }: Journey
                         const done = isDoneForItem(item);
                         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
                         const Icon = category?.icon;
+                        const index = selectedItems.indexOf(item);
                         return (
-                            <View key={item.id} style={styles.listItem}>
-                                <View style={[styles.categoryPill, { backgroundColor: (category?.accent ?? Colors.primary) + '20' }]}> 
-                                    {Icon && <Icon size={12} color={Colors.textPrimary} />}
-                                    <Text style={styles.categoryText}>{category?.label.split(' ')[0]}</Text>
-                                </View>
-                                <Text style={[styles.itemTitle, done && styles.itemTitleDone]} numberOfLines={1}>
-                                    {item.title}
-                                </Text>
-                                <Pressable
+                            <Animated.View
+                                entering={FadeInRight.delay(index * 40).duration(300)}
+                                layout={Layout.springify()}
+                                key={item.id}
+                            >
+                                <TouchableOpacity
+                                    style={styles.listItem}
+                                    activeOpacity={0.7}
                                     onPress={() => {
-                                        Haptics.selectionAsync();
-                                        toggleCompletionForJourneyItem(item);
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        router.push(`/activity/${item.activity_id}` as any);
                                     }}
-                                    style={({ pressed }) => [styles.doneBtn, pressed && styles.doneBtnPressed]}
                                 >
-                                    {done ? (
-                                        <CheckCircle2 size={18} color={Colors.primary} />
-                                    ) : (
-                                        <Circle size={18} color={Colors.textTertiary} />
-                                    )}
-                                </Pressable>
-                            </View>
+                                    <View style={[styles.categoryPill, { backgroundColor: (category?.accent ?? Colors.primary) + '20' }]}>
+                                        {Icon && <Icon size={12} color={Colors.textPrimary} />}
+                                        <Text style={styles.categoryText}>{category?.label.split(' ')[0]}</Text>
+                                    </View>
+                                    <Text style={[styles.itemTitle, done && styles.itemTitleDone]} numberOfLines={1}>
+                                        {item.title}
+                                    </Text>
+                                    <Pressable
+                                        onPress={() => {
+                                            Haptics.selectionAsync();
+                                            toggleCompletionForJourneyItem(item);
+                                        }}
+                                        style={({ pressed }) => [styles.doneBtn, pressed && styles.doneBtnPressed]}
+                                    >
+                                        {done ? (
+                                            <CheckCircle2 size={18} color={Colors.primary} />
+                                        ) : (
+                                            <Circle size={18} color={Colors.textTertiary} />
+                                        )}
+                                    </Pressable>
+                                </TouchableOpacity>
+                            </Animated.View>
                         );
                     })}
                 </View>
@@ -260,7 +280,7 @@ export function JourneyMap({ kidProfileId, activities, activityStreak }: Journey
                                                     onPress={() => handleSchedule(a)}
                                                     android_ripple={{ color: Colors.border }}
                                                 >
-                                                    <View style={[styles.modalIcon, { backgroundColor: (category?.accent ?? Colors.primary) + '20' }]}> 
+                                                    <View style={[styles.modalIcon, { backgroundColor: (category?.accent ?? Colors.primary) + '20' }]}>
                                                         {Icon && <Icon size={12} color={Colors.textPrimary} />}
                                                     </View>
                                                     <View style={styles.modalTextWrap}>
@@ -327,8 +347,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,
-        backgroundColor: Colors.pastelYellow,
-        paddingHorizontal: Spacing.sm,
+        backgroundColor: Colors.categories.art.pastel,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 3,
         borderRadius: Radius.full,
         borderWidth: 1,
@@ -338,12 +358,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,
-        backgroundColor: Colors.pastelPurple,
-        paddingHorizontal: Spacing.sm,
+        backgroundColor: Colors.primaryLight,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 3,
         borderRadius: Radius.full,
         borderWidth: 1,
-        borderColor: Colors.primaryPurple,
+        borderColor: Colors.secondary,
     },
     badgeText: {
         fontSize: FontSize.xs,
@@ -364,7 +384,7 @@ const styles = StyleSheet.create({
         top: 26,
         height: 4,
         borderRadius: 999,
-        backgroundColor: Colors.pastelBlue,
+        backgroundColor: Colors.categories.math.pastel,
     },
     progressFill: {
         position: 'absolute',
@@ -383,7 +403,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: Spacing.sm,
         borderRadius: Radius.md,
-        backgroundColor: Colors.pastelPurple,
+        backgroundColor: Colors.primaryLight,
         width: 40,
         gap: 2,
     },
@@ -422,7 +442,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 4,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.6)',
+        borderColor: Colors.surfaceWash,
     },
     countBadgeText: {
         fontFamily: Fonts.bold,
@@ -462,8 +482,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: Spacing.sm,
         paddingVertical: Spacing.xs,
-        paddingHorizontal: Spacing.sm,
-        backgroundColor: Colors.paleBackground,
+        paddingHorizontal: Spacing.md,
+        backgroundColor: Colors.background,
         borderRadius: Radius.md,
         borderWidth: 1,
         borderColor: Colors.border,
@@ -472,11 +492,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        paddingHorizontal: Spacing.sm,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 4,
         borderRadius: Radius.full,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
+        borderColor: Colors.shadowColor,
     },
     categoryText: {
         fontFamily: Fonts.bold,
@@ -504,8 +524,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
     },
     doneBtnPressed: {
-        backgroundColor: Colors.pastelPurple,
-        borderColor: Colors.primaryPurple,
+        backgroundColor: Colors.primaryLight,
+        borderColor: Colors.secondary,
     },
     emptyState: {
         paddingVertical: Spacing.lg,
@@ -537,12 +557,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: Colors.pastelPurple,
-        paddingHorizontal: Spacing.sm,
+        backgroundColor: Colors.primaryLight,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 5,
         borderRadius: Radius.full,
         borderWidth: 1,
-        borderColor: Colors.primaryPurple,
+        borderColor: Colors.secondary,
     },
     inlineAddPressed: {
         backgroundColor: Colors.primaryLight,
@@ -555,7 +575,7 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: Colors.overlayBackground,
         justifyContent: 'center',
         padding: Spacing.xl,
     },
@@ -592,7 +612,7 @@ const styles = StyleSheet.create({
         borderBottomColor: Colors.border,
     },
     modalItemPressed: {
-        backgroundColor: Colors.paleBackground,
+        backgroundColor: Colors.background,
     },
     addBtnPressed: {
         backgroundColor: Colors.primaryDark,

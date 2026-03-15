@@ -76,27 +76,27 @@ function buildPrintHtml(activity: {
     html, body { height: 100%; width: 100%; }
     body {
       font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-      color: #111827;
+      color: ${Colors.textPrimary};
       font-size: 16px;
       line-height: 1.5;
-      background: #FFFFFF;
+      background: ${Colors.white};
     }
     .header {
       width: 100%;
       text-align: center;
       padding-bottom: 12px;
       margin-bottom: 24px;
-      border-bottom: 3px solid ${isBW ? '#333' : (category?.color ?? '#FF8A00')};
+      border-bottom: 3px solid ${isBW ? Colors.textPrimary : (category?.accent ?? Colors.primary)};
     }
     .header h1 {
       font-size: 28px;
       margin-bottom: 4px;
-      color: ${isBW ? '#000' : (category?.color ?? '#FF8A00')};
+      color: ${isBW ? Colors.textPrimary : (category?.accent ?? Colors.primary)};
       text-transform: capitalize;
     }
     .header .meta {
       font-size: 14px;
-      color: #4B5563;
+      color: ${Colors.textSecondary};
       font-style: italic;
     }
     .badge {
@@ -106,14 +106,14 @@ function buildPrintHtml(activity: {
       font-size: 13px;
       font-weight: 700;
       margin-bottom: 10px;
-      ${isBW ? 'border: 2px solid #000;' : `background: ${(category?.color ?? '#FF8A00')}15; color: ${category?.color ?? '#FF8A00'}; border: 1px solid ${(category?.color ?? '#FF8A00')}30;`}
+      ${isBW ? `border: 2px solid ${Colors.textPrimary};` : `background: ${(category?.accent ?? Colors.primary)}15; color: ${category?.accent ?? Colors.primary}; border: 1px solid ${(category?.accent ?? Colors.primary)}30;`}
     }
     h1 { font-size: 24px; margin: 20px 0 10px; }
-    h2 { font-size: 20px; margin: 18px 0 8px; border-left: 4px solid ${isBW ? '#000' : (category?.color ?? '#4834D4')}; padding-left: 10px; }
+    h2 { font-size: 20px; margin: 18px 0 8px; border-left: 4px solid ${isBW ? Colors.textPrimary : (category?.accent ?? Colors.secondary)}; padding-left: 10px; }
     h3 { font-size: 18px; margin: 16px 0 6px; }
     p { margin: 10px 0; }
     li { margin: 6px 0; margin-left: 24px; }
-    hr { border: none; border-top: 2px dashed #E5E7EB; margin: 24px 0; }
+    hr { border: none; border-top: 2px dashed ${Colors.border}; margin: 24px 0; }
     strong { font-weight: 700; }
     
     .generated-image {
@@ -123,7 +123,7 @@ function buildPrintHtml(activity: {
       border-radius: 12px;
       display: block;
       margin: 20px auto;
-      ${isBW ? 'filter: grayscale(100%) contrast(1.2);' : 'box-shadow: 0 4px 20px rgba(0,0,0,0.1);'}
+      ${isBW ? 'filter: grayscale(100%) contrast(1.2);' : `box-shadow: 0 4px 20px ${Colors.shadowColor};`}
     }
 
     /* Category Specifics */
@@ -135,14 +135,14 @@ function buildPrintHtml(activity: {
       strong {
         font-size: 24px;
         letter-spacing: 2px;
-        border-bottom: 1px dashed #999;
+        border-bottom: 1px dashed ${Colors.textTertiary};
       }
     ` : ''}
 
     ${isArt && isBW ? `
-      body { color: #000; }
+      body { color: ${Colors.textPrimary}; }
       .header { border-bottom-width: 4px; }
-      h2 { color: #000; }
+      h2 { color: ${Colors.textPrimary}; }
     ` : ''}
 
     .cover-page {
@@ -160,17 +160,17 @@ function buildPrintHtml(activity: {
     .footer {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 1px solid #E5E7EB;
+      border-top: 1px solid ${Colors.border};
       text-align: center;
       font-size: 12px;
-      color: #9CA3AF;
+      color: ${Colors.textSecondary};
     }
     blockquote {
       border-radius: 8px;
       padding: 12px 16px;
       margin: 16px 0;
       font-size: 14px;
-      ${isBW ? 'border: 1px solid #000;' : `background: #F3F4F6; border-left: 4px solid #9CA3AF;`}
+      ${isBW ? `border: 1px solid ${Colors.textPrimary};` : `background: ${Colors.background}; border-left: 4px solid ${Colors.textSecondary};`}
     }
   </style>
 </head>
@@ -318,7 +318,7 @@ export default function PrintPreviewScreen() {
                         !activity.image_url && { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 },
                         isSmallScreen && { paddingBottom: Spacing.md, marginBottom: Spacing.md }
                     ]}>
-                        <View style={[styles.badge, { backgroundColor: (Colors.pastels as any)[activity.category] ?? Colors.primary + '15' }]}>
+                        <View style={[styles.badge, { backgroundColor: (Colors.categories as any)[activity.category]?.pastel ?? Colors.primary + '15' }]}>
                             <Text style={[styles.badgeText, { color: Colors.textPrimary }]}>
                                 {category?.label}
                             </Text>
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
             offsetX: 0,
             offsetY: 4,
             blurRadius: 12,
-            color: 'rgba(0, 0, 0, 0.1)',
+            color: Colors.shadowColor,
         }],
         elevation: 5,
     },

@@ -9,12 +9,13 @@ import {
     Platform,
     Alert,
 } from 'react-native';
+import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Filter, X, Search, History, Star, CheckCircle2, Circle, FileText } from 'lucide-react-native';
+import { Filter, X, Search, History, Star, CheckCircle2, FileText } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 
@@ -27,8 +28,6 @@ import { ACTIVITY_CATEGORIES, type ActivityCategory } from '@/constants/categori
 import type { Activity } from '@/types/activity';
 
 type SortOption = 'newest' | 'oldest';
-const MAX_WORKBOOK_ITEMS = 5;
-const MIN_WORKBOOK_ITEMS = 3;
 
 export default function ActivitiesScreen() {
     const router = useRouter();
@@ -37,7 +36,6 @@ export default function ActivitiesScreen() {
     const fetchRecent = useActivityStore((state) => state.fetchRecent);
     const fetchKidStats = useActivityStore((state) => state.fetchKidStats);
     const toggleSaved = useActivityStore((state) => state.toggleSaved);
-    const deleteActivity = useActivityStore((state) => state.deleteActivity);
 
     // State selectors
     const recentActivities = useActivityStore((state) => state.recentActivities);
@@ -51,7 +49,6 @@ export default function ActivitiesScreen() {
     const [filterDate, setFilterDate] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('newest');
     const [refreshing, setRefreshing] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         fetchRecent();
@@ -98,49 +95,13 @@ export default function ActivitiesScreen() {
         setFilterDate(null);
     };
 
-    const selectedCount = selectedIds.size;
 
     const handleToggleSaved = async (id: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         await toggleSaved(id);
     };
 
-    const handleDelete = async (id: string) => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        await deleteActivity(id);
-    };
 
-    const handleToggleSelect = async (item: Activity) => {
-        if (!item.is_saved) {
-            await toggleSaved(item.id);
-        }
-
-        setSelectedIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(item.id)) {
-                next.delete(item.id);
-                return next;
-            }
-            if (next.size >= MAX_WORKBOOK_ITEMS) {
-                Alert.alert('Limit reached', `Select up to ${MAX_WORKBOOK_ITEMS} activities.`);
-                return prev;
-            }
-            next.add(item.id);
-            return next;
-        });
-    };
-
-    const handleCreateWorkbook = () => {
-        if (selectedCount < MIN_WORKBOOK_ITEMS) {
-            Alert.alert('Select more activities', `Choose at least ${MIN_WORKBOOK_ITEMS} activities.`);
-            return;
-        }
-        const ids = Array.from(selectedIds);
-        router.push({
-            pathname: '/workbook-preview',
-            params: { ids: ids.join(',') },
-        } as any);
-    };
 
     const tabBarHeight = useBottomTabBarHeight();
     const tabBarOffset = Platform.OS === 'ios' ? Spacing['2xl'] : Spacing.lg;
@@ -159,79 +120,104 @@ export default function ActivitiesScreen() {
 
     const renderItem = ({ item }: { item: Activity }) => {
         const category = ACTIVITY_CATEGORIES.find((c) => c.id === item.category);
-        const accent = Colors.accents[item.category as keyof typeof Colors.accents] ?? Colors.primary;
-        const bgColor = Colors.pastels[item.category as keyof typeof Colors.pastels] ?? Colors.pastelYellow;
+        const accent = (Colors.categories as any)[item.category as any]?.accent ?? Colors.primary;
+        const bgColor = (Colors.categories as any)[item.category as any]?.pastel ?? Colors.categories.art.pastel;
         const diffColor = Colors.difficulty[item.difficulty as keyof typeof Colors.difficulty] ?? Colors.primary;
+        const index = filteredActivities.indexOf(item);
 
         return (
-            <TouchableOpacity
-                activeOpacity={0.88}
+            <Animated.View
+                entering={FadeInUp.delay(index * 50).duration(400).springify()}
+                layout={Layout.springify()}
                 style={styles.gridItemWrapper}
             >
-                <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
-                    {/* Inner border glow */}
-                    <View style={[styles.gridCardBorder, { borderColor: accent + '40' }]} />
+                <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push(`/activity/${item.id}` as any);
+                    }}
+                    style={{ flex: 1 }}
+                >
+                    <View style={[styles.gridCard, { backgroundColor: bgColor }]}>
+                        {/* Inner border glow */}
+                        <View style={[styles.gridCardBorder, { borderColor: accent + '40' }]} />
 
-                    {/* TOP ROW: category chip + save star */}
-                    <View style={styles.gridTopRow}>
-                        <View style={[styles.catChip, { backgroundColor: accent + '20' }]}>
-                            {category?.icon && React.createElement(category.icon, { size: 10, color: accent, strokeWidth: 2.5 })}
-                            <Text style={[styles.catChipText, { color: accent }]}>
-                                {category?.label.split(' ')[0]}
-                            </Text>
+                        {/* TOP ROW: category chip + save star */}
+                        <View style={styles.gridTopRow}>
+                            <View style={[styles.catChip, { backgroundColor: accent + '20' }]}>
+                                {category?.icon && React.createElement(category.icon, { size: 10, color: accent, strokeWidth: 2.5 })}
+                                <Text style={[styles.catChipText, { color: Colors.textPrimary }]}>
+                                    {category?.label.split(' ')[0]}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleSaved(item.id);
+                                }}
+                                style={styles.gridStar}
+                            >
+                                <Star
+                                    size={14}
+                                    color={item.is_saved ? Colors.primary : Colors.textTertiary}
+                                    fill={item.is_saved ? Colors.primary : 'transparent'}
+                                />
+                            </TouchableOpacity>
                         </View>
-                    </View>
 
-                    {/* TITLE */}
-                    <Text style={styles.gridTopic} numberOfLines={3}>
-                        {item.topic}
-                    </Text>
+                        {/* TITLE */}
+                        <Text style={styles.gridTopic} numberOfLines={3}>
+                            {item.topic}
+                        </Text>
 
-                    {/* IMAGE / ICON ZONE */}
-                    <View style={[styles.gridImageContainer, { backgroundColor: accent + '15' }]}>
-                        {item.image_url ? (
-                            <Image
-                                source={{ uri: item.image_url }}
-                                style={styles.gridImage}
-                                contentFit="cover"
-                                transition={250}
-                            />
-                        ) : (
-                            <View style={styles.gridIconFallback}>
-                                {category?.icon
-                                    ? React.createElement(category.icon, { size: 36, color: accent, strokeWidth: 1.5 })
-                                    : <Search size={36} color={accent} />}
+                        {/* IMAGE / ICON ZONE */}
+                        <View style={[styles.gridImageContainer, { backgroundColor: accent + '15' }]}>
+                            {item.image_url ? (
+                                <Image
+                                    source={{ uri: item.image_url }}
+                                    style={styles.gridImage}
+                                    contentFit="cover"
+                                    transition={250}
+                                />
+                            ) : (
+                                <View style={styles.gridIconFallback}>
+                                    {category?.icon
+                                        ? React.createElement(category.icon, { size: 36, color: accent, strokeWidth: 1.5 })
+                                        : <Search size={36} color={accent} />}
+                                </View>
+                            )}
+                        </View>
+
+                        {/* BOTTOM ROW: difficulty dot + date */}
+                        <View style={styles.gridBottomRow}>
+                            <View style={styles.diffRow}>
+                                <View style={[styles.diffDot, { backgroundColor: diffColor }]} />
+                                <Text style={[styles.diffLabel, { color: Colors.textSecondary }]}>
+                                    {item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1)}
+                                </Text>
+                            </View>
+                            <Text style={styles.dateLabel}>{relativeDate(item.created_at)}</Text>
+                        </View>
+
+                        {/* Kid name badge if present */}
+                        {item.kid_name && (
+                            <View style={styles.kidBadge}>
+                                <View style={styles.kidDot} />
+                                <Text style={styles.kidBadgeText} numberOfLines={1}>
+                                    {item.kid_name}
+                                </Text>
                             </View>
                         )}
-                    </View>
 
-                    {/* BOTTOM ROW: difficulty dot + date */}
-                    <View style={styles.gridBottomRow}>
-                        <View style={styles.diffRow}>
-                            <View style={[styles.diffDot, { backgroundColor: diffColor }]} />
-                            <Text style={[styles.diffLabel, { color: diffColor }]}>
-                                {item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1)}
-                            </Text>
-                        </View>
-                        <Text style={styles.dateLabel}>{relativeDate(item.created_at)}</Text>
                     </View>
-
-                    {/* Kid name badge if present */}
-                    {item.kid_name && (
-                        <View style={styles.kidBadge}>
-                            <View style={styles.kidDot} />
-                            <Text style={styles.kidBadgeText} numberOfLines={1}>
-                                {item.kid_name}
-                            </Text>
-                        </View>
-                    )}
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
+            </Animated.View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={[styles.safe, filterCategory && { backgroundColor: (ACTIVITY_CATEGORIES.find(c => c.id === filterCategory)?.color || Colors.background) + '15' }]}>
             <ScreenBackground />
             {/* Header */}
             <View style={styles.header}>
@@ -342,7 +328,7 @@ export default function ActivitiesScreen() {
             )}
 
             {filteredActivities.length === 0 ? (
-                <View style={styles.emptyContainer}>
+                <Animated.View entering={FadeInUp} style={styles.emptyContainer}>
                     <View style={styles.emptyIconWrapper}>
                         <History size={32} color={Colors.primary} />
                     </View>
@@ -354,7 +340,7 @@ export default function ActivitiesScreen() {
                             ? 'Try adjusting your filters to see more results.'
                             : 'Generate your first activity and it will appear here.'}
                     </Text>
-                </View>
+                </Animated.View>
             ) : (
                 <FlatList
                     data={filteredActivities}
@@ -396,30 +382,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: Spacing.md,
     },
-    workbookBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.xs,
-        backgroundColor: Colors.white,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.xs,
-        borderRadius: Radius.full,
-    },
-    workbookBtnActive: {
-        backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
-    },
-    workbookBtnText: {
-        fontSize: FontSize.sm,
-        fontFamily: Fonts.bold,
-        fontWeight: FontWeight.bold,
-        color: Colors.textPrimary,
-    },
-    workbookBtnTextActive: {
-        color: Colors.white,
-    },
     title: {
         fontSize: FontSize['3xl'],
         fontFamily: Fonts.bold,
@@ -450,7 +412,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: Spacing.xs,
-        backgroundColor: Colors.pastelPurple,
+        backgroundColor: Colors.primaryLight,
         paddingHorizontal: Spacing.md,
         paddingVertical: 6,
         borderRadius: Radius.full,
@@ -461,30 +423,7 @@ const styles = StyleSheet.create({
         fontSize: FontSize.xs,
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.bold,
-        color: Colors.primary,
-    },
-    workbookBar: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: Spacing.xl,
-        paddingVertical: Spacing.sm,
-        marginBottom: Spacing.sm,
-        backgroundColor: Colors.white,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: Colors.border,
-    },
-    workbookCount: {
-        fontSize: FontSize.sm,
-        fontFamily: Fonts.medium,
-        fontWeight: FontWeight.medium,
         color: Colors.textPrimary,
-    },
-    workbookActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.sm,
     },
     filterBar: {
         paddingHorizontal: Spacing.xl,
@@ -510,18 +449,18 @@ const styles = StyleSheet.create({
     clearBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
+        gap: Spacing.xs,
         marginTop: Spacing.md,
         alignSelf: 'center',
     },
     clearText: {
         fontSize: FontSize.sm,
         fontFamily: Fonts.medium,
-        color: Colors.accent,
+        color: Colors.textSecondary,
         fontWeight: FontWeight.medium,
     },
     resultCount: {
-        paddingHorizontal: Spacing.xl,
+        paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
     },
     resultCountText: {
@@ -530,7 +469,7 @@ const styles = StyleSheet.create({
         color: Colors.textPrimary,
     },
     list: {
-        padding: Spacing.xl,
+        padding: Spacing.md,
         paddingTop: Spacing.sm,
     },
     columnWrapper: {
@@ -542,7 +481,7 @@ const styles = StyleSheet.create({
         maxWidth: '48%',
     },
     gridCard: {
-        borderRadius: 24,
+        borderRadius: Radius.lg,
         overflow: 'hidden',
         padding: Spacing.md,
         paddingBottom: Spacing.sm,
@@ -553,7 +492,7 @@ const styles = StyleSheet.create({
     gridCardBorder: {
         ...StyleSheet.absoluteFillObject,
         borderWidth: 2,
-        borderRadius: 24,
+        borderRadius: Radius.lg,
         zIndex: 1,
         pointerEvents: 'none',
     },
@@ -567,9 +506,9 @@ const styles = StyleSheet.create({
     catChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 3,
-        paddingHorizontal: 7,
-        paddingVertical: 3,
+        gap: Spacing.xs / 2,
+        paddingHorizontal: Spacing.xs,
+        paddingVertical: 2,
         borderRadius: Radius.full,
     },
     catChipText: {
@@ -591,7 +530,7 @@ const styles = StyleSheet.create({
 
     // Image / icon area
     gridImageContainer: {
-        borderRadius: 16,
+        borderRadius: Radius.md,
         overflow: 'hidden',
         aspectRatio: 1.3,
         width: '90%',
@@ -616,17 +555,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 2,
+        marginTop: Spacing.xs / 2,
     },
     diffRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
+        gap: Spacing.xs,
     },
     diffDot: {
-        width: 7,
-        height: 7,
-        borderRadius: 4,
+        width: 6,
+        height: 6,
+        borderRadius: Radius.full,
     },
     diffLabel: {
         fontSize: FontSize.xs,
@@ -640,18 +579,22 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.medium,
         color: Colors.textSecondary,
     },
+    gridStar: {
+        padding: 4,
+        marginRight: -4,
+    },
 
     // Kid badge at bottom
     kidBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
-        marginTop: 2,
+        gap: Spacing.xs,
+        marginTop: Spacing.xs / 2,
     },
     kidDot: {
-        width: 5,
-        height: 5,
-        borderRadius: 3,
+        width: 4,
+        height: 4,
+        borderRadius: Radius.full,
         backgroundColor: Colors.textTertiary,
     },
     kidBadgeText: {
@@ -659,16 +602,6 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.bold,
         fontWeight: FontWeight.semibold,
         color: Colors.textSecondary,
-    },
-    selectBadge: {
-        position: 'absolute',
-        top: Spacing.sm,
-        right: Spacing.sm,
-        backgroundColor: Colors.white,
-        borderRadius: Radius.full,
-        padding: 4,
-        borderWidth: 1,
-        borderColor: Colors.border,
     },
 
     emptyContainer: {

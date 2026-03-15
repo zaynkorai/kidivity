@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     useWindowDimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ArrowRight, CheckCircle, BookOpen, Star } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +21,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 const ScreenColors = {
     background: Colors.background,
     formBg: Colors.surface,
-    purpleHeader: Colors.pastelPurple,
+    purpleHeader: Colors.primaryLight,
     purpleText: Colors.textPrimary,
     textMain: Colors.textPrimary,
     textPrimary: Colors.textPrimary,
@@ -29,6 +29,7 @@ const ScreenColors = {
 };
 
 export default function SignUpScreen() {
+    const insets = useSafeAreaInsets();
     const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
     const signUp = useAuthStore((s) => s.signUp);
@@ -84,7 +85,7 @@ export default function SignUpScreen() {
 
     if (success) {
         return (
-            <SafeAreaView style={styles.safe}>
+            <View style={styles.safe}>
                 <View style={styles.successContainer}>
                     <View style={styles.successIcon}>
                         <CheckCircle size={isShort ? 48 : 64} color={Colors.success} />
@@ -100,12 +101,12 @@ export default function SignUpScreen() {
                         style={styles.successButton}
                     />
                 </View>
-            </SafeAreaView>
+            </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <View style={styles.safe}>
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -131,7 +132,7 @@ export default function SignUpScreen() {
                         >
                             <TouchableOpacity
                                 onPress={() => router.back()}
-                                style={styles.backButton}
+                                style={[styles.backButton, { top: Math.max(insets.top + Spacing.sm, Spacing.xl) }]}
                             >
                                 <ArrowLeft size={24} color={ScreenColors.purpleText} />
                             </TouchableOpacity>
@@ -271,7 +272,7 @@ export default function SignUpScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -300,7 +301,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: Platform.OS === 'ios' ? Spacing['xl'] : Spacing['3xl'],
         left: Spacing['2xl'],
         zIndex: 20,
         width: 44,

@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     useWindowDimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ArrowRight, Wand2, Star, Rocket } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
@@ -23,7 +23,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 const ScreenColors = {
     background: Colors.background,
     formBg: Colors.surface,
-    blueHeader: Colors.pastelBlue,
+    blueHeader: Colors.categories.math.pastel,
     blueText: Colors.textPrimary,
     textMain: Colors.textPrimary,
     textPrimary: Colors.textPrimary,
@@ -31,6 +31,7 @@ const ScreenColors = {
 };
 
 export default function SignInScreen() {
+    const insets = useSafeAreaInsets();
     const { height, isCompact, isShort } = useResponsive();
     const router = useRouter();
     const signIn = useAuthStore((s) => s.signIn);
@@ -66,7 +67,7 @@ export default function SignInScreen() {
     const fieldSpacing = isShort ? Spacing.sm : Spacing.xl;
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <View style={styles.safe}>
             <KeyboardAvoidingView
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -83,7 +84,7 @@ export default function SignInScreen() {
                         >
                             <TouchableOpacity
                                 onPress={() => router.back()}
-                                style={styles.backButton}
+                                style={[styles.backButton, { top: Math.max(insets.top + Spacing.sm, Spacing.xl) }]}
                             >
                                 <ArrowLeft size={24} color={ScreenColors.blueText} />
                             </TouchableOpacity>
@@ -166,7 +167,7 @@ export default function SignInScreen() {
                         </View>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -193,7 +194,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         position: 'absolute',
-        top: Platform.OS === 'ios' ? Spacing['xl'] : Spacing['3xl'],
         left: Spacing['2xl'],
         zIndex: 20,
         width: 44,
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
     formSurface: {
         paddingHorizontal: Spacing.lg,
         marginTop: -100, // The overlap effect
-        paddingBottom: Spacing.xs,
     },
     formCard: {
         backgroundColor: ScreenColors.formBg,

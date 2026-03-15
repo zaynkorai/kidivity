@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Wand2, ShieldCheck, TrendingUp, ArrowRight } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
@@ -12,6 +12,7 @@ import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 export default function WelcomeScreen() {
     useOnboardingGuard(1);
+    const insets = useSafeAreaInsets();
     const router = useRouter();
     const setStep = useOnboardingSessionStore(s => s.setStep);
 
@@ -21,9 +22,9 @@ export default function WelcomeScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <View style={styles.safe}>
             <ScreenBackground variant="vibrant" />
-            <View style={styles.container}>
+            <View style={[styles.container, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, Spacing.xl) }]}>
                 <View style={styles.content}>
                     <Text style={styles.title}>Smart Learning,{'\n'}Screen-Free</Text>
                     <Text style={styles.subtitle}>
@@ -41,7 +42,7 @@ export default function WelcomeScreen() {
                     />
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

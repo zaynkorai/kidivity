@@ -4,3 +4,5 @@ export { Input } from './Input';
 export { Chip } from './Chip';
 export { PaywallModal } from './PaywallModal';
 export { ScreenBackground } from './ScreenBackground';
+export { PromptModal } from './PromptModal';
+

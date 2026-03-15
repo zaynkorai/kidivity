@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Globe, Atom, Rocket, Ruler, PenTool, Star, Cloud } from 'lucide-react-native';
 import { Colors, Spacing, FontSize, FontWeight, Fonts } from '@/constants/theme';
@@ -14,13 +14,14 @@ import { useResponsive } from '@/hooks/useResponsive';
 // Screen colors aligned to the core theme
 const ScreenColors = {
     background: Colors.background,
-    authBg: Colors.pastelPeach,
+    authBg: Colors.categories.reading.pastel,
     textMain: Colors.textPrimary,
     textPrimary: Colors.textPrimary,
     textSecondary: Colors.textSecondary,
 };
 
 export default function WelcomeScreen() {
+    const insets = useSafeAreaInsets();
     const { height, isCompact } = useResponsive();
     const router = useRouter();
 
@@ -29,19 +30,19 @@ export default function WelcomeScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
+        <View style={styles.safe}>
             <View style={[styles.slideContainer, { backgroundColor: ScreenColors.authBg }]}>
                 {/* Top Floating Space Elements Container */}
-                <View style={[styles.floatingContainer, { height: height * 0.45 }]}>
+                <View style={[styles.floatingContainer, { height: height * 0.45, paddingTop: Math.max(insets.top, Spacing.xl) }]}>
                     {/* Decorative Icons positioned absolutely to match the Sign In screenshot */}
-                    <Globe size={64} color={Colors.blue} style={[styles.floatingIcon, { top: '10%', left: '42%' }]} />
-                    <Star size={24} color={Colors.yellow} fill={Colors.yellow} style={[styles.floatingIcon, { top: '45%', right: '15%' }]} />
-                    <Star size={24} color={Colors.rad} fill={Colors.rad} style={[styles.floatingIcon, { top: '12%', right: '18%' }]} />
+                    <Globe size={64} color={Colors.categories.math.accent} style={[styles.floatingIcon, { top: '10%', left: '42%' }]} />
+                    <Star size={24} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} style={[styles.floatingIcon, { top: '45%', right: '15%' }]} />
+                    <Star size={24} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} style={[styles.floatingIcon, { top: '12%', right: '18%' }]} />
 
-                    <Atom size={50} color={Colors.green} style={[styles.floatingIcon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
+                    <Atom size={50} color={Colors.categories.science.accent} style={[styles.floatingIcon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
                     <Rocket size={56} color={Colors.primary} style={[styles.floatingIcon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
 
-                    <Ruler size={60} color={Colors.primaryPurple} style={[styles.floatingIcon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
+                    <Ruler size={60} color={Colors.secondary} style={[styles.floatingIcon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
                     <PenTool size={26} color={Colors.primary} style={[styles.floatingIcon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
 
                     {/* Tiny decorative elements (squiggles simulated with tiny text) */}
@@ -61,7 +62,10 @@ export default function WelcomeScreen() {
                         <Text style={styles.emailButtonLabel}>Continue with Email</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.signUpLink} onPress={() => router.push('/(onboarding)/welcome')}>
+                    <TouchableOpacity 
+                        style={[styles.signUpLink, { bottom: Math.max(insets.bottom + Spacing.lg, 40) }]} 
+                        onPress={() => router.push('/(onboarding)/welcome')}
+                    >
                         <Text style={styles.signUpText}>Don&apos;t have an account? <Text style={styles.signUpBold}>Sign Up</Text></Text>
                     </TouchableOpacity>
                 </View>
@@ -69,10 +73,10 @@ export default function WelcomeScreen() {
                 {/* Bottom Bush / Cloud Decoration */}
                 <View style={styles.bottomDecoration}>
                     <Cloud size={140} color={Colors.primary} fill={Colors.primary} style={styles.bushIcon} />
-                    <Cloud size={120} color={Colors.orange} fill={Colors.orange} style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
+                    <Cloud size={120} color={Colors.primary} fill={Colors.primary} style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
                 </View>
             </View>
-        </SafeAreaView>
+            </View>
     );
 }
 
@@ -90,14 +94,13 @@ const styles = StyleSheet.create({
     floatingContainer: {
         width: '100%',
         position: 'relative',
-        marginTop: Platform.OS === 'ios' ? Spacing['3xl'] : Spacing['5xl'],
     },
     floatingIcon: {
         position: 'absolute',
     },
     squiggleText: {
         fontSize: FontSize['3xl'],
-        color: Colors.rad,
+        color: Colors.categories.tracing.accent,
         fontFamily: Fonts.bold,
         transform: [{ rotate: '45deg' }]
     },
@@ -147,7 +150,6 @@ const styles = StyleSheet.create({
     },
     signUpLink: {
         position: 'absolute',
-        bottom: 40,
         zIndex: 20,
     },
     signUpText: {

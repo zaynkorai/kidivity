@@ -19,7 +19,6 @@ interface AuthActions {
     signUp: (email: string, password: string) => Promise<{ error: string | null }>;
     signIn: (email: string, password: string) => Promise<{ error: string | null }>;
     signOut: () => Promise<void>;
-    setSession: (session: Session | null) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -210,11 +209,5 @@ export const useAuthStore = create<AuthStore>()(
                 }
             },
 
-            setSession: (session) => {
-                set({
-                    session,
-                    user: session?.user ?? null,
-                });
-            },
         })
 );

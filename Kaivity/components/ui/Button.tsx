@@ -8,6 +8,7 @@ import {
     type TextStyle,
     type StyleProp,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -42,7 +43,10 @@ export function Button({
 
     return (
         <TouchableOpacity
-            onPress={onPress}
+            onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onPress();
+            }}
             disabled={isDisabled}
             activeOpacity={0.8}
             style={[
@@ -56,7 +60,7 @@ export function Button({
             {loading ? (
                 <ActivityIndicator
                     size="small"
-                    color={variant === 'primary' || variant === 'purple' ? Colors.white : Colors.primaryPurple}
+                    color={variant === 'primary' || variant === 'purple' ? Colors.white : Colors.secondary}
                 />
             ) : (
                 <>
@@ -89,11 +93,11 @@ const styles = StyleSheet.create({
 
     // Variants
     primary: {
-        backgroundColor: Colors.primaryOrange,
+        backgroundColor: Colors.primary,
         ...Shadows.md,
     },
     purple: {
-        backgroundColor: Colors.primaryPurple,
+        backgroundColor: Colors.categories.science.accent,
         ...Shadows.md,
     },
     secondary: {
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
     outline: {
         backgroundColor: 'transparent',
         borderWidth: 1.5,
-        borderColor: Colors.primaryPurple,
+        borderColor: Colors.secondary,
     },
     ghost: {
         backgroundColor: 'transparent',
@@ -142,10 +146,10 @@ const styles = StyleSheet.create({
         color: Colors.primaryDark,
     },
     text_outline: {
-        color: Colors.primaryPurple,
+        color: Colors.secondary,
     },
     text_ghost: {
-        color: Colors.primaryPurple,
+        color: Colors.secondary,
     },
 
     textSize_sm: {
