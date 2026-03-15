@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable, useWindowDimensions } from 'react-native';
-import { Flame, Star, CheckCircle2, Zap, FileText } from 'lucide-react-native';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Flame, Star, CheckCircle2, Zap } from 'lucide-react-native';
+import { Colors, Spacing, Radius, FontSize, Fonts, Shadows } from '@/constants/theme';
 import type { Activity } from '@/types/activity';
 
 interface WeeklyCalendarProps {
@@ -98,11 +98,11 @@ function DayPill({
                         ...(isActiveState && {
                             boxShadow: [{
                                 offsetX: 0,
-                                offsetY: 4,
-                                blurRadius: 8,
-                                color: Colors.primary,
+                                offsetY: 2,
+                                blurRadius: 4,
+                                color: Colors.primary + '40', // Very subtle
                             }],
-                            elevation: 6,
+                            elevation: 3,
                         }),
                     },
                 ]}
@@ -268,8 +268,6 @@ const styles = StyleSheet.create({
         borderRadius: Radius.xl,
         paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.md,
-        borderWidth: 1,
-        borderColor: Colors.border,
         ...Shadows.md,
     },
 

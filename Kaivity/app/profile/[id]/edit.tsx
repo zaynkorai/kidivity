@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
 import { ParentGate } from '@/components/ui/ParentGate';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, Fonts, Shadows } from '@/constants/theme';
 import { GRADE_LEVELS } from '@/constants/grades';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { GradeLevel } from '@/constants/grades';

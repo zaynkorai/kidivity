@@ -27,14 +27,13 @@ import {
     ImageIcon,
     Tag,
     Heart,
-    ThumbsDown,
 } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useJourneyStore } from '@/store/journeyStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
-import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
+import { Colors, Spacing, Radius, FontSize, Fonts, Shadows } from '@/constants/theme';
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { GeneratingOverlay } from '@/components/ui/GeneratingOverlay';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -55,7 +54,7 @@ export default function ActivityDetailScreen() {
         fetchActivityDetail 
     } = useActivityStore();
     const completeActivityAdhoc = useJourneyStore((state) => state.completeActivityAdhoc);
-    const { isCompact, isSmallMobile, isTablet, width } = useResponsive();
+    const { isCompact, isSmallMobile, isTablet } = useResponsive();
     const insets = useSafeAreaInsets();
     const bottomPad = Math.max(insets.bottom + Spacing.lg, Spacing['5xl']);
 
@@ -394,24 +393,24 @@ export default function ActivityDetailScreen() {
                 </View>
 
                 {/* Action buttons */}
-                <View style={styles.actionRow}>
+                <View style={[styles.actionRow, isSmallMobile && styles.actionRowMobile]}>
                     <Button
                         title="Mark Completed"
                         onPress={handleMarkCompleted}
                         variant="primary"
-                        size={isSmallMobile ? "md" : "lg"}
+                        size={isSmallMobile ? "sm" : "lg"}
                         icon={<CheckCircle2 size={isSmallMobile ? 16 : 18} color={Colors.white} />}
-                        style={styles.flex1}
+                        style={isSmallMobile ? { width: '100%' } : styles.flex1}
                     />
                     <Button
                         title="Regenerate"
                         onPress={handleRegenerate}
                         variant="outline"
-                        size={isSmallMobile ? "md" : "lg"}
+                        size={isSmallMobile ? "sm" : "lg"}
                         disabled={isGenerating}
                         loading={isGenerating}
                         icon={<RefreshCw size={isSmallMobile ? 16 : 18} color={Colors.primary} />}
-                        style={styles.flex1}
+                        style={isSmallMobile ? { width: '100%' } : styles.flex1}
                     />
                 </View>
 
@@ -626,6 +625,9 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         gap: Spacing.md,
+    },
+    actionRowMobile: {
+        flexDirection: 'column',
     },
     goBackBtn: {
         marginTop: Spacing.lg,

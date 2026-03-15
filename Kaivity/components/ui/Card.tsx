@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     },
     outlined: {
         backgroundColor: Colors.surface,
-        borderWidth: 1,
+        borderWidth: 1.2,
         borderColor: Colors.border,
     },
     filled: {

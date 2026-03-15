@@ -48,7 +48,7 @@ export function GeneratingOverlay({ visible }: { visible: boolean }) {
             pulseAnim.stop();
             clearInterval(interval);
         };
-    }, [visible]);
+    }, [visible, bounce, pulse]);
 
     if (!visible) return null;
 

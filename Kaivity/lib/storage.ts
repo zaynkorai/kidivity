@@ -29,7 +29,12 @@ const baseStorage: StateStorage = {
     setItem: async (name: string, value: string): Promise<void> => {
         if (Platform.OS === 'web') {
             if (typeof window !== 'undefined') {
-                window.localStorage.setItem(name, value);
+                try {
+                    window.localStorage.setItem(name, value);
+                } catch (error) {
+                    console.warn(`[storage] LocalStorage full, failing back to memory for "${name}":`, error);
+                    memoryStorage[name] = value;
+                }
             }
             return;
         }

@@ -151,7 +151,7 @@ export function MarkdownContent({ content, compact = false }: { content: string;
         });
 
         return result;
-    }, [content]);
+    }, [content, compact]);
 
     return <View>{elements}</View>;
 }

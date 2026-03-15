@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions, Text, Platform } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Text } from 'react-native';
 import { Triangle, Square, Circle, Cloud, Star, Globe, Atom, Rocket, Ruler, PenTool } from 'lucide-react-native';
 import { Colors, Fonts } from '@/constants/theme';
 

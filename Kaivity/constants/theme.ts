@@ -13,7 +13,7 @@ export const Colors = {
   green: '#A2DDC2',
 
   // Core semantic mapping (incorporating new style guide)
-  primary: '#FF8A00',       // Orange — main CTA, active elements (good contrast)
+  primary: '#fa921bff',       // Orange — main CTA, active elements (good contrast)
   primaryLight: '#E7E1FF',  // Purple — backgrounds, chips
   primaryDark: '#FF8A00',   // Orange — pressed states
   primaryPurple: '#9B72DA', // Purple CTA color
@@ -175,26 +175,26 @@ export const Shadows = {
   sm: {
     boxShadow: [{
       offsetX: 0,
-      offsetY: 2,
-      blurRadius: 4,
-      color: 'rgba(0, 0, 0, 0.03)',
+      offsetY: 1,
+      blurRadius: 2,
+      color: 'rgba(0, 0, 0, 0.04)',
     }],
     elevation: 1,
   },
   md: {
     boxShadow: [{
       offsetX: 0,
-      offsetY: 4,
-      blurRadius: 10,
-      color: 'rgba(0, 0, 0, 0.05)',
+      offsetY: 2,
+      blurRadius: 6,
+      color: 'rgba(0, 0, 0, 0.06)',
     }],
     elevation: 2,
   },
   lg: {
     boxShadow: [{
       offsetX: 0,
-      offsetY: 8,
-      blurRadius: 20,
+      offsetY: 4,
+      blurRadius: 12,
       color: 'rgba(0, 0, 0, 0.08)',
     }],
     elevation: 4,

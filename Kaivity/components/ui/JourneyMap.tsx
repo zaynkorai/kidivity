@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, TouchableWithoutFeedback, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Modal, ScrollView, TouchableWithoutFeedback, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Calendar, Plus, CheckCircle2, Circle, Flame, Star } from 'lucide-react-native';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
@@ -288,8 +288,6 @@ const styles = StyleSheet.create({
         borderRadius: Radius['2xl'],
         paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.md,
-        borderWidth: 1.5,
-        borderColor: Colors.border,
         ...Shadows.md,
     },
     headerRow: {
@@ -323,8 +321,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.primary,
-        borderWidth: 1,
-        borderColor: Colors.primaryDark,
         ...Shadows.sm,
     },
     streakBadge: {
@@ -388,8 +384,6 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.sm,
         borderRadius: Radius.md,
         backgroundColor: Colors.pastelPurple,
-        borderWidth: 1,
-        borderColor: Colors.border,
         width: 40,
         gap: 2,
     },

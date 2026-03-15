@@ -7,7 +7,6 @@ import {
     StyleSheet,
     Modal,
     TouchableWithoutFeedback,
-    useWindowDimensions,
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -320,16 +319,14 @@ export default function GenerateScreen() {
                                         styles.categoryCard,
                                         { backgroundColor: cat.color + '40', borderColor: cat.color },
                                         isSelected && {
-                                            borderColor: cat.accent,
-                                            borderWidth: 1.2,
                                             backgroundColor: cat.accent + '18',
                                             boxShadow: [{
                                                 offsetX: 0,
-                                                offsetY: 4,
-                                                blurRadius: 10,
-                                                color: cat.accent,
+                                                offsetY: 2,
+                                                blurRadius: 6,
+                                                color: cat.accent + '40', // Very subtle
                                             }],
-                                            elevation: 6,
+                                            elevation: 3,
                                         },
                                     ]}
                                 >
@@ -534,8 +531,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         backgroundColor: Colors.white,
         borderRadius: Radius.full,
-        borderWidth: 1.2,
-        borderColor: 'rgba(255,255,255,0.8)',
         ...Shadows.sm,
     },
     dropdownBtnContent: {
@@ -606,8 +601,6 @@ const styles = StyleSheet.create({
         borderRadius: Radius.xl,
         padding: Spacing.xs,
         ...Shadows.md,
-        borderWidth: 1,
-        borderColor: Colors.pastelPurple,
     },
     dropdownItem: {
         flexDirection: 'row',
@@ -675,8 +668,6 @@ const styles = StyleSheet.create({
 
     stepCard: {
         borderRadius: Radius.xl,
-        borderWidth: 1.2,
-        borderColor: Colors.border,
         backgroundColor: Colors.surface,
     },
     stepHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
@@ -691,8 +682,6 @@ const styles = StyleSheet.create({
         width: '48%',
         minHeight: 84,
         borderRadius: Radius.lg,
-        borderWidth: 1.2,
-        borderColor: Colors.border,
         backgroundColor: Colors.surface,
         padding: Spacing.md,
         alignItems: 'center',

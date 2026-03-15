@@ -350,8 +350,8 @@ export const useActivityStore = create<ActivityStore>()(
             name: 'kaivity-activity-cache',
             storage: createJSONStorage(() => safeStorage),
             partialize: (state) => ({
-                recentActivities: state.recentActivities.slice(0, 20),
-                savedActivities: state.savedActivities,
+                recentActivities: state.recentActivities.slice(0, 10),
+                savedActivities: state.savedActivities.slice(0, 5),
             }),
         }
     )

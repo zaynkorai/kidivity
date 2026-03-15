@@ -12,7 +12,6 @@ import { Colors, Spacing, Radius, FontSize, FontWeight, Fonts, Shadows } from '@
 import { ACTIVITY_CATEGORIES } from '@/constants/categories';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { useResponsive } from '@/hooks/useResponsive';
-import { useOnboardingSessionStore } from '@/store/onboardingSession.store';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -61,8 +60,6 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
-
-  const restoreSession = useOnboardingSessionStore(state => state.restoreSession);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId);
 
@@ -207,9 +204,7 @@ export default function HomeScreen() {
             isShort && { paddingVertical: Spacing.md, marginBottom: Spacing.md }
           ]}
         >
-          <View style={styles.magicBackdrop} />
           <View style={styles.magicBackdropSoft} />
-          <View style={styles.magicEdgeGlow} />
 
           <View style={styles.magicContent}>
             <View style={styles.magicHeaderRow}>
@@ -276,12 +271,11 @@ export default function HomeScreen() {
                   isShort && { height: 110 },
                   {
                     backgroundColor: cat.color + '50',
-                    borderColor: cat.color,
                     boxShadow: [{
                       offsetX: 0,
-                      offsetY: 6,
-                      blurRadius: 14,
-                      color: cat.accent,
+                      offsetY: 4,
+                      blurRadius: 10,
+                      color: cat.accent + '30', // More subtle alpha
                     }],
                   }
                 ]}
@@ -370,8 +364,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     backgroundColor: Colors.white,
     borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.8)', // softer border edge
     ...Shadows.sm,
   },
   dropdownBtnContent: {
@@ -430,8 +422,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.xs,
     ...Shadows.md,
-    borderWidth: 1,
-    borderColor: Colors.pastelPurple, // Added touch of color to border
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -485,17 +475,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: Radius['2xl'],
     padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    marginBottom: Spacing.md,
     overflow: 'hidden',
-    boxShadow: [{
-      offsetX: 0,
-      offsetY: 8,
-      blurRadius: 20,
-      color: Colors.primary,
-    }],
-    elevation: 4,
+    elevation: 2,
   },
   magicBackdrop: {
     position: 'absolute',
@@ -513,16 +495,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  magicEdgeGlow: {
-    position: 'absolute',
-    top: -8,
-    left: 18,
-    right: 18,
-    height: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: Colors.primaryPurple //'rgba(255,255,255,0.12)',
   },
   magicContent: {
     gap: Spacing.md,
@@ -661,15 +634,14 @@ const styles = StyleSheet.create({
     height: 152,
     borderRadius: Radius.lg,
     padding: Spacing.md,
-    borderWidth: 1.5,
     overflow: 'hidden',
     boxShadow: [{
       offsetX: 0,
-      offsetY: 6,
-      blurRadius: 14,
-      color: 'rgba(0,0,0,0.18)',
+      offsetY: 4,
+      blurRadius: 10,
+      color: 'rgba(0,0,0,0.12)', // Subtle
     }],
-    elevation: 4,
+    elevation: 2,
   },
   categoryChevron: {
     position: 'absolute',

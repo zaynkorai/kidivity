@@ -56,7 +56,7 @@ export function Button({
             {loading ? (
                 <ActivityIndicator
                     size="small"
-                    color={variant === 'primary' ? Colors.white : Colors.primaryPurple}
+                    color={variant === 'primary' || variant === 'purple' ? Colors.white : Colors.primaryPurple}
                 />
             ) : (
                 <>

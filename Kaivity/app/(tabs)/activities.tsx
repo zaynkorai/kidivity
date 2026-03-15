@@ -14,7 +14,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Filter, X, Search, History, Star, BookOpen, CheckCircle2, Circle, FileText } from 'lucide-react-native';
+import { Filter, X, Search, History, Star, CheckCircle2, Circle, FileText } from 'lucide-react-native';
 import { useActivityStore } from '@/store/activityStore';
 import { useProfileStore } from '@/store/profileStore';
 
