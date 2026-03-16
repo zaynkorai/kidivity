@@ -35,24 +35,12 @@ export async function checkQuota(
     const parts = fmt.formatToParts(now);
     const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
 
-    // Construct a naive date object for the user's midnight
-    const userMidnightDate = new Date(
-        Number(partMap.year),
-        Number(partMap.month) - 1,
-        Number(partMap.day),
-        0, 0, 0, 0
-    );
+    // Construct a naive date string for the user's midnight
+    const userMidnightStr = `${partMap.year}-${partMap.month.padStart(2, '0')}-${partMap.day.padStart(2, '0')}T00:00:00`;
+    const userNowNaiveStr = `${partMap.year}-${partMap.month.padStart(2, '0')}-${partMap.day.padStart(2, '0')}T${partMap.hour.padStart(2, '0')}:${partMap.minute.padStart(2, '0')}:${partMap.second.padStart(2, '0')}`;
 
-    // Calculate the difference between 'now' and the naive local midnight
-    // to find the UTC timestamp of the user's local midnight
-    const userNowNaive = new Date(
-        Number(partMap.year),
-        Number(partMap.month) - 1,
-        Number(partMap.day),
-        Number(partMap.hour),
-        Number(partMap.minute),
-        Number(partMap.second)
-    );
+    const userMidnightDate = new Date(userMidnightStr);
+    const userNowNaive = new Date(userNowNaiveStr);
 
     const msSinceMidnight = userNowNaive.getTime() - userMidnightDate.getTime();
     const todayStart = new Date(now.getTime() - msSinceMidnight);
@@ -67,7 +55,7 @@ export async function checkQuota(
         .eq('id', userId)
         .single();
 
-    const limit = userData?.generation_limit ?? 0;
+    const limit = userData?.generation_limit ?? 1; // Default to 1 if missing or NULL
 
     // Count activities that are either completed OR currently generating
     const { count, error } = await adminClient
@@ -78,6 +66,9 @@ export async function checkQuota(
         .gte('created_at', todayStart.toISOString());
 
     const used = error ? 0 : (count ?? 0);
+
+    // Logging to help debug "not updating" issue
+    console.log(`[QuotaCheck] user=${userId} timezone=${timezone} todayStart=${todayStart.toISOString()} used=${used} limit=${limit}`);
 
     return {
         allowed: used < limit,

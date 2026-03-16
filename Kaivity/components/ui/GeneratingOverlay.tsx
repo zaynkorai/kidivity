@@ -56,14 +56,6 @@ export function GeneratingOverlay({ visible }: { visible: boolean }) {
         <Modal transparent animationType="fade" visible={visible}>
             <View style={loadingStyles.overlay}>
                 <View style={loadingStyles.card}>
-                    <Animated.View
-                        style={[
-                            loadingStyles.iconWrap,
-                            { transform: [{ translateY: bounce }, { scale: pulse }] },
-                        ]}
-                    >
-                        <Wand2 size={48} color={Colors.primary} />
-                    </Animated.View>
                     <Text style={loadingStyles.title}>Creating Activity</Text>
                     <Text style={loadingStyles.message}>{FUN_MESSAGES[messageIndex]}</Text>
                     <View style={loadingStyles.dots}>

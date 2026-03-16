@@ -1,10 +1,7 @@
 import { create } from 'zustand';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { useProfileStore } from './profileStore';
-import { useActivityStore } from './activityStore';
-// Removing static import to break circular dependency
-// import { useOnboardingSessionStore } from './onboardingSession.store';
+import { resetAllStores } from './reset';
 
 interface AuthState {
     user: User | null;
@@ -25,8 +22,7 @@ type AuthStore = AuthState & AuthActions;
 
 /**
  * Ensures a row exists in `public.users` for the given Supabase Auth user.
- * Called on every successful sign-in / session restore — the upsert is
- * idempotent so duplicates are harmless.
+ * Called only via auth state change listener to prevent redundant triggers.
  */
 async function ensureUserRow(user: User) {
     try {
@@ -40,8 +36,8 @@ async function ensureUserRow(user: User) {
             { onConflict: 'id' }
         );
     } catch {
-        // Non-critical — the row may already exist or the table might not
-        // be deployed yet (Phase 0 placeholder env).
+        // Non-critical — the row may already exist or the table might not 
+        // be deployed yet.
         console.warn('[auth] ensureUserRow failed — users table may not exist yet');
     }
 }
@@ -76,7 +72,7 @@ export const useAuthStore = create<AuthStore>()(
                         } catch {
                             // Best-effort cleanup for stale refresh token.
                         }
-                        useProfileStore.getState().clearProfiles();
+                        resetAllStores();
                         set({
                             session: null,
                             user: null,
@@ -92,22 +88,28 @@ export const useAuthStore = create<AuthStore>()(
                         isInitialized: true,
                     });
 
-                    if (session?.user) {
-                        ensureUserRow(session.user);
-                    }
-
-                    // Listen for auth changes — store unsubscribe fn for cleanup
-                    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+                    // Single source of truth for auth changes and user row syncing
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+                        const user = session?.user ?? null;
+                        
                         set({
                             session,
-                            user: session?.user ?? null,
+                            user,
                         });
-                        if (session?.user) {
-                            ensureUserRow(session.user);
+
+                        // Sync user metadata on entry or login events
+                        if (user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
+                            await ensureUserRow(user);
+                        }
+                        
+                        if (event === 'SIGNED_OUT') {
+                            resetAllStores();
                         }
                     });
+                    
                     set({ _authSubscription: () => subscription.unsubscribe() });
                 } catch {
+                    resetAllStores();
                     set({ isInitialized: true });
                 }
             },
@@ -120,15 +122,12 @@ export const useAuthStore = create<AuthStore>()(
                     if (error) {
                         console.warn('[auth] signUp error:', error.message);
                         set({ isLoading: false });
-                        // Map common error codes to user-friendly messages
                         if (error.message.toLowerCase().includes('already registered')) {
                             return { error: 'An account with this email already exists. Try signing in.' };
                         }
                         return { error: 'Failed to create account. Please try again.' };
                     }
 
-                    // Supabase v2 returns a user with empty identities (no error)
-                    // when the email is already registered. Detect this edge case.
                     if (
                         data.user &&
                         data.user.identities &&
@@ -138,14 +137,12 @@ export const useAuthStore = create<AuthStore>()(
                         return { error: 'An account with this email may already exist. Try signing in instead.' };
                     }
 
+                    // No manual ensureUserRow here; listener will catch the SIGNED_IN event
                     set({
                         user: data.user,
                         session: data.session,
                         isLoading: false,
                     });
-                    if (data.user) {
-                        ensureUserRow(data.user);
-                    }
                     return { error: null };
                 } catch (err: unknown) {
                     console.error('[auth] signUp exception:', err instanceof Error ? err.message : err);
@@ -161,17 +158,15 @@ export const useAuthStore = create<AuthStore>()(
                     if (error) {
                         console.warn('[auth] signIn error:', error.message);
                         set({ isLoading: false });
-                        // Use a generic message to avoid confirming whether email exists
                         return { error: 'Invalid email or password.' };
                     }
+                    
+                    // No manual ensureUserRow here; listener will catch the SIGNED_IN event
                     set({
                         user: data.user,
                         session: data.session,
                         isLoading: false,
                     });
-                    if (data.user) {
-                        ensureUserRow(data.user);
-                    }
                     return { error: null };
                 } catch (err: unknown) {
                     console.error('[auth] signIn exception:', err instanceof Error ? err.message : err);
@@ -182,8 +177,6 @@ export const useAuthStore = create<AuthStore>()(
 
             signOut: async () => {
                 set({ isLoading: true });
-
-                // Cleanup listener before signing out
                 get()._authSubscription?.();
 
                 try {
@@ -191,15 +184,9 @@ export const useAuthStore = create<AuthStore>()(
                 } catch (err: unknown) {
                     console.warn('[auth] signOut failed:', err instanceof Error ? err.message : err);
                 } finally {
-                    // Clear all user-specific stores to prevent session leakage
-                    useProfileStore.getState().clearProfiles();
-                    
-                    // Dynamic import to break require cycle
-                    const { useOnboardingSessionStore } = require('./onboardingSession.store');
-                    useOnboardingSessionStore.getState().reset();
-                    
-                    useActivityStore.getState().reset();
-
+                    // resetAllStores is handled by listener for SIGNED_OUT, 
+                    // but we call it here as well for immediate cleanup in case listener fails.
+                    resetAllStores();
                     set({
                         user: null,
                         session: null,

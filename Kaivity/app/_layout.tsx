@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments, useGlobalSearchParams } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '@/store/authStore';
@@ -28,7 +28,6 @@ export default function RootLayout() {
 
   const router = useRouter();
   const segments = useSegments();
-  const { skipGuard } = useGlobalSearchParams<{ skipGuard?: string }>();
 
   // STABLE SELECTORS
   const profiles = useProfileStore((s) => s.profiles);
@@ -48,7 +47,7 @@ export default function RootLayout() {
 
   // Auth + onboarding routing guard
   useEffect(() => {
-    if (!isInitialized || !hasLoadedProfiles) return;
+    if (!isInitialized || !hasLoadedProfiles || !fontsLoaded) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -57,24 +56,40 @@ export default function RootLayout() {
     const isAuthenticated = !!session;
     const hasProfiles = profiles.length > 0;
 
-    if (!isAuthenticated && !(inAuthGroup || inPublicOnboarding)) {
-      // Not signed in → send to welcome
-      router.replace('/(auth)/welcome');
-    } else if (isAuthenticated && inAuthGroup) {
-      // Signed in on auth screen → check for profiles
-      if (hasProfiles) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/(onboarding)/create-profile');
+    // 1. Unauthenticated users -> welcome (unless already on a public onboarding screen)
+    if (!isAuthenticated) {
+      if (!inAuthGroup && !inPublicOnboarding) {
+        router.replace('/(auth)/welcome');
       }
-    } else if (isAuthenticated && !hasProfiles && !inOnboardingGroup) {
-      // Signed in, no profiles, not on onboarding → send to onboarding
-      router.replace('/(onboarding)/create-profile');
-    } else if (isAuthenticated && hasProfiles && inOnboardingGroup && segments[1] !== 'first-activity' && skipGuard !== 'true') {
-      // Has profiles but still on onboarding and not generating first activity and not skipping guard → send to main app
-      router.replace('/(tabs)');
+      return;
     }
-  }, [session, isInitialized, segments, profiles.length, skipGuard]);
+
+    // 2. Authenticated users on auth screens -> check profiles
+    if (inAuthGroup) {
+      router.replace(hasProfiles ? '/(tabs)' : '/(onboarding)/create-profile');
+      return;
+    }
+
+    // 3. Authenticated, no profiles, not in onboarding -> force onboarding
+    // This ensures new users are funneled correctly after signup
+    if (!hasProfiles && !inOnboardingGroup && segments[0] !== 'profile') {
+      router.replace('/(onboarding)/create-profile');
+      return;
+    }
+
+    // 4. Authenticated, has profiles, still in onboarding -> send to main app
+    // Except if they are in the 'first-activity' generation step
+    if (hasProfiles && inOnboardingGroup && segments[1] !== 'first-activity') {
+      router.replace('/(tabs)');
+      return;
+    }
+
+    // 5. Authenticated, has profiles, on root -> send to main app
+    if (hasProfiles && (segments as string[]).length === 0) {
+      router.replace('/(tabs)');
+      return;
+    }
+  }, [session, isInitialized, segments, profiles.length, fontsLoaded, hasLoadedProfiles]);
 
   // Show loading spinner until auth state is resolved or fonts load
   if (!isInitialized || !hasLoadedProfiles || !fontsLoaded) {
@@ -90,10 +105,6 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.flex}>
       <ErrorBoundary>
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(onboarding)" />
-          <Stack.Screen name="(tabs)" />
           <Stack.Screen
             name="profile/create"
             options={{ presentation: 'modal', headerShown: true, title: 'Add Kid' }}
