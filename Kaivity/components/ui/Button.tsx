@@ -8,6 +8,7 @@ import {
     type TextStyle,
     type StyleProp,
 } from 'react-native';
+// import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { Colors, Radius, Spacing, FontSize, FontWeight, Fonts, Shadows } from '@/constants/theme';
 import { useResponsive } from '@/hooks/useResponsive';

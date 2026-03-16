@@ -8,6 +8,7 @@ import activityRoutes from './routes/activities.js';
 import journeyRoutes from './routes/journey.js';
 import onboardingRoutes from './routes/onboarding.js';
 import profileRoutes from './routes/profiles.js';
+import supportRoutes from './routes/support.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -77,6 +78,7 @@ async function main() {
     await fastify.register(onboardingRoutes);
     await fastify.register(profileRoutes);
     await fastify.register(journeyRoutes);
+    await fastify.register(supportRoutes);
 
     // Health check (skips auth via plugin logic)
     fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));

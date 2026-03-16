@@ -171,7 +171,7 @@ export default function SettingsScreen() {
     };
 
     const handleHelpSupport = () => {
-        Linking.openURL('mailto:support@kaivity.com');
+        router.push('/support');
     };
 
     const handleRateApp = () => {

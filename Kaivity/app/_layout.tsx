@@ -121,6 +121,10 @@ export default function RootLayout() {
             name="print-preview"
             options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
           />
+          <Stack.Screen
+            name="support"
+            options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
+          />
         </Stack>
         <StatusBar style="dark" />
       </ErrorBoundary>
