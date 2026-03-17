@@ -12,24 +12,31 @@ export function ScreenBackground({ variant = 'default', backgroundColor }: Scree
     const { width, height } = useWindowDimensions();
 
     if (variant === 'vibrant') {
-        const OPACITY = 0.8;
+        const OPACITY = 0.7;
         return (
-            <View 
+            <View
                 style={[
-                    StyleSheet.absoluteFill, 
+                    StyleSheet.absoluteFill,
                     { backgroundColor: backgroundColor || Colors.categories.reading.pastel }
-                ]} 
+                ]}
                 pointerEvents="none"
             >
                 <Globe size={64} color={Colors.categories.math.accent} opacity={OPACITY} style={[styles.icon, { top: '10%', left: '42%' }]} />
                 <Star size={24} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} opacity={OPACITY} style={[styles.icon, { top: '45%', right: '15%' }]} />
                 <Star size={24} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} opacity={OPACITY} style={[styles.icon, { top: '12%', right: '18%' }]} />
 
-                <Atom size={50} color={Colors.categories.science.accent} opacity={OPACITY} style={[styles.icon, { top: '65%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
-                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '35%', transform: [{ rotate: '45deg' }] }]} />
+                <Atom size={50} color={Colors.categories.science.accent} opacity={OPACITY} style={[styles.icon, { top: '60%', right: '10%', transform: [{ rotate: '15deg' }] }]} />
+                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '80%', transform: [{ rotate: '45deg' }] }]} />
 
                 <Ruler size={60} color={Colors.secondary} opacity={OPACITY} style={[styles.icon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
                 <PenTool size={26} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
+
+                <Globe size={64} color={Colors.categories.math.accent} opacity={OPACITY} style={[styles.icon, { top: '70%', left: '52%' }]} />
+                <Star size={24} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} opacity={OPACITY} style={[styles.icon, { top: '80%', right: '5%' }]} />
+                <Star size={24} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} opacity={OPACITY} style={[styles.icon, { top: '66%', right: '78%' }]} />
+
+                <Atom size={50} color={Colors.categories.science.accent} opacity={OPACITY} style={[styles.icon, { top: '78%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
+                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '80%', transform: [{ rotate: '45deg' }] }]} />
 
                 <Text style={[styles.icon, styles.squiggleText, { top: '14%', left: '24%' }]}>~</Text>
                 <Text style={[styles.icon, styles.squiggleText, { top: '20%', right: '20%' }]}>~</Text>

@@ -80,7 +80,7 @@ export function MagicCard({
             <View style={styles.magicHeaderLeft}>
               <View style={styles.magicHeaderText}>
                 <Text style={styles.magicTitle} numberOfLines={1} ellipsizeMode="tail" {...noScale}>
-                  Print ready in minutes
+                  Print ready in seconds
                 </Text>
               </View>
             </View>
@@ -103,7 +103,7 @@ export function MagicCard({
 
           <Text style={styles.magicSubtitle} numberOfLines={2} ellipsizeMode="tail" {...noScale}>
             {activeProfile
-              ? `Printable, screen-free activities tailored to ${activeProfile.age}yo · ${activeProfile.grade_level}`
+              ? `Screen free printable activities for ${activeProfile.age}yo - ${activeProfile.grade_level}`
               : 'Add a profile to generate your first printable activity.'}
           </Text>
 

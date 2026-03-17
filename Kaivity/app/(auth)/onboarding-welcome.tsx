@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Wand2, ShieldCheck, TrendingUp, ArrowRight } from 'lucide-react-native';
+import { ArrowRight } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Colors, Spacing, FontSize, FontWeight, Fonts, Radius } from '@/constants/theme';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -26,9 +26,9 @@ export default function WelcomeScreen() {
             <ScreenBackground variant="vibrant" />
             <View style={[styles.container, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, Spacing.xl) }]}>
                 <View style={styles.content}>
-                    <Text style={styles.title}>Smart Learning,{'\n'}Screen-Free</Text>
+                    <Text style={styles.title}>Screen Free,{'\n'}Learning</Text>
                     <Text style={styles.subtitle}>
-                        Personalized, printable activities tailored to your child&apos;s age and grade level.
+                        Printable activities tailored to your child&apos;s age and grade level.
                     </Text>
                 </View>
 
