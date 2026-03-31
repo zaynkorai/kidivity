@@ -1,4 +1,4 @@
-import { ActivityCategory } from '@/types/activity';
+import { ActivityCategory } from './categories';
 
 export const SUGGESTED_TOPICS: Record<ActivityCategory, string[]> = {
     puzzles: ['Mazes', 'Patterns', 'Find the Difference', 'Matching', 'Sequences', 'Sorting', 'Shadows', 'Odd One Out', 'Sudoku', 'Logic Grids', 'Symmetry'],

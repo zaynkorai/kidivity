@@ -7,11 +7,13 @@ import {
     Platform,
     ScrollView,
     TouchableOpacity,
-    useWindowDimensions
+    useWindowDimensions,
+    Keyboard,
+    TouchableWithoutFeedback
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ArrowRight, CheckCircle, BookOpen, Star } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -44,6 +46,10 @@ export default function SignUpScreen() {
         length: password.length >= 6,
         match: password.length > 0 && password === confirmPassword,
     };
+
+    const overlapOffset = isShort ? -100 : -100;
+    const formPadding = isShort ? Spacing.sm : Spacing.lg;
+    const formVerticalPadding = isShort ? Spacing.xs : Spacing.md;
 
     const handleSignUp = async () => {
         setErrors({});
@@ -86,6 +92,7 @@ export default function SignUpScreen() {
     if (success) {
         return (
             <View style={styles.safe}>
+                <ScreenBackground variant="vibrant" />
                 <View style={styles.successContainer}>
                     <View style={styles.successIcon}>
                         <CheckCircle size={isShort ? 48 : 64} color={Colors.success} />
@@ -120,156 +127,152 @@ export default function SignUpScreen() {
                     showsVerticalScrollIndicator={false}
                     bounces={false}
                 >
-                    <View style={styles.themedContainer}>
-                        <ScreenBackground variant="vibrant" />
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View style={styles.themedContainer}>
+                            <ScreenBackground variant="vibrant" />
 
-                        {/* 1. Header Banner */}
-                        <View
-                            style={[
-                                styles.headerBlock,
-                                { height: isShort ? height * 0.20 : height * 0.40 },
-                            ]}
-                        >
-                            <TouchableOpacity
-                                onPress={() => router.back()}
-                                style={[styles.backButton, { top: Math.max(insets.top + Spacing.sm, Spacing.xl) }]}
+                            {/* 1. Header Banner */}
+                            <View
+                                style={[
+                                    styles.headerBlock,
+                                    { height: isShort ? height * 0.15 : height * 0.30 },
+                                ]}
                             >
-                                <ArrowLeft size={24} color={ScreenColors.purpleText} />
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => router.back()}
+                                    style={[styles.backButton, { top: Math.max(insets.top + Spacing.sm, Spacing.xl) }]}
+                                >
+                                    <ArrowLeft size={24} color={ScreenColors.purpleText} />
+                                </TouchableOpacity>
 
-                            <Text style={[styles.headerTitle, isShort && { fontSize: FontSize['3xl'], lineHeight: 36 }]}>Unlock Your{'\n'}Child&apos;s Potential</Text>
-                        </View>
+                                <Text style={[styles.headerTitle, isShort && { fontSize: FontSize['3xl'], lineHeight: 36 }]}>Unlock Your{'\n'}Child&apos;s Potential</Text>
+                            </View>
 
-                        {/* 2. Elevated Form Surface - Overlapping Header */}
+                            {/* 2. Elevated Form Surface - Overlapping Header */}
                         <View
                             style={[
                                 styles.formSurface,
                                 isCompact && { paddingHorizontal: Spacing.lg },
-                                isShort && { marginTop: -120, paddingBottom: Spacing.sm },
+                                { marginTop: overlapOffset },
                             ]}
                         >
-                            <View
-                                style={[
-                                    styles.formCard,
-                                    isCompact && { padding: Spacing.md },
-                                    isShort && { padding: Spacing.md },
-                                ]}
-                            >
-                                <Text style={[styles.title, isShort && { fontSize: FontSize.xl, marginBottom: 0 }]}>Create Account</Text>
-                                <Text style={[styles.subtitle, isShort && { marginBottom: Spacing.md, fontSize: FontSize.xs }]}>
-                                    Sign up to save activities and sync across devices.
-                                </Text>
+                                <View
+                                    style={[
+                                        styles.formCard,
+                                        { paddingHorizontal: formPadding, paddingVertical: formVerticalPadding },
+                                    ]}
+                                >
+                                    <Text style={[styles.title, { marginBottom: 2 }]}>Create Account</Text>
+                                    <Text style={[styles.subtitle, { marginBottom: Spacing.sm, fontSize: 13 }]}>
+                                        Sign up to save activities and sync across devices.
+                                    </Text>
 
-                                <View style={styles.form}>
-                                    <Input
-                                        label="Email Address"
-                                        placeholder="you@example.com"
-                                        value={email}
-                                        onChangeText={(text) => {
-                                            setEmail(text);
-                                            if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
-                                        }}
-                                        keyboardType="email-address"
-                                        autoCapitalize="none"
-                                        autoComplete="email"
-                                        required
-                                        error={errors.email}
-                                    />
+                                    <View style={styles.form}>
+                                        <Input
+                                            label="Email Address"
+                                            placeholder="you@example.com"
+                                            value={email}
+                                            onChangeText={(text) => {
+                                                setEmail(text);
+                                                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                            }}
+                                            keyboardType="email-address"
+                                            autoCapitalize="none"
+                                            autoComplete="email"
+                                            required
+                                            error={errors.email}
+                                        />
 
-                                    <Input
-                                        label="Password"
-                                        placeholder="Choose a strong password"
-                                        value={password}
-                                        onChangeText={(text) => {
-                                            setPassword(text);
-                                            if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
-                                        }}
-                                        secureTextEntry
-                                        autoCapitalize="none"
-                                        containerStyle={{ marginTop: Spacing.md }}
-                                        required
-                                        error={errors.password}
-                                    />
-
-                                    <Input
-                                        label="Confirm Password"
-                                        placeholder="Re-enter your password"
-                                        value={confirmPassword}
-                                        onChangeText={(text) => {
-                                            setConfirmPassword(text);
-                                            if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
-                                        }}
-                                        secureTextEntry
-                                        autoCapitalize="none"
-                                        containerStyle={{ marginTop: Spacing.sm }}
-                                        required
-                                        error={errors.confirmPassword}
-                                    />
-
-                                    {/* Upgraded Password Strength Indicators */}
-                                    <View style={[styles.checks, isShort && { marginTop: Spacing.md }]}>
-                                        <View style={styles.checkRow}>
-                                            <View
-                                                style={[
-                                                    styles.checkPill,
-                                                    passwordChecks.length && styles.checkPillActive,
-                                                ]}
-                                            />
-                                            <Text
-                                                style={[
-                                                    styles.checkText,
-                                                    passwordChecks.length && styles.checkTextActive,
-                                                ]}
-                                            >
-                                                At least 6 characters
-                                            </Text>
+                                        <Input
+                                            label="Password"
+                                            placeholder="Choose a strong password"
+                                            value={password}
+                                            onChangeText={(text) => {
+                                                setPassword(text);
+                                                if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                                            }}
+                                            secureTextEntry
+                                            autoCapitalize="none"
+                                            containerStyle={{ marginTop: Spacing.sm }}
+                                            required
+                                        />
+                                        <Input
+                                            label="Confirm Password"
+                                            placeholder="Re-enter your password"
+                                            value={confirmPassword}
+                                            onChangeText={(text) => {
+                                                setConfirmPassword(text);
+                                                if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
+                                            }}
+                                            secureTextEntry
+                                            autoCapitalize="none"
+                                            containerStyle={{ marginTop: Spacing.xs }}
+                                            required
+                                        />
+                                        <View style={[styles.checks, { marginTop: Spacing.xs, gap: 1 }]}>
+                                            <View style={styles.checkRow}>
+                                                <View
+                                                    style={[
+                                                        styles.checkPill,
+                                                        passwordChecks.length && styles.checkPillActive,
+                                                    ]}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.checkText,
+                                                        passwordChecks.length && styles.checkTextActive,
+                                                    ]}
+                                                >
+                                                    At least 6 characters
+                                                </Text>
+                                            </View>
+                                            <View style={styles.checkRow}>
+                                                <View
+                                                    style={[
+                                                        styles.checkPill,
+                                                        passwordChecks.match && styles.checkPillActive,
+                                                    ]}
+                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.checkText,
+                                                        passwordChecks.match && styles.checkTextActive,
+                                                    ]}
+                                                >
+                                                    Passwords match
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <View style={styles.checkRow}>
-                                            <View
-                                                style={[
-                                                    styles.checkPill,
-                                                    passwordChecks.match && styles.checkPillActive,
-                                                ]}
-                                            />
-                                            <Text
-                                                style={[
-                                                    styles.checkText,
-                                                    passwordChecks.match && styles.checkTextActive,
-                                                ]}
-                                            >
-                                                Passwords match
+
+                                        {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
+
+                                        <Button
+                                            title="Create Account"
+                                            onPress={handleSignUp}
+                                            loading={isLoading}
+                                            disabled={!passwordChecks.length || !passwordChecks.match}
+                                            size="lg"
+                                            style={[
+                                                styles.submitButton,
+                                                { marginTop: Spacing.md, paddingVertical: 12 }
+                                            ]}
+                                            icon={<ArrowRight size={20} color={Colors.white} />}
+                                        />
+
+                                        <TouchableOpacity
+                                            onPress={() => router.back()}
+                                            style={[styles.switchLink, { marginTop: Spacing.sm }]}
+                                        >
+                                            <Text style={styles.switchLinkText}>
+                                                Already have an account?{' '}
+                                                <Text style={styles.switchLinkBold}>Sign In</Text>
                                             </Text>
-                                        </View>
+                                        </TouchableOpacity>
                                     </View>
-
-                                    {errors.form ? <Text style={styles.errorText}>{errors.form}</Text> : null}
-
-                                    <Button
-                                        title="Create Account"
-                                        onPress={handleSignUp}
-                                        loading={isLoading}
-                                        disabled={!passwordChecks.length || !passwordChecks.match}
-                                        size="lg"
-                                        style={[
-                                            styles.submitButton,
-                                            isShort && { marginTop: Spacing.md, paddingVertical: 12 }
-                                        ]}
-                                        icon={<ArrowRight size={20} color={Colors.white} />}
-                                    />
-
-                                    <TouchableOpacity
-                                        onPress={() => router.back()}
-                                        style={[styles.switchLink, isShort && { marginTop: Spacing.md }]}
-                                    >
-                                        <Text style={styles.switchLinkText}>
-                                            Already have an account?{' '}
-                                            <Text style={styles.switchLinkBold}>Sign In</Text>
-                                        </Text>
-                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
-                    </View>
+                    </TouchableWithoutFeedback>
                 </ScrollView>
             </KeyboardAvoidingView>
         </View>
@@ -311,15 +314,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         ...Shadows.md,
     },
-    illustrationGroup: {
-        position: 'relative',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Spacing.md,
-    },
-    floatingIcon: {
-        position: 'absolute',
-    },
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
@@ -331,7 +325,7 @@ const styles = StyleSheet.create({
 
     // 2. Overlapping Elevated Form
     formSurface: {
-        paddingHorizontal: Spacing.lg,
+        paddingHorizontal: Spacing['3xl'],
         marginTop: -100, // The overlap effect
         paddingBottom: Spacing.xs,
     },
@@ -353,7 +347,7 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.sans,
         color: ScreenColors.textPrimary,
         textAlign: 'center',
-        marginBottom: Spacing['xl'],
+        marginBottom: Spacing.lg,
     },
     form: {
         width: '100%',
@@ -361,8 +355,8 @@ const styles = StyleSheet.create({
 
     // Password checks
     checks: {
-        marginTop: Spacing.md,
-        gap: Spacing.xs,
+        marginTop: Spacing.sm,
+        gap: 2,
     },
     checkRow: {
         flexDirection: 'row',
@@ -379,7 +373,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.success,
     },
     checkText: {
-        fontSize: FontSize.sm,
+        fontSize: 11,
         color: Colors.textPrimary,
         fontFamily: Fonts.medium,
     },
@@ -399,15 +393,15 @@ const styles = StyleSheet.create({
     // Submit
     submitButton: {
         width: '100%',
-        marginTop: Spacing['2xl'],
+        marginTop: Spacing.lg,
         borderRadius: Radius.full,
-        paddingVertical: 18,
+        paddingVertical: 14,
     },
 
     // Switch link
     switchLink: {
         alignItems: 'center',
-        marginTop: Spacing.xl,
+        marginTop: Spacing.md,
     },
     switchLinkText: {
         fontSize: FontSize.sm,

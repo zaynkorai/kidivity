@@ -42,6 +42,11 @@ export function resolveLocalhostUrl(rawUrl: string): string {
 }
 
 export function getApiUrl(): string {
-    const rawUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
-    return resolveLocalhostUrl(rawUrl).replace(/\/$/, '');
+    const rawUrl = process.env.EXPO_PUBLIC_API_URL;
+    if (!rawUrl) {
+        throw new Error('EXPO_PUBLIC_API_URL is not defined');
+    }
+    const resolved = resolveLocalhostUrl(rawUrl).replace(/\/$/, '');
+    console.log(`[Network] Resolved API URL: ${resolved} (Source: ${rawUrl})`);
+    return resolved;
 }

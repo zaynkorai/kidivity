@@ -8,11 +8,12 @@ interface ScreenBackgroundProps {
     backgroundColor?: string;
 }
 
+
 export function ScreenBackground({ variant = 'default', backgroundColor }: ScreenBackgroundProps) {
     const { width, height } = useWindowDimensions();
 
     if (variant === 'vibrant') {
-        const OPACITY = 0.7;
+        const OPACITY = 0.55;
         return (
             <View
                 style={[
@@ -21,26 +22,58 @@ export function ScreenBackground({ variant = 'default', backgroundColor }: Scree
                 ]}
                 pointerEvents="none"
             >
-                <Globe size={64} color={Colors.categories.math.accent} opacity={OPACITY} style={[styles.icon, { top: '10%', left: '42%' }]} />
-                <Star size={24} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} opacity={OPACITY} style={[styles.icon, { top: '45%', right: '15%' }]} />
-                <Star size={24} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} opacity={OPACITY} style={[styles.icon, { top: '12%', right: '18%' }]} />
+                {/* Orderly Synchronized Layout - Alternating sides and centering */}
+                
+                {/* Row 1 */}
+                <View style={[styles.icon, { top: '8%', left: '15%' }]}>
+                    <Ruler size={50} color={Colors.secondary} opacity={OPACITY} style={{ transform: [{ rotate: '-30deg' }] }} />
+                </View>
+                <View style={[styles.icon, { top: '10%', right: '15%' }]}>
+                    <Star size={30} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} opacity={OPACITY} />
+                </View>
 
-                <Atom size={50} color={Colors.categories.science.accent} opacity={OPACITY} style={[styles.icon, { top: '60%', right: '10%', transform: [{ rotate: '15deg' }] }]} />
-                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '80%', transform: [{ rotate: '45deg' }] }]} />
+                {/* Row 2 - Center */}
+                <View style={[styles.icon, { top: '22%', left: '42%' }]}>
+                    <Globe size={64} color={Colors.categories.math.accent} opacity={OPACITY} />
+                </View>
 
-                <Ruler size={60} color={Colors.secondary} opacity={OPACITY} style={[styles.icon, { top: '30%', left: '12%', transform: [{ rotate: '-30deg' }] }]} />
-                <PenTool size={26} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '25%', right: '40%', transform: [{ rotate: '60deg' }] }]} />
+                {/* Row 3 */}
+                <View style={[styles.icon, { top: '38%', left: '10%' }]}>
+                    <Atom size={54} color={Colors.categories.science.accent} opacity={OPACITY} style={{ transform: [{ rotate: '15deg' }] }} />
+                </View>
+                <View style={[styles.icon, { top: '35%', right: '12%' }]}>
+                    <PenTool size={32} color={Colors.primary} opacity={OPACITY} style={{ transform: [{ rotate: '45deg' }] }} />
+                </View>
 
-                <Globe size={64} color={Colors.categories.math.accent} opacity={OPACITY} style={[styles.icon, { top: '70%', left: '52%' }]} />
-                <Star size={24} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} opacity={OPACITY} style={[styles.icon, { top: '80%', right: '5%' }]} />
-                <Star size={24} color={Colors.categories.reading.accent} fill={Colors.categories.reading.accent} opacity={OPACITY} style={[styles.icon, { top: '66%', right: '78%' }]} />
+                {/* Row 4 - Large Centerpiece */}
+                <View style={[styles.icon, { top: '50%', left: '40%' }]}>
+                    <Rocket size={70} color={Colors.primary} opacity={OPACITY} style={{ transform: [{ rotate: '30deg' }] }} />
+                </View>
 
-                <Atom size={50} color={Colors.categories.science.accent} opacity={OPACITY} style={[styles.icon, { top: '78%', left: '26%', transform: [{ rotate: '15deg' }] }]} />
-                <Rocket size={56} color={Colors.primary} opacity={OPACITY} style={[styles.icon, { top: '40%', right: '80%', transform: [{ rotate: '45deg' }] }]} />
+                {/* Row 5 */}
+                <View style={[styles.icon, { top: '65%', left: '18%' }]}>
+                    <Globe size={50} color={Colors.categories.math.accent} opacity={OPACITY} />
+                </View>
+                <View style={[styles.icon, { top: '68%', right: '18%' }]}>
+                    <Star size={28} color={Colors.categories.art.accent} fill={Colors.categories.art.accent} opacity={OPACITY} />
+                </View>
 
-                <Text style={[styles.icon, styles.squiggleText, { top: '14%', left: '24%' }]}>~</Text>
-                <Text style={[styles.icon, styles.squiggleText, { top: '20%', right: '20%' }]}>~</Text>
-                <Text style={[styles.icon, styles.squiggleText, { top: '75%', right: '24%' }]}>~</Text>
+                {/* Row 6 - Bottom Accent */}
+                <View style={[styles.icon, { bottom: '20%', left: '45%' }]}>
+                    <Atom size={40} color={Colors.categories.science.accent} opacity={OPACITY} style={{ transform: [{ rotate: '-15deg' }] }} />
+                </View>
+
+                {/* Symmetrically aligned squiggles */}
+                <Text style={[styles.icon, styles.squiggleText, { top: '15%', left: '30%' }]}>~</Text>
+                <Text style={[styles.icon, styles.squiggleText, { top: '15%', right: '30%' }]}>~</Text>
+                <Text style={[styles.icon, styles.squiggleText, { bottom: '35%', left: '15%' }]}>~</Text>
+                <Text style={[styles.icon, styles.squiggleText, { bottom: '35%', right: '15%' }]}>~</Text>
+
+                {/* Bottom Bush / Cloud Decoration */}
+                <View style={styles.bottomDecoration}>
+                    <Cloud size={140} color={Colors.primary} fill={Colors.primary} style={styles.bushIcon} />
+                    <Cloud size={120} color={Colors.primary} fill={Colors.primary} style={[styles.bushIcon, { marginLeft: -60, marginTop: 20 }]} />
+                </View>
             </View>
         );
     }
@@ -122,5 +155,17 @@ const styles = StyleSheet.create({
         color: Colors.categories.tracing.accent,
         fontFamily: Fonts.bold,
         transform: [{ rotate: '45deg' }]
+    },
+    bottomDecoration: {
+        position: 'absolute',
+        bottom: -40,
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        width: '100%',
+        opacity: 0.9,
+    },
+    bushIcon: {
+        // Overlaying clouds to look like a bush
     },
 });

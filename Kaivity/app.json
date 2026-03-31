@@ -2,17 +2,20 @@
   "expo": {
     "name": "Kaivity",
     "slug": "Kaivity",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "Kaivity - AI generated educational activities for kids",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kaivity",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": false
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zaynkorai.kaivity",
-      "buildNumber": "1",
+      "buildNumber": "4",
       "associatedDomains": [
         "applinks:kaivity.com"
       ],

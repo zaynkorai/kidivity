@@ -7,11 +7,13 @@ import {
     Platform,
     ScrollView,
     TouchableOpacity,
-    useWindowDimensions
+    useWindowDimensions,
+    Keyboard,
+    TouchableWithoutFeedback
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ArrowRight, Wand2, Star, Rocket } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -62,9 +64,9 @@ export default function SignInScreen() {
     };
 
     const headerHeight = isShort ? height * 0.18 : height * 0.40;
-    const formPadding = isShort ? Spacing.md : Spacing['3xl'];
-    const overlapOffset = isShort ? -120 : -60;
-    const fieldSpacing = isShort ? Spacing.sm : Spacing.xl;
+    const formPadding = isShort ? Spacing.sm : Spacing.xl;
+    const overlapOffset = isShort ? -140 : -100;
+    const fieldSpacing = isShort ? Spacing.xs : Spacing.md;
 
     return (
         <View style={styles.safe}>
@@ -72,7 +74,8 @@ export default function SignInScreen() {
                 style={styles.flex}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <View style={styles.themedContainer}>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style={styles.themedContainer}>
                         <ScreenBackground variant="vibrant" />
 
                         {/* 1. Header Banner - 45% height block */}
@@ -165,7 +168,8 @@ export default function SignInScreen() {
                                 </View>
                             </View>
                         </View>
-                </View>
+                    </View>
+                </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
         </View>
     );
@@ -204,15 +208,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         ...Shadows.md,
     },
-    illustrationGroup: {
-        position: 'relative',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Spacing.xl,
-    },
-    floatingIcon: {
-        position: 'absolute',
-    },
     headerTitle: {
         fontSize: FontSize['4xl'],
         fontFamily: Fonts.bold,
@@ -224,7 +219,7 @@ const styles = StyleSheet.create({
 
     // 2. Overlapping Elevated Form
     formSurface: {
-        paddingHorizontal: Spacing.lg,
+        paddingHorizontal: Spacing['3xl'],
         marginTop: -100, // The overlap effect
     },
     formCard: {
