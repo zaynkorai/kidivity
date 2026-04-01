@@ -23,7 +23,7 @@ lane :create_app do
   )
 
   bundle_id = "com.kidivity.app"
-  app_name = "Kidivity - Kids Screen Free Activities"
+  app_name = "Kidivity - Kids Activities"
   sku = "kidivity-#{Time.now.to_i}"
 
   UI.message("Checking if Identifier '#{bundle_id}' exists...")

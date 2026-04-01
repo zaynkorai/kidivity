@@ -172,10 +172,18 @@ class ProfileNotifier extends Notifier<ProfileState> {
   Future<({String? error, KidProfile? data})> addProfile(CreateKidProfileInput input) async {
     state = state.copyWith(isLoading: true);
     try {
-      final user = _supabase.auth.currentUser;
+      // Wait for auth session to be available (anonymous sign-in may still be in progress)
+      User? user = _supabase.auth.currentUser;
+      if (user == null) {
+        for (int i = 0; i < 10; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          user = _supabase.auth.currentUser;
+          if (user != null) break;
+        }
+      }
       if (user == null) {
         state = state.copyWith(isLoading: false);
-        return (error: 'Not authenticated', data: null);
+        return (error: 'Not authenticated. Please restart the app.', data: null);
       }
 
       final insertData = {

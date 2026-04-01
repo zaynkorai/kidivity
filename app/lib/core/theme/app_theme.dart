@@ -89,6 +89,14 @@ class AppShadows {
       offset: const Offset(0, 2),
     ),
   ];
+
+  static List<BoxShadow> get medium => [
+    BoxShadow(
+      color: Colors.black.withAlpha(12),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
+    ),
+  ];
 }
 
 class AppTheme {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -25,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _submit() {
+    HapticFeedback.lightImpact();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     if (email.isEmpty || password.isEmpty) return;
@@ -127,7 +129,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   icon: LucideIcons.lock,
                   obscure: _obscurePassword,
                   suffix: GestureDetector(
-                    onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
                     child: Icon(
                       _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
                       size: 18,
@@ -176,7 +181,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextButton(
                   onPressed: authState.isLoading
                       ? null
-                      : () => setState(() => _isSignUp = !_isSignUp),
+                      : () {
+                          HapticFeedback.lightImpact();
+                          setState(() => _isSignUp = !_isSignUp);
+                        },
                   child: Text(
                     _isSignUp
                         ? 'Already have an account? Sign In'

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -448,7 +449,7 @@ class ActivityNotifier extends Notifier<ActivityState> {
           'difficulty': difficulty,
           'style': style,
         }),
-      );
+      ).timeout(const Duration(seconds: 60));
 
       final body = response.body;
       Map<String, dynamic> data;
@@ -493,6 +494,9 @@ class ActivityNotifier extends Notifier<ActivityState> {
     } catch (e) {
       debugPrint('[Generate] Exception: $e');
       state = state.copyWith(isGenerating: false);
+      if (e.toString().contains('TimeoutException')) {
+        return (data: null, error: 'Server took too long. Please check your connection and try again.');
+      }
       return (data: null, error: 'Failed to generate activity');
     }
   }

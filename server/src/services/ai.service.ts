@@ -145,42 +145,10 @@ export async function generateActivityContent({
             const finalImagePrompt = buildImagePrompt(dynamicImagePrompt);
             const promptPreview = finalImagePrompt.slice(0, 400);
 
-            // Prefer Gemini multimodal generation first.
+            // Use production Imagen model for consistent results
             try {
-                const res = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash-image',
-                    contents: finalImagePrompt,
-                    config: { responseModalities: [Modality.IMAGE] },
-                });
-
-                const parts = res.candidates?.[0]?.content?.parts || [];
-                for (const part of parts) {
-                    if (part.inlineData?.data) {
-                        const mimeType = part.inlineData.mimeType || 'image/png';
-                        image_url = `data:${mimeType};base64,${part.inlineData.data}`;
-                        break;
-                    }
-                }
-
-                if (!image_url) {
-                    const textParts = parts
-                        .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
-                        .filter(Boolean)
-                        .join('\n')
-                        .slice(0, 400);
-                    logger.warn(
-                        { promptPreview, textPartsPreview: textParts },
-                        'Image model returned no inline image data'
-                    );
-                }
-            } catch (err: any) {
-                logger.error({ err, promptPreview }, 'Gemini image generation failed');
-            }
-
-            // Fallback to Imagen if Gemini returns no inline image.
-            if (!image_url) {
                 const img = await ai.models.generateImages({
-                    model: 'imagen-4.0-generate-001',
+                    model: 'imagen-3.0-generate-001',
                     prompt: finalImagePrompt,
                     config: { numberOfImages: 1 },
                 });
@@ -196,6 +164,8 @@ export async function generateActivityContent({
                         'Imagen returned no image bytes'
                     );
                 }
+            } catch (err: any) {
+                logger.error({ err, promptPreview }, 'Imagen generation failed');
             }
         } catch (err: any) {
             logger.error(err, 'Error calling image generation API');

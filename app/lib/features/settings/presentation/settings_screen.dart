@@ -10,6 +10,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/components/parent_gate_dialog.dart';
+import '../../../core/components/math_parent_gate_dialog.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -55,14 +56,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _handleGateAction(
     String actionName,
-    String userEmail,
+    String? userEmail,
     Future<void> Function() action,
   ) async {
-    final success = await ParentGateDialog.show(
-      context,
-      userEmail: userEmail,
-      description: 'Enter your password to $actionName.',
-    );
+    final bool isAnonymous = userEmail == null || userEmail.isEmpty;
+    final bool success;
+
+    if (isAnonymous) {
+      success = await MathParentGateDialog.show(
+        context,
+        description: 'Please solve this math problem to $actionName.',
+      );
+    } else {
+      success = await ParentGateDialog.show(
+        context,
+        userEmail: userEmail,
+        description: 'Enter your password to $actionName.',
+      );
+    }
+
     if (success) {
       await action();
     }
@@ -72,8 +84,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: const Text('Reset Session'),
+        content: const Text(
+          'Are you sure you want to reset your local data and start a new session? You will lose any unsaved activities.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -85,7 +99,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ref.read(authProvider.notifier).signOut();
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Sign Out'),
+            child: const Text('Reset Now'),
           ),
         ],
       ),
@@ -358,22 +372,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _SectionTitle(title: 'ACCOUNT'),
               _SettingsCard(
                 children: [
-                  _SettingsRow(
-                    icon: LucideIcons.mail,
-                    iconBackgroundColor: AppCategoryColors.mathAccent,
-                    label: 'Email',
-                    value: email.isEmpty ? 'Not signed in' : email,
-                    onTap: null, // Read-only
-                  ),
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.keyRound,
-                    iconBackgroundColor: AppColors.success,
-                    label: 'Reset Password',
-                    onTap: email.isEmpty
-                        ? null
-                        : () => _handleResetPassword(email),
-                  ),
+                  if (user != null && !user.isAnonymous) ...[
+                    _SettingsRow(
+                      icon: LucideIcons.mail,
+                      iconBackgroundColor: AppCategoryColors.mathAccent,
+                      label: 'Email',
+                      value: email,
+                      onTap: null, // Read-only
+                    ),
+                    _buildDivider(56),
+                    _SettingsRow(
+                      icon: LucideIcons.keyRound,
+                      iconBackgroundColor: AppColors.success,
+                      label: 'Reset Password',
+                      onTap: () => _handleResetPassword(email),
+                    ),
+                  ] else ...[
+                    // Anonymous user profile summary
+                    _SettingsRow(
+                      icon: LucideIcons.user,
+                      iconBackgroundColor: AppColors.primary,
+                      label: 'Account Type',
+                      value: 'Guest',
+                      onTap: null,
+                    ),
+                    _buildDivider(56),
+                    _SettingsRow(
+                      icon: LucideIcons.userPlus,
+                      iconBackgroundColor: AppColors.success,
+                      label: 'Save your progress',
+                      onTap: () => _showUnimplemented('Create Account / Identity Linkage'),
+                    ),
+                  ],
                   _buildDivider(56),
                   _SettingsRow(
                     icon: LucideIcons.userX,
@@ -436,13 +466,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: AppSpacing.xxxl),
 
-              // Sign Out Button
+              // Sign Out Button (Resets the app and creates a new identity)
               ElevatedButton.icon(
                 onPressed: _confirmSignOut,
-                icon: const Icon(LucideIcons.logOut, size: 18),
-                label: const Text('Sign Out'),
+                icon: const Icon(LucideIcons.refreshCw, size: 18),
+                label: const Text('Reset App Session'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: AppColors.danger.withAlpha(200),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

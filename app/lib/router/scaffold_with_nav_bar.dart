@@ -30,7 +30,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.xl,
                 0,
-                AppSpacing.xxxl,
+                AppSpacing.xl,
                 20,
               ),
               child: Container(

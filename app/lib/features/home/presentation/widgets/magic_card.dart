@@ -56,7 +56,13 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
       onTapCancel: () => _controller.reverse(),
-      onTap: () => context.go('/generate'),
+      onTap: () {
+        if (hasProfile) {
+          context.go('/generate');
+        } else {
+          context.push('/profile-create');
+        }
+      },
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(

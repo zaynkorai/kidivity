@@ -14,7 +14,7 @@ We have prepared the `kidivity` Flutter app for App Store submission with a cons
 ## 2. Asset & Icon Generation ✅
 - [x] **Launcher Icons**: Generated for iOS and Android using `flutter_launcher_icons`.
 - [x] **Splash Screen**: Created a premium branded splash screen using `flutter_native_splash`.
-  - Background: Brand Orange (`#FF8A00`)
+  - Background: Brand Blue (`#4361EE`)
   - Image: Centered App Icon
   - Support: iOS, Android 12+, and Web included.
 

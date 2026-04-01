@@ -77,10 +77,10 @@ flutter_launcher_icons:
   min_sdk_android: 21 # android min sdk version
 
 flutter_native_splash:
-  color: "#E7E1FF"
+  color: "#4361EE"
   image: "assets/icon/app_icon.png"
   android_12:
-    color: "#E7E1FF"
+    color: "#4361EE"
     image: "assets/icon/app_icon.png"
   fullscreen: true
 

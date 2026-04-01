@@ -69,13 +69,15 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     setState(() => _error = null);
     HapticFeedback.mediumImpact();
 
-    final result = await ref.read(activityProvider.notifier).generateActivity(
-      kidProfileId: profileState.activeProfileId!,
-      category: _selectedCategory!,
-      topic: _topic.trim(),
-      difficulty: _difficulty,
-      style: _style,
-    );
+    final result = await ref
+        .read(activityProvider.notifier)
+        .generateActivity(
+          kidProfileId: profileState.activeProfileId!,
+          category: _selectedCategory!,
+          topic: _topic.trim(),
+          difficulty: _difficulty,
+          style: _style,
+        );
 
     if (!mounted) return;
 
@@ -115,8 +117,6 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final activityState = ref.watch(activityProvider);
@@ -139,76 +139,83 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 800),
                   child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // ─── Primary Header ───────────────────────
-                  _buildHeader(profileState),
-                  const SizedBox(height: AppSpacing.xxl),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ─── Primary Header ───────────────────────
+                      _buildHeader(profileState),
+                      const SizedBox(height: AppSpacing.xxl),
 
-                  // ─── No Profile Warning ───────────────────
-                  if (!hasProfile)
-                    _buildWarningCard(),
+                      // ─── No Profile Warning ───────────────────
+                      if (!hasProfile) _buildWarningCard(),
 
-                  // ─── Step 1: Category ─────────────────────
-                  _buildStepCard(
-                    stepNumber: '1',
-                    stepBadgeColor: AppColors.primaryLight,
-                    title: 'Choose a category',
-                    child: _buildCategorySelector(),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // ─── Step 2: Topic ────────────────────────
-                  _buildStepCard(
-                    stepNumber: '2',
-                    stepBadgeColor: _accentColor.withAlpha(30),
-                    title: 'Pick a topic',
-                    child: _buildTopicSection(),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // ─── Step 3: Options ──────────────────────
-                  _buildStepCard(
-                    stepNumber: '3',
-                    stepBadgeColor: AppCategoryColors.scienceAccent.withAlpha(30),
-                    title: 'Choose options',
-                    child: _buildOptionsSection(),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // ─── CTA Button ───────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                    child: _buildGenerateButton(isGenerating),
-                  ),
-
-                  // ─── Hint text ────────────────────────────
-                  if (!_isReady && !isGenerating)
-                    const Padding(
-                      padding: EdgeInsets.only(left: AppSpacing.lg, top: AppSpacing.xs),
-                      child: Text(
-                        'Select a category and topic to enable generation.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      // ─── Step 1: Category ─────────────────────
+                      _buildStepCard(
+                        stepNumber: '1',
+                        stepBadgeColor: AppColors.primary,
+                        title: 'Choose a category',
+                        child: _buildCategorySelector(),
                       ),
-                    ),
+                      const SizedBox(height: AppSpacing.xxl),
 
-                  // ─── Error ────────────────────────────────
-                  if (_error != null) _buildErrorCard(),
+                      // ─── Step 2: Topic ────────────────────────
+                      _buildStepCard(
+                        stepNumber: '2',
+                        stepBadgeColor: AppColors.primary,
+                        title: 'Pick a topic',
+                        child: _buildTopicSection(),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
 
-                  const SizedBox(height: 60),
-                ],
+                      // ─── Step 3: Options ──────────────────────
+                      _buildStepCard(
+                        stepNumber: '3',
+                        stepBadgeColor: AppColors.primary,
+                        title: 'Choose options',
+                        child: _buildOptionsSection(),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // ─── CTA Button ───────────────────────────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
+                        child: _buildGenerateButton(isGenerating),
+                      ),
+
+                      // ─── Hint text ────────────────────────────
+                      if (!_isReady && !isGenerating)
+                        const Padding(
+                          padding: EdgeInsets.only(
+                            left: AppSpacing.lg,
+                            top: AppSpacing.xs,
+                          ),
+                          child: Text(
+                            'Select a category and topic to enable generation.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+
+                      // ─── Error ────────────────────────────────
+                      if (_error != null) _buildErrorCard(),
+
+                      const SizedBox(height: 60),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
 
-        // Generating overlay
-        if (isGenerating) _buildGeneratingOverlay(),
-      ],
-    ),
-  ),
-);
-}
+            // Generating overlay
+            if (isGenerating) _buildGeneratingOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ═══════════════════════════════════════════════════════════════
   // Header
@@ -264,10 +271,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     SizedBox(height: 4),
                     Text(
                       'Pick a category and topic.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -277,7 +281,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                 GestureDetector(
                   onTap: () => _showProfilePicker(profileState),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(50),
                       borderRadius: BorderRadius.circular(AppRadius.full),
@@ -314,7 +321,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(LucideIcons.chevronDown, size: 14, color: Colors.white70),
+                        const Icon(
+                          LucideIcons.chevronDown,
+                          size: 14,
+                          color: Colors.white70,
+                        ),
                       ],
                     ),
                   ),
@@ -324,15 +335,25 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                 GestureDetector(
                   onTap: () => _showProfilePicker(profileState),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondary.withAlpha(60),
                       borderRadius: BorderRadius.circular(AppRadius.full),
-                      border: Border.all(color: Colors.white.withAlpha(100), width: 1.5),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(100),
+                        width: 1.5,
+                      ),
                     ),
                     child: const Row(
                       children: [
-                        Icon(LucideIcons.userPlus, size: 16, color: Colors.white),
+                        Icon(
+                          LucideIcons.userPlus,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                         SizedBox(width: 6),
                         Text(
                           'Pick Kid Profile',
@@ -370,15 +391,18 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-          const Text(
-            'Switch Profile',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            const Text(
+              'Switch Profile',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: AppSpacing.lg),
             if (state.profiles.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: Text('No profiles found. Create one in Settings!', textAlign: TextAlign.center),
+                child: Text(
+                  'No profiles found. Create one in Settings!',
+                  textAlign: TextAlign.center,
+                ),
               )
             else
               ...state.profiles.map((p) {
@@ -392,13 +416,26 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     backgroundColor: p.avatarColorValue,
                     child: Text(
                       p.name[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    p.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Text('${p.age}yo · ${p.gradeLevel}'),
-                  trailing: isSelected ? const Icon(LucideIcons.checkCircle2, color: AppColors.success) : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                  trailing: isSelected
+                      ? const Icon(
+                          LucideIcons.checkCircle2,
+                          color: AppColors.success,
+                        )
+                      : null,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
                 );
               }),
             const SizedBox(height: AppSpacing.xl),
@@ -414,7 +451,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
   Widget _buildWarningCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -452,7 +492,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-      boxShadow: AppShadows.card,
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +513,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.black : Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.black
+                        : Colors.white,
                   ),
                 ),
               ),
@@ -514,31 +556,43 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected 
-                  ? cat.accent 
-                  : (Theme.of(context).brightness == Brightness.dark 
-                      ? cat.accent.withAlpha(40) 
-                      : cat.color),
+              color: isSelected
+                  ? cat.accent
+                  : (Theme.of(context).brightness == Brightness.dark
+                        ? cat.accent.withAlpha(40)
+                        : cat.color),
               borderRadius: BorderRadius.circular(AppRadius.full),
               border: Border.all(
                 color: isSelected ? cat.accent : cat.accent.withAlpha(60),
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
-                  ? [BoxShadow(color: cat.accent.withAlpha(60), blurRadius: 6, offset: const Offset(0, 2))]
+                  ? [
+                      BoxShadow(
+                        color: cat.accent.withAlpha(60),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
                   : null,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(cat.icon, size: 14, color: isSelected ? Colors.white : cat.accent),
+                Icon(
+                  cat.icon,
+                  size: 14,
+                  color: isSelected ? Colors.white : cat.accent,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   cat.label.split(' ').first,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                    color: isSelected
+                        ? Colors.white
+                        : Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
@@ -557,7 +611,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     if (_selectedCategory == null) {
       return Text(
         'Choose a category to unlock topic suggestions.',
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodySmall?.color),
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).textTheme.bodySmall?.color,
+        ),
       );
     }
 
@@ -566,7 +624,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       children: [
         Text(
           'Choose a suggestion below.',
-          style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodySmall?.color),
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         // Suggestion chips
@@ -582,12 +643,17 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? _accentColor : _accentColor.withAlpha(15),
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   border: Border.all(
-                    color: isSelected ? _accentColor : _accentColor.withAlpha(40),
+                    color: isSelected
+                        ? _accentColor
+                        : _accentColor.withAlpha(40),
                   ),
                 ),
                 child: Text(
@@ -595,7 +661,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                    color: isSelected
+                        ? Colors.white
+                        : Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ),
@@ -610,23 +678,37 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             color: Theme.of(context).scaffoldBackgroundColor,
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
-              color: _topic.isNotEmpty ? _accentColor.withAlpha(120) : Theme.of(context).dividerColor,
+              color: _topic.isNotEmpty
+                  ? _accentColor.withAlpha(120)
+                  : Theme.of(context).dividerColor,
               width: _topic.isNotEmpty ? 2 : 1,
             ),
           ),
           child: Row(
             children: [
-              const Icon(LucideIcons.penTool, size: 16, color: AppColors.textTertiary),
+              const Icon(
+                LucideIcons.penTool,
+                size: 16,
+                color: AppColors.textTertiary,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
                   onChanged: (val) => setState(() => _topic = val),
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyLarge?.color),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                   cursorColor: _accentColor,
                   maxLength: 60,
                   decoration: const InputDecoration(
                     hintText: 'Or type custom: "Space dinosaurs"',
-                    hintStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textTertiary),
+                    hintStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: AppColors.textTertiary,
+                    ),
                     border: InputBorder.none,
                     counterText: '',
                     isDense: true,
@@ -637,7 +719,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
               if (_topic.isNotEmpty)
                 GestureDetector(
                   onTap: () => setState(() => _topic = ''),
-                  child: const Icon(LucideIcons.xCircle, size: 16, color: AppColors.textTertiary),
+                  child: const Icon(
+                    LucideIcons.xCircle,
+                    size: 16,
+                    color: AppColors.textTertiary,
+                  ),
                 ),
             ],
           ),
@@ -655,7 +741,14 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Difficulty
-        Text('Difficulty', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color)),
+        Text(
+          'Difficulty',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -668,18 +761,27 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? _accentColor : _accentColor.withAlpha(15),
                   borderRadius: BorderRadius.circular(AppRadius.full),
-                  border: Border.all(color: isSelected ? _accentColor : _accentColor.withAlpha(40)),
+                  border: Border.all(
+                    color: isSelected
+                        ? _accentColor
+                        : _accentColor.withAlpha(40),
+                  ),
                 ),
                 child: Text(
                   d[0].toUpperCase() + d.substring(1),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                    color: isSelected
+                        ? Colors.white
+                        : Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ),
@@ -690,7 +792,14 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
         const SizedBox(height: AppSpacing.lg),
 
         // Output style
-        Text('Output', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyLarge?.color)),
+        Text(
+          'Output',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -704,7 +813,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           _style == 'colorful'
               ? 'Best for screens and tablets.'
               : 'High-contrast black & white optimized for printing.',
-          style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color),
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
         ),
       ],
     );
@@ -723,19 +835,27 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
         decoration: BoxDecoration(
           color: isSelected ? _accentColor : _accentColor.withAlpha(15),
           borderRadius: BorderRadius.circular(AppRadius.full),
-          border: Border.all(color: isSelected ? _accentColor : _accentColor.withAlpha(40)),
+          border: Border.all(
+            color: isSelected ? _accentColor : _accentColor.withAlpha(40),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: isSelected ? Colors.white : _accentColor),
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : _accentColor,
+            ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ],
@@ -776,7 +896,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     ),
                   ),
                   SizedBox(width: 10),
-                  Text('Generating...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Generating...',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ],
               )
             : const Row(
@@ -784,7 +907,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                 children: [
                   Icon(LucideIcons.wand2, size: 18),
                   SizedBox(width: 8),
-                  Text('Generate Activity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Generate Activity',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
       ),
@@ -797,7 +923,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
   Widget _buildErrorCard() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, 0),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.md,
+        AppSpacing.xl,
+        0,
+      ),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -811,7 +942,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           Expanded(
             child: Text(
               _error!,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.accent),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.accent,
+              ),
             ),
           ),
         ],
@@ -830,10 +965,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
 class _PolishedGeneratingOverlay extends StatefulWidget {
   @override
-  State<_PolishedGeneratingOverlay> createState() => _PolishedGeneratingOverlayState();
+  State<_PolishedGeneratingOverlay> createState() =>
+      _PolishedGeneratingOverlayState();
 }
 
-class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay> 
+class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
     with SingleTickerProviderStateMixin {
   int _messageIndex = 0;
   late final AnimationController _controller;
@@ -852,8 +988,10 @@ class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))
-      ..repeat();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
     _startTimer();
   }
 
@@ -883,14 +1021,19 @@ class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               width: 320,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.xxxl),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xxl,
+                vertical: AppSpacing.xxxl,
+              ),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.black.withAlpha(100) 
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withAlpha(100)
                     : Colors.white.withAlpha(150),
                 borderRadius: BorderRadius.circular(AppRadius.xl),
                 border: Border.all(
-                  color: Colors.white.withAlpha(Theme.of(context).brightness == Brightness.dark ? 40 : 80),
+                  color: Colors.white.withAlpha(
+                    Theme.of(context).brightness == Brightness.dark ? 40 : 80,
+                  ),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -908,7 +1051,9 @@ class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
                     height: 52,
                     child: CircularProgressIndicator(
                       strokeWidth: 4,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
                       backgroundColor: Colors.transparent,
                     ),
                   ),
@@ -916,7 +1061,7 @@ class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
                   Text(
                     'Creating Activity',
                     style: TextStyle(
-                      fontSize: 20, 
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.displayLarge?.color,
                     ),
@@ -932,7 +1077,7 @@ class _PolishedGeneratingOverlayState extends State<_PolishedGeneratingOverlay>
                           key: ValueKey(_messages[_messageIndex]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 14, 
+                            fontSize: 14,
                             color: Theme.of(context).textTheme.bodySmall?.color,
                           ),
                         ),

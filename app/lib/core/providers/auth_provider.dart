@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'supabase_provider.dart';
-import 'profile_provider.dart';
 
 class AuthState {
   final User? user;
@@ -75,7 +74,19 @@ class AuthNotifier extends Notifier<AuthState> {
         }
 
         if (event == AuthChangeEvent.signedOut) {
-            ref.invalidate(profileProvider);
+            // After sign out, we immediately sign in anonymously
+            // to ensure the app is never in an unauthenticated state.
+            // Note: ProfileNotifier and OnboardingNotifier handle their own 
+            // state resets by listening to authProvider.
+            await signInAnonymously();
+        }
+      });
+
+      // Initial check for session after a brief delay to ensure
+      // the initial session has been processed by the listener.
+      Future.microtask(() async {
+        if (_supabase.auth.currentSession == null && !state.isLoading) {
+          await signInAnonymously();
         }
       });
     } catch (e) {
@@ -87,9 +98,9 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _supabase.from('users').upsert({
         'id': user.id,
-        'email': user.email ?? '',
+        'email': user.email, // email can now be null
         // Handle optional metadata safely
-        'display_name': user.userMetadata?['full_name'],
+        'display_name': user.userMetadata?['full_name'] ?? 'Guest',
         'avatar_url': user.userMetadata?['avatar_url'],
       }, onConflict: 'id');
     } catch (e) {
@@ -98,7 +109,25 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> signInAnonymously() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final res = await _supabase.auth.signInAnonymously();
+      state = state.copyWith(
+        isLoading: false,
+        user: res.user,
+        session: res.session,
+      );
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'An unexpected error occurred during guest login.');
+    }
+  }
+
   Future<void> signIn(String email, String password) async {
+    // Keep this for future identity linkage/admin use
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final res = await _supabase.auth.signInWithPassword(
@@ -118,6 +147,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> signUp(String email, String password) async {
+    // Keep this for future identity linkage
     state = state.copyWith(isLoading: true, clearError: true);
     try {
        final res = await _supabase.auth.signUp(
@@ -152,8 +182,7 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       await _supabase.auth.signOut();
     } finally {
-      // Sign-out event listener will clean up the state, 
-      // but we do it manually just in case.
+      // Listener handles clearing state and re-signing in anonymously
       state = AuthState();
     }
   }
