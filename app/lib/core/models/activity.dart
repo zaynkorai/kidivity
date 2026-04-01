@@ -68,4 +68,23 @@ class Activity {
       kidName: json['kid_name'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'kid_profile_id': kidProfileId,
+      'category': category,
+      'topic': topic,
+      'difficulty': difficulty,
+      'style': style,
+      'content': content,
+      'image_url': imageUrl,
+      'is_saved': isSaved,
+      'rating': rating,
+      'feedback_text': feedbackText,
+      'created_at': createdAt,
+      'kid_name': kidName,
+    };
+  }
 }

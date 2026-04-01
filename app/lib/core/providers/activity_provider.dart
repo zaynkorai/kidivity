@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/activity.dart';
 import '../constants/env.dart';
 import 'auth_provider.dart' as app_auth;
@@ -93,8 +94,13 @@ class ActivityState {
 // ─── Notifier ─────────────────────────────────────────────────────
 
 class ActivityNotifier extends Notifier<ActivityState> {
+  static const _recentCacheKey = 'kidivity_recent_activities_cache';
+  static const _savedCacheKey = 'kidivity_saved_activities_cache';
   @override
   ActivityState build() {
+    // Restore cached data
+    _restoreCache();
+
     // Auto-fetch when user signs in
     ref.listen<app_auth.AuthState>(app_auth.authProvider, (prev, next) {
       if (prev?.user == null && next.user != null) {
@@ -110,6 +116,55 @@ class ActivityNotifier extends Notifier<ActivityState> {
   }
 
   SupabaseClient get _supabase => Supabase.instance.client;
+
+  // ─── Persistence ─────────────────────────────────────────────
+
+  Future<void> _restoreCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      final recentJson = prefs.getString(_recentCacheKey);
+      List<Activity> recent = [];
+      if (recentJson != null) {
+        final List<dynamic> list = json.decode(recentJson);
+        recent = list.map((j) => Activity.fromJson(j as Map<String, dynamic>)).toList();
+      }
+
+      final savedJson = prefs.getString(_savedCacheKey);
+      List<Activity> saved = [];
+      if (savedJson != null) {
+        final List<dynamic> list = json.decode(savedJson);
+        saved = list.map((j) => Activity.fromJson(j as Map<String, dynamic>)).toList();
+      }
+
+      state = state.copyWith(
+        recentActivities: recent,
+        savedActivities: saved,
+      );
+    } catch (e) {
+      debugPrint('[activity] Failed to restore cache: $e');
+    }
+  }
+
+  Future<void> _persistRecent(List<Activity> activities) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = json.encode(activities.map((a) => a.toJson()).toList());
+      await prefs.setString(_recentCacheKey, jsonStr);
+    } catch (e) {
+      debugPrint('[activity] Failed to persist recent: $e');
+    }
+  }
+
+  Future<void> _persistSaved(List<Activity> activities) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = json.encode(activities.map((a) => a.toJson()).toList());
+      await prefs.setString(_savedCacheKey, jsonStr);
+    } catch (e) {
+      debugPrint('[activity] Failed to persist saved: $e');
+    }
+  }
 
   Map<String, String> _authHeaders(Session session) => {
     'Authorization': 'Bearer ${session.accessToken}',
@@ -139,6 +194,7 @@ class ActivityNotifier extends Notifier<ActivityState> {
         final List<dynamic> jsonList = json.decode(response.body);
         final activities = jsonList.map((j) => Activity.fromJson(j as Map<String, dynamic>)).toList();
         state = state.copyWith(recentActivities: activities, isFetchingRecent: false);
+        _persistRecent(activities);
       } else {
         state = state.copyWith(isFetchingRecent: false);
       }
@@ -168,6 +224,7 @@ class ActivityNotifier extends Notifier<ActivityState> {
         final List<dynamic> jsonList = json.decode(response.body);
         final activities = jsonList.map((j) => Activity.fromJson(j as Map<String, dynamic>)).toList();
         state = state.copyWith(savedActivities: activities, isFetchingSaved: false);
+        _persistSaved(activities);
       } else {
         state = state.copyWith(isFetchingSaved: false);
       }
@@ -232,6 +289,9 @@ class ActivityNotifier extends Notifier<ActivityState> {
               ? state.savedActivities.map((a) => a.id == id ? fullActivity : a).toList()
               : state.savedActivities,
         );
+        
+        _persistRecent(state.recentActivities);
+        if (inSaved) _persistSaved(state.savedActivities);
 
         return fullActivity;
       }
@@ -257,6 +317,8 @@ class ActivityNotifier extends Notifier<ActivityState> {
           ? [...state.savedActivities, activity.copyWith(isSaved: true)]
           : state.savedActivities.where((a) => a.id != id).toList(),
     );
+    _persistRecent(state.recentActivities);
+    _persistSaved(state.savedActivities);
 
     try {
       await _supabase.from('activities').update({'is_saved': newSaved}).eq('id', id);
@@ -288,6 +350,8 @@ class ActivityNotifier extends Notifier<ActivityState> {
         a.id == id ? a.copyWith(rating: rating, feedbackText: feedbackText) : a
       ).toList(),
     );
+    _persistRecent(state.recentActivities);
+    _persistSaved(state.savedActivities);
 
     try {
       final session = _supabase.auth.currentSession;
@@ -424,6 +488,7 @@ class ActivityNotifier extends Notifier<ActivityState> {
           hit: currentQuota.used + 1 >= currentQuota.limit,
         ),
       );
+      _persistRecent(state.recentActivities);
       return (data: activity, error: null);
     } catch (e) {
       debugPrint('[Generate] Exception: $e');
@@ -442,6 +507,8 @@ class ActivityNotifier extends Notifier<ActivityState> {
 
   void reset() {
     state = const ActivityState();
+    _persistRecent([]);
+    _persistSaved([]);
   }
 }
 

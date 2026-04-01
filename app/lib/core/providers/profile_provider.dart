@@ -52,6 +52,7 @@ class ProfileState {
 
 class ProfileNotifier extends Notifier<ProfileState> {
   static const _activeProfileKey = 'kidivity_active_profile_id';
+  static const _profilesCacheKey = 'kidivity_profiles_cache';
 
   @override
   ProfileState build() {
@@ -66,8 +67,8 @@ class ProfileNotifier extends Notifier<ProfileState> {
       }
     });
 
-    // Restore persisted active profile ID
-    _restoreActiveProfile();
+    // Restore persisted active profile ID and cached profiles
+    _restoreState();
 
     return const ProfileState();
   }
@@ -76,28 +77,47 @@ class ProfileNotifier extends Notifier<ProfileState> {
 
   // ─── Persistence helpers ─────────────────────────────────────
 
-  Future<void> _restoreActiveProfile() async {
+  Future<void> _restoreState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      
+      // 1. Restore active profile ID
       final savedId = prefs.getString(_activeProfileKey);
-      if (savedId != null) {
-        state = state.copyWith(activeProfileId: savedId);
+      
+      // 2. Restore cached profiles
+      final cachedJson = prefs.getString(_profilesCacheKey);
+      List<KidProfile> cachedProfiles = [];
+      if (cachedJson != null) {
+        final List<dynamic> list = json.decode(cachedJson);
+        cachedProfiles = list.map((j) => KidProfile.fromJson(j as Map<String, dynamic>)).toList();
       }
+
+      state = state.copyWith(
+        activeProfileId: savedId,
+        profiles: cachedProfiles,
+        hasLoaded: cachedProfiles.isNotEmpty, // Consider it partially loaded if cache exists
+      );
     } catch (e) {
-      debugPrint('[profile] Failed to restore active profile: $e');
+      debugPrint('[profile] Failed to restore state: $e');
     }
   }
 
-  Future<void> _persistActiveProfile(String? id) async {
+  Future<void> _persistState(List<KidProfile> profiles, String? activeId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (id != null) {
-        await prefs.setString(_activeProfileKey, id);
+      
+      // Persist active ID
+      if (activeId != null) {
+        await prefs.setString(_activeProfileKey, activeId);
       } else {
         await prefs.remove(_activeProfileKey);
       }
+
+      // Persist profiles cache
+      final jsonStr = json.encode(profiles.map((p) => p.toJson()).toList());
+      await prefs.setString(_profilesCacheKey, jsonStr);
     } catch (e) {
-      debugPrint('[profile] Failed to persist active profile: $e');
+      debugPrint('[profile] Failed to persist state: $e');
     }
   }
 
@@ -140,7 +160,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
         activeProfileId: validActive,
       );
 
-      _persistActiveProfile(validActive);
+      _persistState(profiles, validActive);
     } catch (e) {
       debugPrint('[profile] fetchProfiles error: $e');
       state = state.copyWith(isLoading: false, hasLoaded: true);
@@ -179,7 +199,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
         isLoading: false,
       );
 
-      _persistActiveProfile(activeId);
+      _persistState(updatedProfiles, activeId);
       return (error: null, data: profile);
     } catch (e) {
       debugPrint('[profile] addProfile error: $e');
@@ -248,7 +268,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
         clearActiveProfile: newActiveId == null,
       );
 
-      _persistActiveProfile(newActiveId);
+      _persistState(remaining, newActiveId);
       return null;
     } catch (e) {
       debugPrint('[profile] deleteProfile error: $e');
@@ -261,14 +281,14 @@ class ProfileNotifier extends Notifier<ProfileState> {
 
   void setActiveProfile(String id) {
     state = state.copyWith(activeProfileId: id);
-    _persistActiveProfile(id);
+    _persistState(state.profiles, id);
   }
 
   // ─── Clear (on sign out) ─────────────────────────────────────
 
   void clearProfiles() {
     state = const ProfileState();
-    _persistActiveProfile(null);
+    _persistState([], null);
   }
 }
 
