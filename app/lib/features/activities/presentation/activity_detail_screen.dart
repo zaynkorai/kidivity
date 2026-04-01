@@ -162,21 +162,29 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             pw.SizedBox(height: 18),
-            pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: pw.BoxDecoration(
-                color: PdfColors.grey100,
-                border: pw.Border(left: pw.BorderSide(color: PdfColors.grey600, width: 3)),
-              ),
-              child: pw.Text(
-                _cleanTextForPdf(trimmed.replaceFirst('## ', '').toUpperCase()),
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.grey900,
-                  letterSpacing: 1.2,
+            pw.Stack(
+              alignment: pw.Alignment.centerLeft,
+              children: [
+                pw.Container(
+                  padding: const pw.EdgeInsets.fromLTRB(12, 6, 10, 6),
+                  color: PdfColors.grey100,
+                  width: double.infinity,
+                  child: pw.Text(
+                    _cleanTextForPdf(trimmed.replaceFirst('## ', '').toUpperCase()),
+                    style: pw.TextStyle(
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.grey900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
-              ),
+                pw.Container(
+                  width: 3,
+                  height: 24,
+                  color: PdfColors.grey600,
+                ),
+              ],
             ),
             pw.SizedBox(height: 10),
           ],
@@ -292,61 +300,51 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                     ),
                   ),
                 ),
-                // Decorative Corner Alignment Markers
+                // Decorative Corner Alignment Markers (Refactored to avoid non-uniform border radius conflicts)
                 pw.Positioned(
-                  top: 10,
-                  left: 10,
-                  child: pw.Container(
-                    width: 15,
-                    height: 15,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border(
-                        top: pw.BorderSide(color: PdfColors.grey400),
-                        left: pw.BorderSide(color: PdfColors.grey400),
-                      ),
-                    ),
+                  top: 0,
+                  left: 0,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
+                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                    ],
                   ),
                 ),
                 pw.Positioned(
-                  top: 10,
-                  right: 10,
-                  child: pw.Container(
-                    width: 15,
-                    height: 15,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border(
-                        top: pw.BorderSide(color: PdfColors.grey400),
-                        right: pw.BorderSide(color: PdfColors.grey400),
-                      ),
-                    ),
+                  top: 0,
+                  right: 0,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
+                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                    ],
                   ),
                 ),
                 pw.Positioned(
-                  bottom: 10,
-                  left: 10,
-                  child: pw.Container(
-                    width: 15,
-                    height: 15,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey400),
-                        left: pw.BorderSide(color: PdfColors.grey400),
-                      ),
-                    ),
+                  bottom: 0,
+                  left: 0,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    verticalDirection: pw.VerticalDirection.up,
+                    children: [
+                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
+                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                    ],
                   ),
                 ),
                 pw.Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: pw.Container(
-                    width: 15,
-                    height: 15,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border(
-                        bottom: pw.BorderSide(color: PdfColors.grey400),
-                        right: pw.BorderSide(color: PdfColors.grey400),
-                      ),
-                    ),
+                  bottom: 0,
+                  right: 0,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    verticalDirection: pw.VerticalDirection.up,
+                    children: [
+                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
+                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                    ],
                   ),
                 ),
               ],

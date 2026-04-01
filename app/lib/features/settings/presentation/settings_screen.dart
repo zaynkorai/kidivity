@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -19,13 +20,27 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isDeletingAccount = false;
+  String _appVersion = '1.0.0';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPackageInfo();
+  }
+
+  Future<void> _loadPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = '${info.version}+${info.buildNumber}';
+    });
+  }
 
   void _showUnimplemented(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature not yet implemented.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$feature not yet implemented.')));
   }
-  
+
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg), backgroundColor: AppColors.success),
@@ -38,9 +53,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _handleGateAction(String actionName, String userEmail, Future<void> Function() action) async {
+  Future<void> _handleGateAction(
+    String actionName,
+    String userEmail,
+    Future<void> Function() action,
+  ) async {
     final success = await ParentGateDialog.show(
-      context, 
+      context,
       userEmail: userEmail,
       description: 'Enter your password to $actionName.',
     );
@@ -89,7 +108,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Navigator.pop(context);
               try {
                 // In production, configure matching deep link redirectTo url
-                await Supabase.instance.client.auth.resetPasswordForEmail(email);
+                await Supabase.instance.client.auth.resetPasswordForEmail(
+                  email,
+                );
                 _showSuccess('Password reset email sent! Check your inbox.');
               } catch (e) {
                 _showError('Error: able to send password reset');
@@ -104,12 +125,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _handleDeleteAccount(String userId) async {
     if (_isDeletingAccount) return;
-    
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Account', style: TextStyle(color: AppColors.danger)),
-        content: const Text('Are you sure you want to permanently delete your account and all kid profiles? This action cannot be undone.'),
+        title: const Text(
+          'Delete Account',
+          style: TextStyle(color: AppColors.danger),
+        ),
+        content: const Text(
+          'Are you sure you want to permanently delete your account and all kid profiles? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -127,15 +153,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirm != true) return;
 
     setState(() => _isDeletingAccount = true);
-    
+
     try {
-      await Supabase.instance.client.functions.invoke('delete-account', body: {'userId': userId});
+      await Supabase.instance.client.functions.invoke(
+        'delete-account',
+        body: {'userId': userId},
+      );
       await ref.read(authProvider.notifier).signOut();
       if (mounted) {
         _showSuccess('Your account has been deleted.');
       }
     } catch (_) {
-      if (mounted) _showError('Unable to delete your account right now. Please try again.');
+      if (mounted)
+        _showError(
+          'Unable to delete your account right now. Please try again.',
+        );
     } finally {
       if (mounted) setState(() => _isDeletingAccount = false);
     }
@@ -143,7 +175,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _handleShare() async {
     try {
-      await SharePlus.instance.share(ShareParams(text: 'Check out Kidivity - The best app for supercharging your kid\'s development!'));
+      await SharePlus.instance.share(
+        ShareParams(
+          text:
+              'Check out Kidivity - The best app for supercharging your kid\'s development!',
+        ),
+      );
     } catch (e) {
       _showError('Share failed');
     }
@@ -151,8 +188,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _handleRateApp() async {
     final url = Platform.isIOS
-        ? 'itms-apps://itunes.apple.com/app/id123456789'
-        : 'market://details?id=com.kaivity.app';
+        ? 'itms-apps://itunes.apple.com/app/id6759043670'
+        : 'market://details?id=com.kidivity.app';
     final parsed = Uri.parse(url);
     if (await canLaunchUrl(parsed)) {
       await launchUrl(parsed);
@@ -183,10 +220,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         bottom: false,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl, 
-            AppSpacing.xxxl, 
-            AppSpacing.xl, 
-            120
+            AppSpacing.xl,
+            AppSpacing.xxxl,
+            AppSpacing.xl,
+            120,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -205,11 +242,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           color: Colors.black.withAlpha(20),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
-                        )
+                        ),
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(LucideIcons.settings, color: Colors.white, size: 24),
+                    child: const Icon(
+                      LucideIcons.settings,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Text(
@@ -238,11 +279,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         age: '${profile.age}yo',
                         gradeLevel: profile.gradeLevel,
                         color: profile.avatarColorValue,
-                        onEdit: () => _handleGateAction('edit the profile', email, () async => _showUnimplemented('Edit Profile Screen')),
-                        onDelete: () => _handleGateAction('manage profiles', email, () async {
-                          final error = await ref.read(profileProvider.notifier).deleteProfile(profile.id);
-                          if (error != null && mounted) _showError(error);
-                        }),
+                        onEdit: () => _handleGateAction(
+                          'edit the profile',
+                          email,
+                          () async => _showUnimplemented('Edit Profile Screen'),
+                        ),
+                        onDelete: () => _handleGateAction(
+                          'manage profiles',
+                          email,
+                          () async {
+                            final error = await ref
+                                .read(profileProvider.notifier)
+                                .deleteProfile(profile.id);
+                            if (error != null && mounted) _showError(error);
+                          },
+                        ),
                       ),
                       if (index < profiles.length - 1) _buildDivider(56),
                     ];
@@ -252,21 +303,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   if (profiles.isEmpty && !profileState.isLoading)
                     Padding(
                       padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Text('No kid profiles yet.', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color)),
+                      child: Text(
+                        'No kid profiles yet.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
                     ),
                   if (profileState.isLoading)
                     const Padding(
                       padding: EdgeInsets.all(AppSpacing.xl),
-                      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                   InkWell(
-                    onTap: () => _handleGateAction('add a new kid\'s profile', email, () async => _showUnimplemented('Create Profile Screen')),
+                    onTap: () => _handleGateAction(
+                      'add a new kid\'s profile',
+                      email,
+                      () async => _showUnimplemented('Create Profile Screen'),
+                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(LucideIcons.plus, size: 18, color: AppColors.primary),
+                          const Icon(
+                            LucideIcons.plus,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
                           SizedBox(width: AppSpacing.sm),
                           Text(
                             'Add Kid Profile',
@@ -275,11 +344,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
 
@@ -301,14 +370,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: LucideIcons.keyRound,
                     iconBackgroundColor: AppColors.success,
                     label: 'Reset Password',
-                    onTap: email.isEmpty ? null : () => _handleResetPassword(email),
+                    onTap: email.isEmpty
+                        ? null
+                        : () => _handleResetPassword(email),
                   ),
                   _buildDivider(56),
                   _SettingsRow(
                     icon: LucideIcons.userX,
                     iconBackgroundColor: AppColors.accent,
                     label: 'Delete Account',
-                    onTap: user == null ? null : () => _handleGateAction('verify your identity', email, () async => _handleDeleteAccount(user.id)),
+                    onTap: user == null
+                        ? null
+                        : () => _handleGateAction(
+                            'verify your identity',
+                            email,
+                            () async => _handleDeleteAccount(user.id),
+                          ),
                   ),
                 ],
               ),
@@ -347,11 +424,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: _handlePrivacyTerms,
                   ),
                   _buildDivider(56),
-                  const _SettingsRow(
+                  _SettingsRow(
                     icon: LucideIcons.info,
                     iconBackgroundColor: AppColors.secondary,
                     label: 'App Version',
-                    value: '1.0.0',
+                    value: _appVersion,
                     onTap: null, // Read-only
                   ),
                 ],
@@ -375,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                  )
+                  ),
                 ),
               ),
 
@@ -403,7 +480,10 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: AppSpacing.sm, bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(
+        left: AppSpacing.sm,
+        bottom: AppSpacing.sm,
+      ),
       child: Text(
         title,
         style: TextStyle(
@@ -489,16 +569,17 @@ class _SettingsRow extends StatelessWidget {
               ),
             )
           else if (onTap != null)
-            Icon(LucideIcons.chevronRight, size: 18, color: Theme.of(context).textTheme.bodySmall?.color),
+            Icon(
+              LucideIcons.chevronRight,
+              size: 18,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
         ],
       ),
     );
 
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        child: content,
-      );
+      return InkWell(onTap: onTap, child: content);
     }
     return content;
   }
@@ -524,7 +605,10 @@ class _ProfileRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         children: [
           Container(
@@ -539,7 +623,7 @@ class _ProfileRow extends StatelessWidget {
                   color: Colors.black.withAlpha(20),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
-                )
+                ),
               ],
             ),
             alignment: Alignment.center,
@@ -596,10 +680,7 @@ class _ProfileRow extends StatelessWidget {
     return Container(
       width: 32,
       height: 32,
-      decoration: BoxDecoration(
-        color: bgColor,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
       alignment: Alignment.center,
       child: Icon(icon, size: 16, color: Colors.white),
     );

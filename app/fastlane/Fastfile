@@ -1,0 +1,61 @@
+default_platform(:ios)
+
+lane :create_app do
+  require 'spaceship'
+
+  # Authenticate with the API Key
+  key_id = "675N793Q5F"
+  issuer_id = "a061a6d4-8cbb-47f8-a851-3665f6aa7472"
+  key_content = <<~PEM
+    -----BEGIN PRIVATE KEY-----
+    MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg+kCyx6GSxxovQeeD
+    YpomtMV2K+7Q1qzBHNFi/AS72BCgCgYIKoZIzj0DAQehRANCAAQ1HG/1wqmNHptW
+    f11aej8PBGh1wYkrpg63AjsO4rXOX2NTx9BL3txfnuEkCuebop4GLW/JpM+dQfeO
+    I0Dir67h
+    -----END PRIVATE KEY-----
+  PEM
+
+  UI.message("Authenticating with App Store Connect API Key...")
+  Spaceship::ConnectAPI.auth(
+    key_id: key_id,
+    issuer_id: issuer_id,
+    key: key_content
+  )
+
+  bundle_id = "com.kidivity.app"
+  app_name = "Kidivity - Kids Screen Free Activities"
+  sku = "kidivity-#{Time.now.to_i}"
+
+  UI.message("Checking if Identifier '#{bundle_id}' exists...")
+  response = Spaceship::ConnectAPI.get_bundle_ids(filter: { identifier: bundle_id })
+  bundle_id_id = response.to_models.first&.id
+  
+  if bundle_id_id.nil?
+    UI.message("Creating Identifier '#{bundle_id}'...")
+    req = Spaceship::ConnectAPI.post_bundle_id(identifier: bundle_id, name: app_name, platform: "IOS", seed_id: "99X868K2J3")
+    bundle_id_id = req.to_models.first.id
+    UI.success("Identifier created! ID: #{bundle_id_id}")
+  else
+    UI.message("Identifier '#{bundle_id}' already exists. ID: #{bundle_id_id}")
+  end
+
+  UI.message("Checking if App Record exists...")
+  response = Spaceship::ConnectAPI.get_apps(filter: { bundleId: bundle_id })
+  
+  if response.to_models.empty?
+    UI.message("Creating App Record for '#{app_name}'...")
+    begin
+      Spaceship::ConnectAPI.post_app(
+        name: app_name,
+        bundle_id: bundle_id_id, # Use the internal ID
+        sku: sku,
+        primary_locale: "en-US"
+      )
+      UI.success("App Record created successfully!")
+    rescue => e
+      UI.error("Error creating App Record: #{e.message}")
+    end
+  else
+    UI.message("App Record for '#{bundle_id}' already exists. App ID: #{response.to_models.first.id}")
+  end
+end
