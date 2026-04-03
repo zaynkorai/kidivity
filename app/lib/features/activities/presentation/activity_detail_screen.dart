@@ -104,44 +104,69 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
         .replaceAll('⭐', '*');
   }
 
-  pw.Widget _renderTextWithStyles(String text, {double fontSize = 12, pw.FontWeight fontWeight = pw.FontWeight.normal, PdfColor color = PdfColors.grey900}) {
+  pw.Widget _renderTextWithStyles(
+    String text, {
+    double fontSize = 12,
+    pw.FontWeight fontWeight = pw.FontWeight.normal,
+    PdfColor color = PdfColors.grey900,
+  }) {
     final List<pw.InlineSpan> spans = [];
     final cleanedText = _cleanTextForPdf(text);
-    
+
     // Bold regex: **text**
     // Italic regex: *text* (but not part of bold)
     final RegExp exp = RegExp(r'(\*\*.*?\*\*|\*.*?\*)');
     int lastMatchEnd = 0;
-    
+
     for (final match in exp.allMatches(cleanedText)) {
       if (match.start > lastMatchEnd) {
-        spans.add(pw.TextSpan(text: cleanedText.substring(lastMatchEnd, match.start)));
+        spans.add(
+          pw.TextSpan(text: cleanedText.substring(lastMatchEnd, match.start)),
+        );
       }
-      
+
       final matchText = match.group(0)!;
       if (matchText.startsWith('**')) {
-        spans.add(pw.TextSpan(
-          text: matchText.substring(2, matchText.length - 2),
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-        ));
+        spans.add(
+          pw.TextSpan(
+            text: matchText.substring(2, matchText.length - 2),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+          ),
+        );
       } else if (matchText.startsWith('*')) {
-        spans.add(pw.TextSpan(
-          text: matchText.substring(1, matchText.length - 1),
-          style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
-        ));
+        spans.add(
+          pw.TextSpan(
+            text: matchText.substring(1, matchText.length - 1),
+            style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
+          ),
+        );
       }
       lastMatchEnd = match.end;
     }
-    
+
     if (lastMatchEnd < cleanedText.length) {
       spans.add(pw.TextSpan(text: cleanedText.substring(lastMatchEnd)));
     }
-    
-    if (spans.isEmpty) return pw.Text(cleanedText, style: pw.TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color, lineSpacing: 4));
-    
+
+    if (spans.isEmpty)
+      return pw.Text(
+        cleanedText,
+        style: pw.TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color,
+          lineSpacing: 4,
+        ),
+      );
+
     return pw.RichText(
       text: pw.TextSpan(
-        style: pw.TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color, lineSpacing: 4),
+        style: pw.TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color,
+          lineSpacing: 4,
+        ),
         children: spans,
       ),
     );
@@ -170,7 +195,9 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                   color: PdfColors.grey100,
                   width: double.infinity,
                   child: pw.Text(
-                    _cleanTextForPdf(trimmed.replaceFirst('## ', '').toUpperCase()),
+                    _cleanTextForPdf(
+                      trimmed.replaceFirst('## ', '').toUpperCase(),
+                    ),
                     style: pw.TextStyle(
                       fontSize: 11,
                       fontWeight: pw.FontWeight.bold,
@@ -179,11 +206,7 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                     ),
                   ),
                 ),
-                pw.Container(
-                  width: 3,
-                  height: 24,
-                  color: PdfColors.grey600,
-                ),
+                pw.Container(width: 3, height: 24, color: PdfColors.grey600),
               ],
             ),
             pw.SizedBox(height: 10),
@@ -199,7 +222,7 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
         if (nextI < lines.length) {
           final nextLine = lines[nextI].trim();
           pw.Widget? nextWidget;
-          
+
           if (nextLine.startsWith('- ') || nextLine.startsWith('* ')) {
             nextWidget = _renderBullet(nextLine);
           } else if (!nextLine.startsWith('# ')) {
@@ -207,18 +230,20 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
           }
 
           if (nextWidget != null) {
-            widgets.add(pw.Header(
-              level: 1,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                children: [heading, nextWidget],
+            widgets.add(
+              pw.Header(
+                level: 1,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  children: [heading, nextWidget],
+                ),
               ),
-            ));
+            );
             i = nextI; // Consume the next line
             continue;
           }
         }
-        
+
         widgets.add(heading);
       }
       // Bullet items
@@ -242,11 +267,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
         children: [
           pw.Padding(
             padding: const pw.EdgeInsets.only(top: 2, right: 10),
-            child: pw.Text('H', style: pw.TextStyle(font: pw.Font.zapfDingbats(), fontSize: 8, color: PdfColors.grey700)),
+            child: pw.Text(
+              'H',
+              style: pw.TextStyle(
+                font: pw.Font.zapfDingbats(),
+                fontSize: 8,
+                color: PdfColors.grey700,
+              ),
+            ),
           ),
-          pw.Expanded(
-            child: _renderTextWithStyles(text.substring(2)),
-          ),
+          pw.Expanded(child: _renderTextWithStyles(text.substring(2))),
         ],
       ),
     );
@@ -307,8 +337,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
-                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                      pw.Container(
+                        width: 15,
+                        height: 1.5,
+                        color: PdfColors.grey400,
+                      ),
+                      pw.Container(
+                        width: 1.5,
+                        height: 15,
+                        color: PdfColors.grey400,
+                      ),
                     ],
                   ),
                 ),
@@ -318,8 +356,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
-                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
-                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                      pw.Container(
+                        width: 15,
+                        height: 1.5,
+                        color: PdfColors.grey400,
+                      ),
+                      pw.Container(
+                        width: 1.5,
+                        height: 15,
+                        color: PdfColors.grey400,
+                      ),
                     ],
                   ),
                 ),
@@ -330,8 +376,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     verticalDirection: pw.VerticalDirection.up,
                     children: [
-                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
-                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                      pw.Container(
+                        width: 15,
+                        height: 1.5,
+                        color: PdfColors.grey400,
+                      ),
+                      pw.Container(
+                        width: 1.5,
+                        height: 15,
+                        color: PdfColors.grey400,
+                      ),
                     ],
                   ),
                 ),
@@ -342,8 +396,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     verticalDirection: pw.VerticalDirection.up,
                     children: [
-                      pw.Container(width: 15, height: 1.5, color: PdfColors.grey400),
-                      pw.Container(width: 1.5, height: 15, color: PdfColors.grey400),
+                      pw.Container(
+                        width: 15,
+                        height: 1.5,
+                        color: PdfColors.grey400,
+                      ),
+                      pw.Container(
+                        width: 1.5,
+                        height: 15,
+                        color: PdfColors.grey400,
+                      ),
                     ],
                   ),
                 ),
@@ -382,7 +444,7 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                 style: pw.TextStyle(fontSize: 9, color: PdfColors.grey500),
               ),
               pw.Text(
-                'www.kidivity.app',
+                'www.kidivity.pro',
                 style: pw.TextStyle(fontSize: 9, color: PdfColors.grey500),
               ),
             ],

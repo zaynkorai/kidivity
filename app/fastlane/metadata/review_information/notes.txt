@@ -1,0 +1,1 @@
+The app does not require login to browse activities. An account can be created optionally.

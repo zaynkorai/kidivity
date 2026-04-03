@@ -1,4 +1,4 @@
-package com.kidivity.app
+package com.kidivity.pro
 
 import io.flutter.embedding.android.FlutterActivity
 

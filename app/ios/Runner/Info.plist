@@ -26,6 +26,18 @@
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>itms-apps</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Used for sharing and saving activity PDFs.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,18 +78,6 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
-		<key>LSApplicationQueriesSchemes</key>
-		<array>
-			<string>https</string>
-			<string>http</string>
-			<string>itms-apps</string>
-		</array>
-		<key>NSPhotoLibraryUsageDescription</key>
-		<string>This app needs access to your photo library to save or share activities.</string>
-		<key>UIFileSharingEnabled</key>
-		<true/>
-		<key>LSSupportsOpeningDocumentsInPlace</key>
-		<true/>
 		<key>UIStatusBarHidden</key>
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
