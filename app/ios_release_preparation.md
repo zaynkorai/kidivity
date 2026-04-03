@@ -3,7 +3,7 @@
 We have prepared the `kidivity` Flutter app for App Store submission with a consistent brand identity and necessary iOS-specific configurations.
 
 ## 1. App Configuration Updates ✅
-- [x] **Bundle Identifier**: Migrated to `com.kidivity.app` globally (iOS, Android, Linux).
+- [x] **Bundle Identifier**: Migrated to `com.kidivity.pro` globally (iOS, Android, Linux).
 - [x] **Info.plist**: 
   - Added `LSApplicationQueriesSchemes` for `url_launcher` (https, http, itms-apps).
   - Added `NSPhotoLibraryUsageDescription` for `share_plus` file sharing support.
@@ -25,7 +25,7 @@ We have prepared the `kidivity` Flutter app for App Store submission with a cons
 
 ## 4. Final Steps (Action Required) ⚠️
 - [x] **App Store ID**: Replace `YOUR_APP_ID` placeholder in `lib/features/settings/presentation/settings_screen.dart` with the numeric ID from App Store Connect.
-- [x] **Code Signing**: Open `ios/Runner.xcworkspace` in Xcode to configure your development team and certificates.
+- [x] **Code Signing**: Open `ios/Kidivity.xcworkspace` in Xcode to configure your development team and certificates.
 - [x] **Build for Release**:
   ```bash
   flutter build ios --release
@@ -51,6 +51,10 @@ We have prepared the `kidivity` Flutter app for App Store submission with a cons
   ```
 
 ## 6. Submission for Review 🚀
+- [ ] **Configure Pricing**: Ensure the app is set to "Free" (Tier 0).
+  ```bash
+  fastlane set_price_to_free
+  ```
 - [ ] **TestFlight Verification**: Ensure build processing is complete on App Store Connect.
 - [ ] **Metadata & Screenshots**: Fill out app description, keywords, and upload required visual assets.
 - [ ] **App Store Submission**: Select the build, update release notes, and click **Submit for Review**.

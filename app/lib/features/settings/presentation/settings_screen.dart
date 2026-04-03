@@ -203,7 +203,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _handleRateApp() async {
     final url = Platform.isIOS
         ? 'itms-apps://itunes.apple.com/app/id6759043670'
-        : 'market://details?id=com.kidivity.app';
+        : 'market://details?id=com.kidivity.pro';
     final parsed = Uri.parse(url);
     if (await canLaunchUrl(parsed)) {
       await launchUrl(parsed);
@@ -401,7 +401,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       icon: LucideIcons.userPlus,
                       iconBackgroundColor: AppColors.success,
                       label: 'Save your progress',
-                      onTap: () => _showUnimplemented('Create Account / Identity Linkage'),
+                      onTap: () => _showUnimplemented(
+                        'Create Account / Identity Linkage',
+                      ),
                     ),
                   ],
                   _buildDivider(56),

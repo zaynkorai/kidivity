@@ -1,11 +1,26 @@
 default_platform(:ios)
 
+# ─────────────────────────────────────────────────────────────────
+# Shared API key config
+# ─────────────────────────────────────────────────────────────────
+def api_key_options
+  {
+    api_key_path: "fastlane/api_key.json"
+  }
+end
+
+APP_IDENTIFIER = "com.kidivity.pro"
+IPA_PATH       = "build/ios/ipa/Kidivity.ipa"
+
+# ─────────────────────────────────────────────────────────────────
+# Lane: create_app
+# Creates the App ID and App Store record if they don't exist yet.
+# ─────────────────────────────────────────────────────────────────
 lane :create_app do
   require 'spaceship'
 
-  # Authenticate with the API Key
-  key_id = "675N793Q5F"
-  issuer_id = "a061a6d4-8cbb-47f8-a851-3665f6aa7472"
+  key_id     = "675N793Q5F"
+  issuer_id  = "a061a6d4-8cbb-47f8-a851-3665f6aa7472"
   key_content = <<~PEM
     -----BEGIN PRIVATE KEY-----
     MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg+kCyx6GSxxovQeeD
@@ -17,38 +32,43 @@ lane :create_app do
 
   UI.message("Authenticating with App Store Connect API Key...")
   Spaceship::ConnectAPI.auth(
-    key_id: key_id,
+    key_id:    key_id,
     issuer_id: issuer_id,
-    key: key_content
+    key:       key_content
   )
 
-  bundle_id = "com.kidivity.app"
   app_name = "Kidivity - Kids Activities"
-  sku = "kidivity-#{Time.now.to_i}"
+  sku      = "kidivity-#{Time.now.to_i}"
 
-  UI.message("Checking if Identifier '#{bundle_id}' exists...")
-  response = Spaceship::ConnectAPI.get_bundle_ids(filter: { identifier: bundle_id })
-  bundle_id_id = response.to_models.first&.id
-  
-  if bundle_id_id.nil?
-    UI.message("Creating Identifier '#{bundle_id}'...")
-    req = Spaceship::ConnectAPI.post_bundle_id(identifier: bundle_id, name: app_name, platform: "IOS", seed_id: "99X868K2J3")
+  UI.message("Checking if Identifier '#{APP_IDENTIFIER}' exists...")
+  response      = Spaceship::ConnectAPI.get_bundle_ids(filter: { identifier: APP_IDENTIFIER })
+  bundle_id_obj = response.to_models.first
+
+  if bundle_id_obj.nil?
+    UI.message("Creating Identifier '#{APP_IDENTIFIER}'...")
+    req           = Spaceship::ConnectAPI.post_bundle_id(
+      identifier: APP_IDENTIFIER,
+      name:       app_name,
+      platform:   "IOS",
+      seed_id:    "99X868K2J3"
+    )
     bundle_id_id = req.to_models.first.id
     UI.success("Identifier created! ID: #{bundle_id_id}")
   else
-    UI.message("Identifier '#{bundle_id}' already exists. ID: #{bundle_id_id}")
+    bundle_id_id = bundle_id_obj.id
+    UI.message("Identifier '#{APP_IDENTIFIER}' already exists. ID: #{bundle_id_id}")
   end
 
   UI.message("Checking if App Record exists...")
-  response = Spaceship::ConnectAPI.get_apps(filter: { bundleId: bundle_id })
-  
+  response = Spaceship::ConnectAPI.get_apps(filter: { bundleId: APP_IDENTIFIER })
+
   if response.to_models.empty?
     UI.message("Creating App Record for '#{app_name}'...")
     begin
       Spaceship::ConnectAPI.post_app(
-        name: app_name,
-        bundle_id: bundle_id_id, # Use the internal ID
-        sku: sku,
+        name:           app_name,
+        bundle_id:      bundle_id_id,
+        sku:            sku,
         primary_locale: "en-US"
       )
       UI.success("App Record created successfully!")
@@ -56,6 +76,115 @@ lane :create_app do
       UI.error("Error creating App Record: #{e.message}")
     end
   else
-    UI.message("App Record for '#{bundle_id}' already exists. App ID: #{response.to_models.first.id}")
+    UI.message("App Record already exists -- skipping creation.")
   end
+end
+
+# ─────────────────────────────────────────────────────────────────
+# Lane: beta
+# Builds the Flutter IPA and uploads to TestFlight.
+# ─────────────────────────────────────────────────────────────────
+lane :beta do
+  UI.message("Building Flutter IPA for release...")
+  sh("flutter build ipa --release", chdir: "..")
+
+  UI.message("Uploading to TestFlight...")
+  upload_to_testflight(
+    **api_key_options,
+    app_identifier:  APP_IDENTIFIER,
+    ipa:             IPA_PATH,
+    skip_waiting_for_build_processing: false
+  )
+  UI.success("Build uploaded to TestFlight!")
+end
+
+# ─────────────────────────────────────────────────────────────────
+# Lane: upload_metadata
+# Pushes all App Store metadata from the metadata/ folder,
+# plus pricing, category, age rating, and contact info.
+# No binary or screenshots are uploaded.
+#
+# Metadata is read from:
+#   fastlane/metadata/en-US/        (localized text files)
+#   fastlane/metadata/              (primary_category.txt, copyright.txt)
+#   fastlane/metadata/review_information/  (contact info text files)
+#   fastlane/rating_config.json     (age rating answers)
+# ─────────────────────────────────────────────────────────────────
+lane :upload_metadata do
+  deliver(
+    **api_key_options,
+    app_identifier:         APP_IDENTIFIER,
+
+    # Pricing
+    price_tier:             0,
+
+    # Category (from metadata/primary_category.txt, but also set inline)
+    primary_category:       "EDUCATION",
+
+    # Age rating via JSON config file
+    app_rating_config_path: "fastlane/rating_config.json",
+
+    # Skip binary and screenshots -- metadata only
+    skip_binary_upload:     true,
+    skip_screenshots:       true,
+
+    # Use metadata from the default folder (fastlane/metadata/)
+    languages:              ["en-US"],
+
+    # Non-interactive
+    force:                  true,
+    run_precheck_before_submit: false
+  )
+  UI.success("Metadata uploaded to App Store Connect!")
+end
+
+# ─────────────────────────────────────────────────────────────────
+# Lane: release
+# Full release pipeline:
+#   1. Build IPA
+#   2. Upload build + metadata + submit for review
+# ─────────────────────────────────────────────────────────────────
+lane :release do
+  # Step 1 -- Build
+  UI.message("Step 1/2: Building Flutter IPA...")
+  sh("flutter build ipa --release", chdir: "..")
+
+  # Step 2 -- Upload everything and submit
+  UI.message("Step 2/2: Uploading build + metadata, submitting for review...")
+  deliver(
+    **api_key_options,
+    app_identifier:         APP_IDENTIFIER,
+    ipa:                    IPA_PATH,
+
+    # Pricing & Category
+    price_tier:             0,
+    primary_category:       "EDUCATION",
+
+    # Age rating
+    app_rating_config_path: "fastlane/rating_config.json",
+
+    # Screenshots
+    skip_screenshots:       true,
+
+    # Metadata from fastlane/metadata/
+    languages:              ["en-US"],
+
+    # Submit for review
+    submit_for_review:      true,
+    automatic_release:      true,
+    force:                  true,
+    run_precheck_before_submit: false,
+    submission_information: {
+      add_id_info_uses_idfa:                                false,
+      add_id_info_serves_ads:                               false,
+      add_id_info_limits_tracking:                          true,
+      content_rights_has_rights:                            true,
+      content_rights_contains_third_party_content:          false,
+      export_compliance_uses_encryption:                    false,
+      export_compliance_is_exempt:                          false,
+      export_compliance_contains_third_party_cryptography:  false,
+      export_compliance_contains_proprietary_cryptography:  false
+    }
+  )
+  UI.success("App submitted for review successfully!")
 end
