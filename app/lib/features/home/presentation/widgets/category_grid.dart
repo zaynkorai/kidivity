@@ -11,19 +11,17 @@ class CategoryGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         // dynamic grid sizing similar to React Native
-        final availableWidth = constraints.maxWidth;
-        const minColWidth = 160.0;
-        final numColumns = (availableWidth / (minColWidth + AppSpacing.md)).floor().clamp(2, 4);
+
 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: numColumns,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
             crossAxisSpacing: AppSpacing.md,
             mainAxisSpacing: AppSpacing.md,
-            childAspectRatio: 1.35, // Wider cards to fix clipping and reduce vertical height
+            childAspectRatio: 0.82, // Made slightly taller
           ),
           itemCount: Categories.all.length,
           itemBuilder: (context, index) {
@@ -90,35 +88,41 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark 
-                ? [AppColors.surfaceDark, AppColors.surfaceDark.withAlpha(200)] 
-                : [cat.color.withAlpha(150), Colors.white],
+                ? [AppColors.surfaceDark, cat.accent.withAlpha(40)] 
+                : [cat.accent.withAlpha(80), cat.accent.withAlpha(30)],
+            ),
+            border: Border.all(
+              color: isDark ? cat.accent.withAlpha(60) : cat.accent.withAlpha(100),
+              width: 1.2,
             ),
           ),
           child: Stack(
             children: [
               // Content
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Icon (Removed background container)
                     Icon(
                       cat.icon,
-                      size: 26,
+                      size: 24, // slightly smaller icon
                       color: cat.accent,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 6),
                     
                     // Title
                     Text(
-                      cat.label,
-                      maxLines: 1,
+                      cat.label.replaceFirst(' & ', '\n& '),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 15, // Reduced from 16
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : AppColors.textPrimary,
+                        height: 1.1,
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -130,7 +134,7 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10, // Reduced for 3 columns
                         fontWeight: FontWeight.w500,
                         color: (isDark ? Colors.white : AppColors.textPrimary).withAlpha(160),
                         height: 1.1,

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/activity_provider.dart';
 import 'widgets/magic_card.dart';
 import 'widgets/category_grid.dart';
-import 'widgets/journey_map.dart';
+import 'widgets/pick_of_the_day_card.dart';
+import 'widgets/weekly_activity_chart.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -83,17 +83,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   MagicCard(
                     activeProfile: activeProfile,
                     lastActivityTopic: lastActivity?.topic,
+                    streak: kidStats?.streak ?? 0,
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
 
-                  // Journey Map — wired to streak
-                  JourneyMap(
-                    streak: kidStats?.streak ?? 0,
-                    hasActiveProfile: activeProfile != null,
-                    activities: visibleActivities,
-                    onAddPressed: () => context.push('/generate'),
-                  ),
+                  // Pick of the Day
+                  const PickOfTheDayCard(),
 
                   const SizedBox(height: AppSpacing.xxl),
 
@@ -110,7 +106,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Category Grid
                   const CategoryGrid(),
 
-                  const SizedBox(height: 120),
+                  const SizedBox(height: AppSpacing.xxxl),
+
+                  // Weekly Activity Chart
+                  WeeklyActivityChart(activities: visibleActivities.toList()),
+
+                  const SizedBox(height: 100),
                 ],
               ),
             ),

@@ -7,18 +7,21 @@ import '../../../../core/models/kid_profile.dart';
 class MagicCard extends StatefulWidget {
   final KidProfile? activeProfile;
   final String? lastActivityTopic;
+  final int streak;
 
   const MagicCard({
     super.key,
     this.activeProfile,
     this.lastActivityTopic,
+    this.streak = 0,
   });
 
   @override
   State<MagicCard> createState() => _MagicCardState();
 }
 
-class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMixin {
+class _MagicCardState extends State<MagicCard>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
 
@@ -29,9 +32,10 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad));
   }
 
   @override
@@ -75,7 +79,7 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
                 color: AppColors.primary.withAlpha(50),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
           child: Stack(
@@ -125,31 +129,72 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
                             ),
                           ),
                         ),
-                        // Profile avatar
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withAlpha(50),
-                          ),
-                          child: hasProfile
-                              ? CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: profile.avatarColorValue,
-                                  child: Text(
-                                    profile.name[0].toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                )
-                              : const CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Colors.white,
-                                  child: Icon(LucideIcons.user, size: 18, color: AppColors.primary),
+                        // Streak and Profile avatar
+                        Row(
+                          children: [
+                            if (widget.streak > 0) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
                                 ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withAlpha(38),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.full,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.flame,
+                                      size: 14,
+                                      color: Colors.amberAccent,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${widget.streak} streak',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                            ],
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withAlpha(50),
+                              ),
+                              child: hasProfile
+                                  ? CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: profile.avatarColorValue,
+                                      child: Text(
+                                        profile.name[0].toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    )
+                                  : const CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: Colors.white,
+                                      child: Icon(
+                                        LucideIcons.user,
+                                        size: 18,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -157,14 +202,12 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
 
                     // Title
                     Text(
-                      hasProfile
-                          ? 'Print ready in seconds'
-                          : 'Add a profile to start',
+                      hasProfile ? profile.name : 'Add a profile to start',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.4,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -174,8 +217,8 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
                       widget.lastActivityTopic != null
                           ? 'Last: "${widget.lastActivityTopic}"'
                           : hasProfile
-                              ? 'Tap to generate a new printable activity.'
-                              : 'Add a profile to generate your first printable activity.',
+                          ? 'Tap to generate a new printable activity.'
+                          : 'Add a profile to generate your first printable activity.',
                       style: TextStyle(
                         color: Colors.white.withAlpha(210),
                         fontSize: 14,
@@ -186,28 +229,30 @@ class _MagicCardState extends State<MagicCard> with SingleTickerProviderStateMix
 
                     // CTA button
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 8,
-                      ),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         boxShadow: AppShadows.small,
                       ),
                       child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             'Generate',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 16,
                             ),
                           ),
                           SizedBox(width: 4),
-                          Icon(LucideIcons.chevronRight, size: 18, color: AppColors.primary),
+                          Icon(
+                            LucideIcons.chevronRight,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
                         ],
                       ),
                     ),

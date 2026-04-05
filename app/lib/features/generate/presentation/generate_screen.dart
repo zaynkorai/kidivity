@@ -16,11 +16,13 @@ enum ActivityGuideStep { category, topic, difficulty, style, generate }
 
 class GenerateScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
+  final String? initialTopic;
   final bool isFirstActivity;
 
   const GenerateScreen({
     super.key,
     this.initialCategory,
+    this.initialTopic,
     this.isFirstActivity = false,
   });
 
@@ -48,9 +50,22 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
+    _topic = widget.initialTopic ?? '';
+
     if (_selectedCategory != null) {
       _suggestions = getRandomSuggestions(_selectedCategory!);
-      if (widget.isFirstActivity) _currentGuideStep = ActivityGuideStep.topic;
+      
+      // If we have an initial topic, ensure it's in the suggestions so it can be 'selected'
+      if (_topic.isNotEmpty && !_suggestions.contains(_topic)) {
+        _suggestions.insert(0, _topic);
+      }
+      
+      // If we have both, we are already at Step 3 (Options)
+      if (_topic.isNotEmpty) {
+        _currentGuideStep = ActivityGuideStep.difficulty;
+      } else if (widget.isFirstActivity) {
+        _currentGuideStep = ActivityGuideStep.topic;
+      }
     } else if (widget.isFirstActivity) {
       _currentGuideStep = ActivityGuideStep.category;
     }

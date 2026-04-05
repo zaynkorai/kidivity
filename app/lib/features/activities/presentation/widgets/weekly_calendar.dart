@@ -103,17 +103,28 @@ class WeeklyCalendar extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark ? AppColors.primary.withAlpha(40) : AppCategoryColors.artPastel,
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, Color(0xFF6389F1)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(AppRadius.full),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(80),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.flame, size: 12, color: AppColors.primary),
+                          const Icon(LucideIcons.flame, size: 12, color: Colors.white),
                           const SizedBox(width: 3),
                           Text(
                             '$streak streak',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),

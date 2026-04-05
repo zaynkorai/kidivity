@@ -30,8 +30,8 @@ class AppColors {
   
   static const List<Color> avatarPalette = [
     Color(0xFFFF8A00), Color(0xFFFECAC3), Color(0xFFA2DDC2), Color(0xFFFFE3C1), 
-    Color(0xFF8AE3FF), Color(0xFFE7E1FF), Color(0xFFFD79A8), Color(0xFF00CEC9), 
-    Color(0xFFE17055), Color(0xFF0984E3), Color(0xFF55A3E8)
+    Color(0xFF8AE3FF), Color(0xFFE7E1FF), Color(0xFF4834D4), Color(0xFF00CEC9), 
+    Color(0xFFE17055), Color(0xFF0984E3), Color(0xFF2B3A8C)
   ];
 }
 
@@ -45,8 +45,8 @@ class AppCategoryColors {
   static const scienceAccent = Color(0xFFA06CD5);
   static const sciencePastel = Color(0xFFF3EBF9);
   
-  static const artAccent = Color(0xFFFF6B6B);
-  static const artPastel = Color(0xFFFFEBEB);
+  static const artAccent = Color(0xFFF9CA24); // Vibrant Golden Yellow for Art
+  static const artPastel = Color(0xFFFFF9E1);
   
   static const mathAccent = Color(0xFF4361EE);
   static const mathPastel = Color(0xFFE8EDFF);

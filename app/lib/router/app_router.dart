@@ -80,6 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/generate',
                 builder: (context, state) => GenerateScreen(
                   initialCategory: state.uri.queryParameters['category'],
+                  initialTopic: state.uri.queryParameters['topic'],
                   isFirstActivity: state.uri.queryParameters['first_activity'] == 'true',
                 ),
               ),
