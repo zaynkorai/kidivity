@@ -232,269 +232,301 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
+        top: false,
         bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.xxxl,
-            AppSpacing.xl,
-            120,
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(20),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+              // Primary Header
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.xl,
+                  MediaQuery.of(context).padding.top + AppSpacing.lg,
+                  AppSpacing.xl,
+                  AppSpacing.xxl,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(AppRadius.xl),
+                    bottomRight: Radius.circular(AppRadius.xl),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x30000000),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ],
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      LucideIcons.settings,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.displayLarge?.color,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Kid Profiles Section
-              const _SectionTitle(title: 'KID PROFILES'),
-              _SettingsCard(
-                children: [
-                  // Dynamic profile rows from Riverpod
-                  ...profiles.asMap().entries.expand((entry) {
-                    final index = entry.key;
-                    final profile = entry.value;
-                    return [
-                      _ProfileRow(
-                        name: profile.name,
-                        age: '${profile.age}yo',
-                        gradeLevel: profile.gradeLevel,
-                        color: profile.avatarColorValue,
-                        isActive: profile.id == profileState.activeProfileId,
-                        onTap: () {
-                          ref.read(profileProvider.notifier).setActiveProfile(profile.id);
-                          HapticFeedback.lightImpact();
-                        },
-                        onEdit: () => _handleGateAction(
-                          'edit the profile',
-                          email,
-                          () async => context.push('/profile-create', extra: profile),
-                        ),
-                        onDelete: () => _handleGateAction(
-                          'manage profiles',
-                          email,
-                          () async {
-                            final error = await ref
-                                .read(profileProvider.notifier)
-                                .deleteProfile(profile.id);
-                            if (error != null && mounted) _showError(error);
-                          },
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(40),
+                        shape: BoxShape.circle,
                       ),
-                      if (index < profiles.length - 1) _buildDivider(56),
-                    ];
-                  }),
-                  if (profiles.isNotEmpty) _buildDivider(56),
-                  // Empty state
-                  if (profiles.isEmpty && !profileState.isLoading)
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Text(
-                        'No kid profiles yet.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
-                    ),
-                  if (profileState.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.all(AppSpacing.xl),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  InkWell(
-                    onTap: () => _handleGateAction(
-                      'add a new kid\'s profile',
-                      email,
-                      () async => context.push('/profile-create'),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            LucideIcons.plus,
-                            size: 18,
-                            color: AppColors.primary,
-                          ),
-                          SizedBox(width: AppSpacing.sm),
-                          Text(
-                            'Add Kid Profile',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: AppSpacing.xxl),
-
-              // Account Section
-              const _SectionTitle(title: 'ACCOUNT'),
-              _SettingsCard(
-                children: [
-                  if (user != null && !user.isAnonymous) ...[
-                    _SettingsRow(
-                      icon: LucideIcons.mail,
-                      iconBackgroundColor: AppCategoryColors.mathAccent,
-                      label: 'Email',
-                      value: email,
-                      onTap: null, // Read-only
-                    ),
-                    _buildDivider(56),
-                    _SettingsRow(
-                      icon: LucideIcons.keyRound,
-                      iconBackgroundColor: AppColors.success,
-                      label: 'Reset Password',
-                      onTap: () => _handleResetPassword(email),
-                    ),
-                  ] else ...[
-                    // Anonymous user profile summary
-                    _SettingsRow(
-                      icon: LucideIcons.user,
-                      iconBackgroundColor: AppColors.primary,
-                      label: 'Account Type',
-                      value: 'Guest',
-                      onTap: null,
-                    ),
-                    _buildDivider(56),
-                    _SettingsRow(
-                      icon: LucideIcons.userPlus,
-                      iconBackgroundColor: AppColors.success,
-                      label: 'Save your progress',
-                      onTap: () => _showUnimplemented(
-                        'Create Account / Identity Linkage',
+                      child: const Icon(
+                        LucideIcons.settings,
+                        size: 20,
+                        color: Colors.white,
                       ),
                     ),
                   ],
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.userX,
-                    iconBackgroundColor: AppColors.accent,
-                    label: 'Delete Account',
-                    onTap: user == null
-                        ? null
-                        : () => _handleGateAction(
-                            'verify your identity',
-                            email,
-                            () async => _handleDeleteAccount(user.id),
-                          ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: AppSpacing.xxl),
-
-              // About & Support Section
-              const _SectionTitle(title: 'ABOUT & SUPPORT'),
-              _SettingsCard(
-                children: [
-                  _SettingsRow(
-                    icon: LucideIcons.helpCircle,
-                    iconBackgroundColor: AppColors.secondary,
-                    label: 'Help & Support',
-                    onTap: () => _showUnimplemented('Help & Support'),
-                  ),
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.star,
-                    iconBackgroundColor: AppCategoryColors.artAccent,
-                    label: 'Rate App',
-                    onTap: _handleRateApp,
-                  ),
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.share,
-                    iconBackgroundColor: AppCategoryColors.mathAccent,
-                    label: 'Share App',
-                    onTap: _handleShare,
-                  ),
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.shield,
-                    iconBackgroundColor: AppColors.success,
-                    label: 'Privacy & Terms',
-                    onTap: _handlePrivacyTerms,
-                  ),
-                  _buildDivider(56),
-                  _SettingsRow(
-                    icon: LucideIcons.info,
-                    iconBackgroundColor: AppColors.secondary,
-                    label: 'App Version',
-                    value: _appVersion,
-                    onTap: null, // Read-only
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Sign Out Button (Resets the app and creates a new identity)
-              ElevatedButton.icon(
-                onPressed: _confirmSignOut,
-                icon: const Icon(LucideIcons.refreshCw, size: 18),
-                label: const Text('Reset App Session'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.danger.withAlpha(200),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                  ),
-                  elevation: 4,
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
                 ),
               ),
+              const SizedBox(height: AppSpacing.xxxl),
 
-              const SizedBox(height: 60),
+              // Main Content Padding
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Kid Profiles Section
+                    const _SectionTitle(title: 'KID PROFILES'),
+                    _SettingsCard(
+                      children: [
+                        // Dynamic profile rows from Riverpod
+                        ...profiles.asMap().entries.expand((entry) {
+                          final index = entry.key;
+                          final profile = entry.value;
+                          return [
+                            _ProfileRow(
+                              name: profile.name,
+                              age: '${profile.age}yo',
+                              gradeLevel: profile.gradeLevel,
+                              color: profile.avatarColorValue,
+                              isActive:
+                                  profile.id == profileState.activeProfileId,
+                              onTap: () {
+                                ref
+                                    .read(profileProvider.notifier)
+                                    .setActiveProfile(profile.id);
+                                HapticFeedback.lightImpact();
+                              },
+                              onEdit: () => _handleGateAction(
+                                'edit the profile',
+                                email,
+                                () async => context.push(
+                                  '/profile-create',
+                                  extra: profile,
+                                ),
+                              ),
+                              onDelete: () => _handleGateAction(
+                                'manage profiles',
+                                email,
+                                () async {
+                                  final error = await ref
+                                      .read(profileProvider.notifier)
+                                      .deleteProfile(profile.id);
+                                  if (error != null && mounted)
+                                    _showError(error);
+                                },
+                              ),
+                            ),
+                            if (index < profiles.length - 1) _buildDivider(56),
+                          ];
+                        }),
+                        if (profiles.isNotEmpty) _buildDivider(56),
+                        // Empty state
+                        if (profiles.isEmpty && !profileState.isLoading)
+                          Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: Text(
+                              'No kid profiles yet.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.color,
+                              ),
+                            ),
+                          ),
+                        if (profileState.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(AppSpacing.xl),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        InkWell(
+                          onTap: () => _handleGateAction(
+                            'add a new kid\'s profile',
+                            email,
+                            () async => context.push('/profile-create'),
+                          ),
+                          child: Padding(
+                            padding:
+                                EdgeInsets.symmetric(vertical: AppSpacing.md),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  LucideIcons.plus,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                const Text(
+                                  'Add Kid Profile',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Account Section
+                    const _SectionTitle(title: 'ACCOUNT'),
+                    _SettingsCard(
+                      children: [
+                        if (user != null && !user.isAnonymous) ...[
+                          _SettingsRow(
+                            icon: LucideIcons.mail,
+                            iconBackgroundColor: AppCategoryColors.mathAccent,
+                            label: 'Email',
+                            value: email,
+                            onTap: null, // Read-only
+                          ),
+                          _buildDivider(56),
+                          _SettingsRow(
+                            icon: LucideIcons.keyRound,
+                            iconBackgroundColor: AppColors.success,
+                            label: 'Reset Password',
+                            onTap: () => _handleResetPassword(email),
+                          ),
+                        ] else ...[
+                          // Anonymous user profile summary
+                          _SettingsRow(
+                            icon: LucideIcons.user,
+                            iconBackgroundColor: AppColors.primary,
+                            label: 'Account Type',
+                            value: 'Guest',
+                            onTap: null,
+                          ),
+                          _buildDivider(56),
+                          _SettingsRow(
+                            icon: LucideIcons.userPlus,
+                            iconBackgroundColor: AppColors.success,
+                            label: 'Save your progress',
+                            onTap: () => _showUnimplemented(
+                              'Create Account / Identity Linkage',
+                            ),
+                          ),
+                        ],
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.userX,
+                          iconBackgroundColor: AppColors.accent,
+                          label: 'Delete Account',
+                          onTap: user == null
+                              ? null
+                              : () => _handleGateAction(
+                                  'verify your identity',
+                                  email,
+                                  () async => _handleDeleteAccount(user.id),
+                                ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // About & Support Section
+                    const _SectionTitle(title: 'ABOUT & SUPPORT'),
+                    _SettingsCard(
+                      children: [
+                        _SettingsRow(
+                          icon: LucideIcons.helpCircle,
+                          iconBackgroundColor: AppColors.secondary,
+                          label: 'Help & Support',
+                          onTap: () => _showUnimplemented('Help & Support'),
+                        ),
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.star,
+                          iconBackgroundColor: AppCategoryColors.artAccent,
+                          label: 'Rate App',
+                          onTap: _handleRateApp,
+                        ),
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.share,
+                          iconBackgroundColor: AppCategoryColors.mathAccent,
+                          label: 'Share App',
+                          onTap: _handleShare,
+                        ),
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.shield,
+                          iconBackgroundColor: AppColors.success,
+                          label: 'Privacy & Terms',
+                          onTap: _handlePrivacyTerms,
+                        ),
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.info,
+                          iconBackgroundColor: AppColors.secondary,
+                          label: 'App Version',
+                          value: _appVersion,
+                          onTap: null, // Read-only
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxxl),
+
+                    // Sign Out Button (Resets the app and creates a new identity)
+                    ElevatedButton.icon(
+                      onPressed: _confirmSignOut,
+                      icon: const Icon(LucideIcons.refreshCw, size: 18),
+                      label: const Text('Reset App Session'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.danger.withAlpha(200),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        elevation: 4,
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 60),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
