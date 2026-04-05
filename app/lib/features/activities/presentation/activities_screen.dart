@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:ui' show ImageFilter;
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/activity_provider.dart';
 import '../../../core/providers/profile_provider.dart';
@@ -426,8 +428,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                               ? 5
                               : (width > 600 ? 3 : 2);
                           final childAspectRatio = width > 900
-                              ? 0.85
-                              : (width > 600 ? 0.75 : 0.72);
+                              ? 0.75
+                              : (width > 600 ? 0.68 : 0.65);
 
                           return SliverGrid(
                             gridDelegate:
@@ -507,180 +509,287 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     final accent = _getCategoryAccent(activity.category);
     final diffColor = _getDifficultyColor(activity.difficulty);
     final catLabel = _getCategoryLabel(activity.category);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: () {
-        context.push('/activity/${activity.id}');
-      },
-      child: Container(
-        padding: const EdgeInsets.all(
-          AppSpacing.md * 0.75,
-        ), // Tightened from 16 to 12
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Theme.of(context).cardColor
-              : Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: accent.withAlpha(
-              Theme.of(context).brightness == Brightness.dark ? 120 : 64,
-            ),
-            width: 2,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withAlpha(isDark ? 12 : 20),
+            blurRadius: 16,
+            spreadRadius: -2,
+            offset: const Offset(0, 8),
           ),
-          boxShadow: AppShadows.small,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top row: Category chip + star
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withAlpha(50),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                  ),
-                  child: Text(
-                    catLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: accent,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => ref
-                      .read(activityProvider.notifier)
-                      .toggleSaved(activity.id),
-                  child: Icon(
-                    LucideIcons.star,
-                    size: 16,
-                    color: activity.isSaved
-                        ? AppColors.primary
-                        : Theme.of(context).textTheme.bodySmall?.color,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-
-            // Title
-            Text(
-              activity.topic,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                height: 1.25,
-                letterSpacing: -0.2,
-              ),
-            ),
-
-            const Spacer(),
-
-            // Image / fallback
-            Center(
-              child: Container(
-                height: 100, // Balanced for visual impact vs grid constraints
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: accent.withAlpha(30),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: activity.imageUrl != null
-                    ? Image.network(
-                        activity.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, e, st) => _iconFallback(accent),
-                      )
-                    : _iconFallback(accent),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-
-            // Bottom row: difficulty + date
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push('/activity/${activity.id}'),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          splashColor: accent.withAlpha(20),
+          highlightColor: accent.withAlpha(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Section: Image + Overlays
+              Expanded(
+                flex: 5,
+                child: Stack(
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: diffColor,
-                        shape: BoxShape.circle,
+                    // Hero image with rounded top corners
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppRadius.lg),
+                        ),
+                        child: Hero(
+                          tag: 'activity_image_${activity.id}',
+                          child: activity.imageUrl != null
+                              ? Image.network(
+                                  activity.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _iconFallback(accent),
+                                )
+                              : _iconFallback(accent),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      activity.difficulty[0].toUpperCase() +
-                          activity.difficulty.substring(1),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        letterSpacing: 0.2,
+                    // Glassmorphic Category Badge (Top Left)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accent.withAlpha(210), // The category color
+                              borderRadius: BorderRadius.circular(AppRadius.full),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accent.withAlpha(80),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              catLabel.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white, // Non-colored font
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Gradient shadow for readability
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 40,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(30),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Action Pill: Save (Top Right)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            ref
+                                .read(activityProvider.notifier)
+                                .toggleSaved(activity.id);
+                          },
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.black.withAlpha(120)
+                                  : Colors.white.withAlpha(120),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(20),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              activity.isSaved
+                                  ? LucideIcons.star
+                                  : LucideIcons.star,
+                              fill: activity.isSaved ? 1.0 : 0.0,
+                              size: 16,
+                              color: activity.isSaved
+                                  ? AppColors.secondary
+                                  : isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                Text(
-                  _relativeDate(activity.createdAt),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+              
+              // Bottom Section: Info with a subtle border transition
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark
+                          ? accent.withAlpha(30)
+                          : accent.withAlpha(15),
+                      width: 1.5,
+                    ),
                   ),
                 ),
-              ],
-            ),
-
-            // Kid name badge
-            if (activity.kidName != null) ...[
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 4,
-                    decoration: const BoxDecoration(
-                      color: AppColors.textTertiary,
-                      shape: BoxShape.circle,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity.topic,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        height: 1.25,
+                        letterSpacing: -0.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    activity.kidName!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    const SizedBox(height: AppSpacing.md),
+                    // Single Row for Meta Info instead of separate sections
+                    Row(
+                      children: [
+                        // Difficulty Indicator
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: diffColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: diffColor.withAlpha(100),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          activity.difficulty.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Date with a small divider
+                        Container(
+                          width: 3,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white24 : Colors.black12,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _relativeDate(activity.createdAt),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiary,
+                            ),
+                          ),
+                        ),
+                        // Kid name (Right aligned badge)
+                        if (activity.kidName != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  LucideIcons.user,
+                                  size: 10,
+                                  color: isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  activity.kidName!,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _iconFallback(Color accent) {
-    return Center(child: Icon(LucideIcons.search, size: 44, color: accent));
+    return Container(
+      color: accent.withAlpha(20),
+      child: Center(
+        child: Icon(
+          LucideIcons.image,
+          size: 40,
+          color: accent.withAlpha(120),
+        ),
+      ),
+    );
   }
 }
 
