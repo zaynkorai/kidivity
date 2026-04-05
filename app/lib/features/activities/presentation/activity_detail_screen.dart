@@ -16,6 +16,8 @@ import '../../../core/providers/journey_provider.dart';
 import '../../../core/models/activity.dart';
 import '../../../core/constants/categories.dart';
 import 'widgets/markdown_content.dart';
+import '../../../core/providers/review_provider.dart';
+import '../../../core/widgets/review_modal.dart';
 
 class ActivityDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -40,7 +42,18 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
     if (activity == null || activity.content == null) {
       setState(() => _isLoadingDetail = true);
       await ref.read(activityProvider.notifier).fetchActivityDetail(widget.id);
-      if (mounted) setState(() => _isLoadingDetail = false);
+      if (mounted) {
+        setState(() => _isLoadingDetail = false);
+
+        // Check for review after a short delay so they can see the activity first
+        await Future.delayed(const Duration(seconds: 5));
+        if (!mounted) return;
+        
+        final shouldShow = await ref.read(reviewProvider.notifier).shouldRequestReview();
+        if (shouldShow && mounted) {
+          ReviewModal.show(context);
+        }
+      }
     }
 
     // Also fetch worker completions for status

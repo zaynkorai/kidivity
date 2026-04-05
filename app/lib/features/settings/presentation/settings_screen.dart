@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -11,6 +10,8 @@ import '../../../core/providers/profile_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/components/parent_gate_dialog.dart';
 import '../../../core/components/math_parent_gate_dialog.dart';
+import '../../../core/providers/review_provider.dart';
+import '../../../core/widgets/review_modal.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -201,14 +202,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handleRateApp() async {
-    final url = Platform.isIOS
-        ? 'itms-apps://itunes.apple.com/app/id6759043670'
-        : 'market://details?id=com.kidivity.pro';
-    final parsed = Uri.parse(url);
-    if (await canLaunchUrl(parsed)) {
-      await launchUrl(parsed);
+    final shouldShow = await ref.read(reviewProvider.notifier).shouldRequestReview();
+    if (shouldShow && mounted) {
+      ReviewModal.show(context);
     } else {
-      _showError('Unable to open store.');
+      // Direct jump to store if they already reviewed or we just want to be direct from settings
+      await ref.read(reviewProvider.notifier).openStoreListing();
     }
   }
 

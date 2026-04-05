@@ -480,6 +480,7 @@ class ActivityNotifier extends Notifier<ActivityState> {
       }
 
       final activity = Activity.fromJson(data);
+      
       final currentQuota = state.rateLimitState;
       state = state.copyWith(
         recentActivities: [activity, ...state.recentActivities].take(50).toList(),

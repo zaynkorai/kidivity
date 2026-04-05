@@ -50,6 +50,7 @@ dependencies:
   flutter_markdown: ^0.7.7+1
   google_fonts: ^8.0.2
   package_info_plus: ^9.0.1
+  in_app_review: ^2.0.9
 
 dev_dependencies:
   flutter_test:
