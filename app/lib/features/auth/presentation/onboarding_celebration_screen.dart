@@ -95,19 +95,9 @@ class _OnboardingCelebrationScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.primary, Color(0xFF3B59DA)],
-              ),
-            ),
-          ),
-
           // Confetti layer
           AnimatedBuilder(
             animation: _confettiController,
@@ -226,31 +216,6 @@ class _OnboardingCelebrationScreenState
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _trustChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(20),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Colors.white.withAlpha(180)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withAlpha(180),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],

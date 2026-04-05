@@ -474,8 +474,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 icon: const Icon(LucideIcons.refreshCw, size: 18),
                 label: const Text('Reset App Session'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.danger.withAlpha(200),
-                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.danger.withAlpha(200),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.full),

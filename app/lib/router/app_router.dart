@@ -15,6 +15,7 @@ import '../features/auth/presentation/onboarding_profile_screen.dart';
 import '../features/auth/presentation/onboarding_celebration_screen.dart';
 import '../core/providers/supabase_provider.dart';
 import '../core/providers/onboarding_provider.dart';
+import '../core/theme/app_theme.dart';
 import 'scaffold_with_nav_bar.dart';
 import 'router_refresh_stream.dart';
 
@@ -103,29 +104,99 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile-create',
         builder: (context, state) => const ProfileCreationScreen(),
       ),
-      // ─── Onboarding Routes ──────────────────────────────────────
-      GoRoute(
-        path: '/onboarding/welcome',
-        builder: (context, state) => const OnboardingWelcomeScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/proof',
-        builder: (context, state) => const OnboardingProofScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/questionnaire',
-        builder: (context, state) => const QuestionnaireScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/profile',
-        builder: (context, state) => const OnboardingProfileScreen(),
-      ),
-      GoRoute(
-        path: '/onboarding/celebration',
-        builder: (context, state) {
-          final name = state.uri.queryParameters['name'] ?? '';
-          return OnboardingCelebrationScreen(childName: name);
+      // ─── Onboarding Flow (Shared Background via ShellRoute) ──────────
+      ShellRoute(
+        builder: (context, state, child) {
+          return Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: Stack(
+              children: [
+                // Shared Background Gradient (Fixed: Positioned.fill to ensure it covers the screen)
+                Positioned.fill(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.primary, Color(0xFF3B59DA)],
+                      ),
+                    ),
+                  ),
+                ),
+                child,
+              ],
+            ),
+          );
         },
+        routes: [
+          GoRoute(
+            path: '/onboarding/welcome',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const OnboardingWelcomeScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+                  FadeTransition(opacity: animation, child: child),
+            ),
+          ),
+          GoRoute(
+            path: '/onboarding/proof',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const OnboardingProofScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+                  SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/onboarding/questionnaire',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const QuestionnaireScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+                  SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/onboarding/profile',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const OnboardingProfileScreen(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+                  SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/onboarding/celebration',
+            pageBuilder: (context, state) {
+              final name = state.uri.queryParameters['name'] ?? '';
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: OnboardingCelebrationScreen(childName: name),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) =>
+                        FadeTransition(opacity: animation, child: child),
+              );
+            },
+          ),
+        ],
       ),
     ],
     redirect: (context, state) {

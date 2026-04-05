@@ -39,164 +39,147 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary,
-                  Color(0xFF3B59DA),
-                ],
-              ),
-            ),
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xxl,
+            vertical: AppSpacing.xl,
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppSpacing.xxl),
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xxl,
-                vertical: AppSpacing.xl,
+              // Big stat
+              _buildAnimatedStat(
+                delay: 0.0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kids spend',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withAlpha(180),
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '4+ hours daily',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        color: Colors.white,
+                        fontSize: 42,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'on screens.',
+                      style: theme.textTheme.displayLarge?.copyWith(
+                        color: Colors.white,
+                        fontSize: 42,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Emotional hook
+              _buildAnimatedStat(
+                delay: 0.2,
+                child: Text(
+                  'What if that time built real skills instead?',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(220),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.xxxl),
+
+              // Benefit cards (Lucide icons, no emojis)
+              _buildBenefitCard(
+                delay: 0.35,
+                icon: LucideIcons.brain,
+                title: 'Critical thinking',
+                subtitle: 'Not passive consumption',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _buildBenefitCard(
+                delay: 0.5,
+                icon: LucideIcons.pencil,
+                title: 'Fine motor skills',
+                subtitle: 'Through hands-on activities',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _buildBenefitCard(
+                delay: 0.65,
+                icon: LucideIcons.target,
+                title: 'Grade aligned content',
+                subtitle: 'Zero ads, zero distractions',
+              ),
+
+              const Spacer(),
+
+              // Footer
+              Row(
                 children: [
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Big stat
-                  _buildAnimatedStat(
-                    delay: 0.0,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kids spend',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withAlpha(180),
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '4+ hours daily',
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            color: Colors.white,
-                            fontSize: 42,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'on screens.',
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            color: Colors.white,
-                            fontSize: 42,
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Emotional hook
-                  _buildAnimatedStat(
-                    delay: 0.2,
+                  TextButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ref.read(onboardingProvider.notifier).setStep(1);
+                      context.go('/onboarding/welcome');
+                    },
                     child: Text(
-                      'What if that time built real skills instead?',
+                      'Back',
                       style: TextStyle(
-                        color: Colors.white.withAlpha(220),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                        fontStyle: FontStyle.italic,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white.withAlpha(180),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Benefit cards (Lucide icons, no emojis)
-                  _buildBenefitCard(
-                    delay: 0.35,
-                    icon: LucideIcons.brain,
-                    title: 'Critical thinking',
-                    subtitle: 'Not passive consumption',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildBenefitCard(
-                    delay: 0.5,
-                    icon: LucideIcons.pencil,
-                    title: 'Fine motor skills',
-                    subtitle: 'Through hands-on activities',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildBenefitCard(
-                    delay: 0.65,
-                    icon: LucideIcons.target,
-                    title: 'Grade-aligned content',
-                    subtitle: 'Zero ads, zero distractions',
-                  ),
-
                   const Spacer(),
-
-                  // Footer
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          ref.read(onboardingProvider.notifier).setStep(1);
-                          context.go('/onboarding/welcome');
-                        },
-                        child: Text(
-                          'Back',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white.withAlpha(180),
+                  SizedBox(
+                    width: 160,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        context.go('/onboarding/questionnaire');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppRadius.full,
                           ),
                         ),
+                        elevation: 0,
                       ),
-                      const Spacer(),
-                      SizedBox(
-                        width: 160,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            context.go('/onboarding/questionnaire');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.full,
-                              ),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Continue',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      child: const Text(
+                        'Continue',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

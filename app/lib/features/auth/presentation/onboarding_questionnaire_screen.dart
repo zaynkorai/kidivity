@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/onboarding_provider.dart';
+import 'widgets/questionnaire_option_card.dart';
 
 class QuestionnaireScreen extends ConsumerStatefulWidget {
   const QuestionnaireScreen({super.key});
@@ -80,7 +80,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
       ref.read(onboardingProvider.notifier).setStep(3);
 
       // Delay for transition effect
-      Future.delayed(const Duration(milliseconds: 2200), () {
+      Future.delayed(const Duration(milliseconds: 1000), () {
         if (mounted) {
           context.go('/onboarding/profile');
         }
@@ -110,228 +110,147 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient (Vibrant matching Welcome)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary,
-                  Color(0xFF3B59DA),
-                ],
-              ),
-            ),
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xxl,
+            vertical: AppSpacing.xl,
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xxl,
-                vertical: AppSpacing.xl,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Progress Bar
-                  const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    children: List.generate(_questions.length, (index) {
-                      final isActive = index <= _currentStep;
-                      return Expanded(
-                        child: Container(
-                          height: 6,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? Colors.white
-                                : Colors.white.withAlpha(50),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Step Transition Wrapper
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.05, 0),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Column(
-                        key: ValueKey(_currentStep),
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            question['title'],
-                            style: theme.textTheme.displayLarge?.copyWith(
-                              fontSize: 26,
-                              height: 1.2,
-                              letterSpacing: -0.5,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xxxl),
-                          Expanded(
-                            child: ListView(
-                              children: (question['options'] as List).map((opt) {
-                                final isSelected =
-                                    _answers[question['id']] == opt['id'];
-                                return Padding(
-                                  key: ValueKey(opt['id']),
-                                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      HapticFeedback.lightImpact();
-                                      setState(() {
-                                        _answers[question['id']] = opt['id'];
-                                        _syncProgress();
-                                      });
-                                    },
-                                    child: AnimatedScale(
-                                      scale: isSelected ? 1.02 : 1.0,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeOutBack,
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 300),
-                                        curve: Curves.easeOut,
-                                        padding: const EdgeInsets.all(AppSpacing.xl),
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? Colors.white.withAlpha(60)
-                                              : Colors.white.withAlpha(30),
-                                          borderRadius: BorderRadius.circular(
-                                            AppRadius.xl,
-                                          ),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.white.withAlpha(20),
-                                            width: 2,
-                                          ),
-                                          boxShadow: isSelected
-                                              ? [
-                                                  BoxShadow(
-                                                    color: Colors.black.withAlpha(20),
-                                                    blurRadius: 10,
-                                                    offset: const Offset(0, 4),
-                                                  )
-                                                ]
-                                              : [],
-                                        ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              opt['label'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                          AnimatedSwitcher(
-                                            duration: const Duration(milliseconds: 300),
-                                            transitionBuilder: (child, animation) {
-                                              return ScaleTransition(
-                                                scale: animation,
-                                                child: child,
-                                              );
-                                            },
-                                            child: isSelected
-                                                ? const Icon(
-                                                    LucideIcons.checkCircle2,
-                                                    key: ValueKey('selected'),
-                                                    color: Colors.white,
-                                                    size: 24,
-                                                  )
-                                                : const SizedBox(
-                                                    key: ValueKey('unselected'),
-                                                    width: 24,
-                                                    height: 24,
-                                                  ),
-                                          ),
-                                        ],
-                                      ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Progress Bar
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: List.generate(_questions.length, (index) {
+                  final isActive = index <= _currentStep;
+                  return Expanded(
+                    child: Container(
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.white
+                            : Colors.white.withAlpha(50),
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                  ),
+                  );
+                }),
+              ),
 
-                  const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.xxxl),
 
-                  // Footer
-                  Row(
+              // Step Transition Wrapper
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.05, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Column(
+                    key: ValueKey(_currentStep),
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextButton(
-                        onPressed: _handleBack,
-                        child: Text(
-                          'Back',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white.withAlpha(180),
-                          ),
+                      Text(
+                        question['title'],
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontSize: 26,
+                          height: 1.2,
+                          letterSpacing: -0.5,
+                          color: Colors.white,
                         ),
                       ),
-                      const Spacer(),
-                      SizedBox(
-                        width: 140,
-                        child: ElevatedButton(
-                          onPressed: _answers.containsKey(question['id'])
-                              ? _handleNext
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.full,
+                      const SizedBox(height: AppSpacing.xxxl),
+                      Expanded(
+                        child: ListView(
+                          children: (question['options'] as List).map((opt) {
+                            final isSelected =
+                                _answers[question['id']] == opt['id'];
+                            return Padding(
+                              key: ValueKey(opt['id']),
+                              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                              child: QuestionnaireOptionCard(
+                                label: opt['label'],
+                                isSelected: isSelected,
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  setState(() {
+                                    _answers[question['id']] = opt['id'];
+                                    _syncProgress();
+                                  });
+                                },
                               ),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            _currentStep == _questions.length - 1
-                                ? 'Finish'
-                                : 'Next',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ],
                   ),
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+
+              // Footer
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: _handleBack,
+                    child: Text(
+                      'Back',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white.withAlpha(180),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    width: 140,
+                    child: ElevatedButton(
+                      onPressed: _answers.containsKey(question['id'])
+                          ? _handleNext
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppRadius.full,
+                          ),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        _currentStep == _questions.length - 1
+                            ? 'Finish'
+                            : 'Next',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -344,52 +263,36 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient (Vibrant matching RN)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary,
-                  Color(0xFF3B59DA),
-                ],
+      backgroundColor: Colors.transparent,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xxxl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'We\'ve got you covered.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.displayLarge?.copyWith(
+                  color: Colors.white,
+                  fontSize: 32,
+                ),
               ),
-            ),
-          ),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxxl),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'We\'ve got you covered.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
-                      fontSize: 32,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    'We specialize in turning mindless screen time into productive $goalLabel.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withAlpha(220),
-                      fontSize: 20,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  const CircularProgressIndicator(color: Colors.white),
-                ],
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                'We specialize in turning mindless screen time into productive $goalLabel.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withAlpha(220),
+                  fontSize: 20,
+                  height: 1.4,
+                ),
               ),
-            ),
+              const SizedBox(height: AppSpacing.xxxl),
+              const CircularProgressIndicator(color: Colors.white),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
