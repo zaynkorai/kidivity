@@ -9,12 +9,14 @@ class WeeklyCalendar extends StatelessWidget {
   final List<Activity> activities;
   final String? selectedDate;
   final ValueChanged<String?> onSelectDate;
+  final bool transparent;
 
   const WeeklyCalendar({
     super.key,
     required this.activities,
     required this.selectedDate,
     required this.onSelectDate,
+    this.transparent = false,
   });
 
   static const _dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -69,19 +71,24 @@ class WeeklyCalendar extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      margin: transparent ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: EdgeInsets.symmetric(
+        horizontal: transparent ? 0 : AppSpacing.md,
+        vertical: AppSpacing.md,
       ),
+      decoration: transparent
+          ? null
+          : BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
       child: Column(
         children: [
           // Header
@@ -93,7 +100,9 @@ class WeeklyCalendar extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  color: transparent
+                      ? Colors.white
+                      : Theme.of(context).textTheme.bodyLarge?.color,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -133,7 +142,11 @@ class WeeklyCalendar extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark ? AppColors.secondary.withAlpha(50) : AppColors.secondary.withAlpha(30),
+                      color: transparent
+                          ? Colors.white.withAlpha(40)
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.secondary.withAlpha(50)
+                              : AppColors.secondary.withAlpha(30)),
                       borderRadius: BorderRadius.circular(AppRadius.full),
                     ),
                     child: Row(
@@ -143,7 +156,13 @@ class WeeklyCalendar extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(
                           '$activeDaysThisWeek/7 days',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: transparent
+                                ? Colors.white
+                                : Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
                         ),
                       ],
                     ),
@@ -166,23 +185,32 @@ class WeeklyCalendar extends StatelessWidget {
               final hasActivity = (stats?.count ?? 0) > 0;
               final dominantCat = stats?.categories.isNotEmpty == true ? stats!.categories.first : null;
 
-              Color pillBg = Theme.of(context).brightness == Brightness.dark ? Theme.of(context).dividerColor.withAlpha(40) : AppColors.primaryLight;
+              Color pillBg = (Theme.of(context).brightness == Brightness.dark ||
+                      transparent)
+                  ? (transparent
+                      ? Colors.white.withAlpha(30)
+                      : Theme.of(context).dividerColor.withAlpha(40))
+                  : AppColors.primaryLight;
               if (isSelected) {
                 pillBg = AppColors.secondary;
               } else if (isToday) {
-                pillBg = AppColors.primary;
+                pillBg = transparent ? Colors.white : AppColors.primary;
               } else if (hasActivity && dominantCat != null) {
                 final cat = Categories.all.cast<ActivityCategory?>().firstWhere(
                   (c) => c?.id == dominantCat,
                   orElse: () => null,
                 );
-                pillBg = Theme.of(context).brightness == Brightness.dark 
-                    ? (cat?.accent.withAlpha(50) ?? Theme.of(context).dividerColor)
+                pillBg = (Theme.of(context).brightness == Brightness.dark ||
+                        transparent)
+                    ? (cat?.accent.withAlpha(transparent ? 150 : 50) ??
+                        Theme.of(context).dividerColor)
                     : (cat?.color ?? AppColors.primaryLight);
               }
 
               final isActive = isToday || isSelected;
-              final textColor = isActive ? Colors.white : null;
+              final textColor = isActive
+                  ? (isToday && transparent ? AppColors.primary : Colors.white)
+                  : (transparent ? Colors.white70 : null);
 
               return GestureDetector(
                 onTap: () => onSelectDate(ds == selectedDate ? null : ds),
@@ -258,8 +286,12 @@ class WeeklyCalendar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: activeDaysThisWeek / 7,
               minHeight: 5,
-              backgroundColor: Theme.of(context).dividerColor,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              backgroundColor: transparent
+                  ? Colors.white.withAlpha(40)
+                  : Theme.of(context).dividerColor,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                transparent ? Colors.white : AppColors.primary,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -273,7 +305,11 @@ class WeeklyCalendar extends StatelessWidget {
               return Icon(
                 LucideIcons.star,
                 size: 9,
-                color: done ? AppColors.primary : Theme.of(context).dividerColor,
+                color: done
+                    ? (transparent ? Colors.white : AppColors.primary)
+                    : (transparent
+                        ? Colors.white.withAlpha(40)
+                        : Theme.of(context).dividerColor),
               );
             }),
           ),

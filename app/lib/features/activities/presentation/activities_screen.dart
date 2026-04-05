@@ -126,6 +126,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
+        top: false,
         bottom: false,
         child: RefreshIndicator(
           onRefresh: () => ref.read(activityProvider.notifier).fetchRecent(),
@@ -135,48 +136,80 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              // ─── Header Sliver ──────────────────────────
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl,
-                  AppSpacing.xxxl,
-                  AppSpacing.xl,
-                  AppSpacing.md,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    children: [
-                      const Icon(
-                        LucideIcons.history,
-                        size: 24,
-                        color: AppColors.primary,
+              // ─── Primary Header ───────────────────────
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.xl,
+                    MediaQuery.of(context).padding.top + AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.xl,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(AppRadius.xl),
+                      bottomRight: Radius.circular(AppRadius.xl),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x30000000),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
                       ),
-                      const SizedBox(width: AppSpacing.md),
-                      Text(
-                        'Activities',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: Theme.of(
-                            context,
-                          ).textTheme.displayLarge?.color,
-                          letterSpacing: -0.8,
-                        ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Activities',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(40),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              LucideIcons.history,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      // Weekly Calendar part of header
+                      WeeklyCalendar(
+                        activities: activityState.recentActivities,
+                        selectedDate: _filterDate,
+                        onSelectDate: (date) =>
+                            setState(() => _filterDate = date),
+                        transparent: true,
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // ─── Weekly Calendar Sliver ───────────────────
-              SliverToBoxAdapter(
-                child: WeeklyCalendar(
-                  activities: activityState.recentActivities,
-                  selectedDate: _filterDate,
-                  onSelectDate: (date) => setState(() => _filterDate = date),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
 
               // ─── Filter Toggle Row Sliver ─────────────────
               SliverPadding(
@@ -551,7 +584,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                               ? Image.network(
                                   activity.imageUrl!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => _iconFallback(accent),
+                                  errorBuilder: (_, __, ___) =>
+                                      _iconFallback(accent),
                                 )
                               : _iconFallback(accent),
                         ),
@@ -571,8 +605,12 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: accent.withAlpha(210), // The category color
-                              borderRadius: BorderRadius.circular(AppRadius.full),
+                              color: accent.withAlpha(
+                                210,
+                              ), // The category color
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.full,
+                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: accent.withAlpha(80),
@@ -649,8 +687,8 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                               color: activity.isSaved
                                   ? AppColors.secondary
                                   : isDark
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -659,7 +697,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                   ],
                 ),
               ),
-              
+
               // Bottom Section: Info with a subtle border transition
               Container(
                 width: double.infinity,
@@ -684,7 +722,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                         height: 1.25,
                         letterSpacing: -0.4,
                       ),
@@ -714,7 +754,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -735,16 +777,23 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiary,
+                              color: isDark
+                                  ? AppColors.textTertiaryDark
+                                  : AppColors.textTertiary,
                             ),
                           ),
                         ),
                         // Kid name (Right aligned badge)
                         if (activity.kidName != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withAlpha(15) : Colors.black.withAlpha(8),
+                              color: isDark
+                                  ? Colors.white.withAlpha(15)
+                                  : Colors.black.withAlpha(8),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -753,7 +802,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                                 Icon(
                                   LucideIcons.user,
                                   size: 10,
-                                  color: isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+                                  color: isDark
+                                      ? AppColors.textTertiaryDark
+                                      : AppColors.textSecondary,
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
@@ -761,7 +812,9 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                                    color: isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -783,11 +836,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
     return Container(
       color: accent.withAlpha(20),
       child: Center(
-        child: Icon(
-          LucideIcons.image,
-          size: 40,
-          color: accent.withAlpha(120),
-        ),
+        child: Icon(LucideIcons.image, size: 40, color: accent.withAlpha(120)),
       ),
     );
   }
