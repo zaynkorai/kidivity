@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/categories.dart';
@@ -24,7 +23,7 @@ class CategoryGrid extends StatelessWidget {
             crossAxisCount: numColumns,
             crossAxisSpacing: AppSpacing.md,
             mainAxisSpacing: AppSpacing.md,
-            childAspectRatio: 1.25, // Height based aspect ratio to match height 152
+            childAspectRatio: 1.35, // Wider cards to fix clipping and reduce vertical height
           ),
           itemCount: Categories.all.length,
           itemBuilder: (context, index) {
@@ -54,10 +53,10 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
     );
   }
 
@@ -70,98 +69,95 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final cat = widget.category;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
       onTapCancel: () => _controller.reverse(),
       onTap: () {
-        // Pass category as query param or state
         context.push('/generate?category=${cat.id}');
       },
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Theme.of(context).cardColor : Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Theme.of(context).brightness == Brightness.dark 
-                ? Border.all(color: cat.accent.withAlpha(120), width: 2) 
-                : null,
-            boxShadow: AppShadows.small,
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            boxShadow: AppShadows.card,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [AppColors.surfaceDark, AppColors.surfaceDark.withAlpha(200)] 
+                : [cat.color.withAlpha(150), Colors.white],
+            ),
           ),
           child: Stack(
             children: [
-              // Top Right Chevron
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark ? cat.accent.withAlpha(40) : cat.color,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    LucideIcons.chevronRight,
-                    size: 16,
-                    color: cat.accent,
-                  ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Icon (Removed background container)
+                    Icon(
+                      cat.icon,
+                      size: 26,
+                      color: cat.accent,
+                    ),
+                    const Spacer(),
+                    
+                    // Title
+                    Text(
+                      cat.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15, // Reduced from 16
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    
+                    // Description
+                    Text(
+                      cat.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: (isDark ? Colors.white : AppColors.textPrimary).withAlpha(160),
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              // Content
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Icon
-                  Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      cat.icon,
-                      size: 30,
-                      color: cat.accent,
-                    ),
-                  ),
-
-                  // Text
-                  SizedBox(
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          cat.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          cat.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                            height: 1.2,
-                          ),
-                        ),
+              // Top Inner Glow Effect (Light Mode only)
+              if (!isDark)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withAlpha(0),
+                        Colors.white.withAlpha(180),
+                        Colors.white.withAlpha(0),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),

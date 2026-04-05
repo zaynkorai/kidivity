@@ -7,7 +7,8 @@ import '../features/activities/presentation/activities_screen.dart';
 import '../features/activities/presentation/activity_detail_screen.dart';
 import '../features/generate/presentation/generate_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
-import '../features/profile/presentation/profile_creation_screen.dart';
+import '../features/profile/presentation/kid_profile_screen.dart';
+import '../core/models/kid_profile.dart';
 import '../features/auth/presentation/onboarding_welcome_screen.dart';
 import '../features/auth/presentation/onboarding_proof_screen.dart';
 import '../features/auth/presentation/onboarding_questionnaire_screen.dart';
@@ -104,7 +105,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/profile-create',
-        builder: (context, state) => const ProfileCreationScreen(),
+        builder: (context, state) {
+          final profile = state.extra as KidProfile?;
+          return KidProfileScreen(profile: profile);
+        },
       ),
       // ─── Onboarding Flow (Shared Background via ShellRoute) ──────────
       ShellRoute(

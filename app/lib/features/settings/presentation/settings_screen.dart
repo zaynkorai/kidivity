@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -292,10 +294,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         age: '${profile.age}yo',
                         gradeLevel: profile.gradeLevel,
                         color: profile.avatarColorValue,
+                        isActive: profile.id == profileState.activeProfileId,
+                        onTap: () {
+                          ref.read(profileProvider.notifier).setActiveProfile(profile.id);
+                          HapticFeedback.lightImpact();
+                        },
                         onEdit: () => _handleGateAction(
                           'edit the profile',
                           email,
-                          () async => _showUnimplemented('Edit Profile Screen'),
+                          () async => context.push('/profile-create', extra: profile),
                         ),
                         onDelete: () => _handleGateAction(
                           'manage profiles',
@@ -337,7 +344,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: () => _handleGateAction(
                       'add a new kid\'s profile',
                       email,
-                      () async => _showUnimplemented('Create Profile Screen'),
+                      () async => context.push('/profile-create'),
                     ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -621,6 +628,8 @@ class _ProfileRow extends StatelessWidget {
   final String age;
   final String gradeLevel;
   final Color color;
+  final bool isActive;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -629,44 +638,51 @@ class _ProfileRow extends StatelessWidget {
     required this.age,
     required this.gradeLevel,
     required this.color,
+    required this.isActive,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Theme.of(context).cardColor, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(20),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isActive ? AppColors.primary : Theme.of(context).cardColor,
+                  width: isActive ? 3 : 2,
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              name[0].toUpperCase(),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isActive ? AppColors.primary : Colors.black).withAlpha(20),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                name[0].toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
           const SizedBox(width: AppSpacing.sm),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -704,8 +720,9 @@ class _ProfileRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _actionButton(Color bgColor, IconData icon) {
     return Container(
