@@ -9,6 +9,8 @@ import '../../../core/providers/activity_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/constants/categories.dart';
 import '../../../core/constants/topics.dart';
+import '../../../core/providers/review_provider.dart';
+import '../../../core/widgets/review_modal.dart';
 
 class GenerateScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
@@ -89,7 +91,19 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       setState(() => _error = result.error);
     } else if (result.data != null) {
       HapticFeedback.lightImpact();
+      
+      // Navigate first
       context.push('/activity/${result.data!.id}');
+      
+      // Delay review check for better transition
+      Future.delayed(const Duration(milliseconds: 1500), () async {
+        if (!mounted) return;
+        final reviewNotifier = ref.read(reviewProvider.notifier);
+        if (await reviewNotifier.shouldRequestReview()) {
+          if (!mounted) return;
+          ReviewModal.show(context);
+        }
+      });
     }
   }
 

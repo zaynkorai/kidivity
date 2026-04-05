@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/models/activity.dart';
 
 class JourneyMap extends StatelessWidget {
   final int streak;
   final bool hasActiveProfile;
+  final List<Activity> activities;
 
   const JourneyMap({
     super.key,
     this.streak = 0,
     this.hasActiveProfile = false,
+    this.activities = const [],
   });
 
   @override
@@ -126,23 +129,38 @@ class JourneyMap extends StatelessWidget {
 
   Widget _buildEmptyState(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
       child: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.sparkles, size: 32, color: AppColors.primary),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           Text(
-            'Select a kid to start planning',
+            'Start your creative journey!',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: theme.textTheme.bodyLarge?.color,
+              letterSpacing: -0.2,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            'Your weekly activity map will appear here.',
-            style: TextStyle(
-              fontSize: 12,
-              color: theme.textTheme.bodyMedium?.color?.withAlpha(180),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Text(
+              'Select a kid profile above to see your weekly printable progress here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.textTheme.bodyMedium?.color?.withAlpha(160),
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -152,9 +170,20 @@ class JourneyMap extends StatelessWidget {
 
   Widget _buildStreakGrid(ThemeData theme) {
     final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    // Mock data for which days were completed this week — could come from journey data in a real app
-    // For now, let's highlight based on the actual streak count (assuming it covers the current week so far) 
-    final isCompleted = [true, true, true, false, false, false, false]; 
+    
+    // Get the 7 dates (Mon–Sun) for the current week
+    final today = DateTime.now();
+    final weekday = today.weekday; // 1=Mon, 7=Sun
+    final monday = today.subtract(Duration(days: weekday - 1));
+    final weekDates = List.generate(7, (i) => DateTime(monday.year, monday.month, monday.day + i));
+
+    final dayStats = <String, bool>{};
+    for (final a in activities) {
+      final date = DateTime.tryParse(a.createdAt);
+      if (date == null) continue;
+      final ds = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      dayStats[ds] = true;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm),
@@ -173,7 +202,9 @@ class JourneyMap extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
-              final completed = isCompleted[index];
+              final date = weekDates[index];
+              final ds = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+              final completed = dayStats.containsKey(ds);
               return Column(
                 children: [
                     Text(

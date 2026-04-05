@@ -6,8 +6,6 @@ import '../../../core/providers/activity_provider.dart';
 import 'widgets/magic_card.dart';
 import 'widgets/category_grid.dart';
 import 'widgets/journey_map.dart';
-import '../../../core/providers/review_provider.dart';
-import '../../../core/widgets/review_modal.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -25,15 +23,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final activeId = ref.read(profileProvider).activeProfileId;
       if (activeId != null) {
         ref.read(activityProvider.notifier).fetchKidStats(activeId);
-      }
-
-      // Check for review after a short delay for better UX
-      await Future.delayed(const Duration(seconds: 3));
-      if (!mounted) return;
-      
-      final shouldShow = await ref.read(reviewProvider.notifier).shouldRequestReview();
-      if (shouldShow && mounted) {
-        ReviewModal.show(context);
       }
     });
   }
@@ -101,6 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   JourneyMap(
                     streak: kidStats?.streak ?? 0,
                     hasActiveProfile: activeProfile != null,
+                    activities: visibleActivities,
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
