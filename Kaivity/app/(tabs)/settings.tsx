@@ -185,7 +185,7 @@ export default function SettingsScreen() {
     };
 
     const handlePrivacyTerms = () => {
-        Linking.openURL('https://kaivity.com/privacy'); // Placeholder URL
+        Linking.openURL('https://kidivity.pro/privacy');
     };
 
     return (

@@ -17,7 +17,7 @@
       "bundleIdentifier": "com.zaynkorai.kaivity",
       "buildNumber": "4",
       "associatedDomains": [
-        "applinks:kaivity.com"
+        "applinks:kidivity.pro"
       ],
       "config": {
         "usesNonExemptEncryption": false
@@ -32,7 +32,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "kaivity.com",
+              "host": "kidivity.pro",
               "pathPrefix": "/auth"
             }
           ],

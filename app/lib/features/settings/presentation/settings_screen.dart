@@ -213,7 +213,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handlePrivacyTerms() async {
-    final parsed = Uri.parse('https://kaivity.com/privacy');
+    final parsed = Uri.parse('https://kidivity.pro/privacy');
     if (await canLaunchUrl(parsed)) {
       await launchUrl(parsed);
     } else {
