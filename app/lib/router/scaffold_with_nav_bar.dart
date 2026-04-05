@@ -84,20 +84,20 @@ class ScaffoldWithNavBar extends StatelessWidget {
                             onTap: () => _onTap(context, 0),
                           ),
                           _NavItem(
-                            icon: LucideIcons.calendar,
+                            icon: LucideIcons.layoutGrid,
                             label: 'Activities',
                             isSelected: navigationShell.currentIndex == 1,
                             onTap: () => _onTap(context, 1),
                           ),
                           _NavItem(
-                            icon: LucideIcons.wand2,
+                            icon: LucideIcons.plusCircle,
                             label: 'Generate',
                             isSelected: navigationShell.currentIndex == 2,
                             onTap: () => _onTap(context, 2),
                           ),
                           _NavItem(
-                            icon: LucideIcons.settings,
-                            label: 'Settings',
+                            icon: LucideIcons.user,
+                            label: 'Profile',
                             isSelected: navigationShell.currentIndex == 3,
                             onTap: () => _onTap(context, 3),
                           ),
@@ -144,49 +144,50 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withAlpha(isDark ? 60 : 30)
+              ? AppColors.primary.withAlpha(isDark ? 50 : 25)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.full),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected
-                  ? AppColors.primary
-                  : (isDark ? Colors.white70 : Colors.black54),
+            AnimatedScale(
+              scale: isSelected ? 1.15 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutBack,
+              child: Icon(
+                icon,
+                size: isSelected ? 22 : 20,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.white60 : Colors.black38),
+                shadows: isSelected
+                    ? [
+                        Shadow(
+                          color: AppColors.primary.withAlpha(80),
+                          blurRadius: 10,
+                        ),
+                      ]
+                    : null,
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 color: isSelected
                     ? AppColors.primary
-                    : (isDark ? Colors.white60 : Colors.black45),
-                letterSpacing: 0.2,
+                    : (isDark ? Colors.white54 : Colors.black45),
+                letterSpacing: 0.1,
               ),
             ),
-            if (isSelected)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Container(
-                  width: 3,
-                  height: 3,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
           ],
         ),
       ),

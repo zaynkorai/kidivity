@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/onboarding_provider.dart';
@@ -57,16 +57,9 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Kids spend',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withAlpha(180),
-                        fontSize: 18,
-                      ),
-                    ),
                     const SizedBox(height: 4),
                     Text(
-                      '4+ hours daily',
+                      'Kids spend 4+ hours daily',
                       style: theme.textTheme.displayLarge?.copyWith(
                         color: Colors.white,
                         fontSize: 42,
@@ -107,22 +100,19 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
 
               // Benefit cards (Lucide icons, no emojis)
               _buildBenefitCard(
-                delay: 0.35,
-                icon: LucideIcons.brain,
+                delay: 0.3,
                 title: 'Critical thinking',
                 subtitle: 'Not passive consumption',
               ),
               const SizedBox(height: AppSpacing.md),
               _buildBenefitCard(
-                delay: 0.5,
-                icon: LucideIcons.pencil,
+                delay: 0.6,
                 title: 'Fine motor skills',
                 subtitle: 'Through hands-on activities',
               ),
               const SizedBox(height: AppSpacing.md),
               _buildBenefitCard(
-                delay: 0.65,
-                icon: LucideIcons.target,
+                delay: 0.8,
                 title: 'Grade aligned content',
                 subtitle: 'Zero ads, zero distractions',
               ),
@@ -160,9 +150,7 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
                         foregroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppRadius.full,
-                          ),
+                          borderRadius: BorderRadius.circular(AppRadius.full),
                         ),
                         elevation: 0,
                       ),
@@ -203,7 +191,6 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
 
   Widget _buildBenefitCard({
     required double delay,
-    required IconData icon,
     required String title,
     required String subtitle,
   }) {
@@ -227,12 +214,6 @@ class _OnboardingProofScreenState extends ConsumerState<OnboardingProofScreen>
           ),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                child: Icon(icon, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

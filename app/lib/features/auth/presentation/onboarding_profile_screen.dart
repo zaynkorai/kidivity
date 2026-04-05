@@ -244,9 +244,7 @@ class _OnboardingProfileScreenState
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(
                               _internalStep == 1
@@ -330,14 +328,8 @@ class _OnboardingProfileScreenState
 
         Row(
           children: [
-            Icon(
-              LucideIcons.shield,
-              size: 16,
-              color: Colors.white.withAlpha(140),
-            ),
-            const SizedBox(width: 8),
             Text(
-              'Private & secure.',
+              'Required.',
               style: TextStyle(
                 color: Colors.white.withAlpha(140),
                 fontSize: 13,
@@ -405,8 +397,9 @@ class _OnboardingProfileScreenState
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     clipBehavior: Clip.none,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xxl,
+                    ),
                     itemCount: 10,
                     itemBuilder: (context, i) {
                       final ageVal = (i + 4).toString();

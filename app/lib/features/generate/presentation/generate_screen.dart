@@ -11,6 +11,7 @@ import '../../../core/constants/categories.dart';
 import '../../../core/constants/topics.dart';
 import '../../../core/providers/review_provider.dart';
 import '../../../core/widgets/review_modal.dart';
+import '../../../core/widgets/profile_switcher_badge.dart';
 
 enum ActivityGuideStep { category, topic, difficulty, style, generate }
 
@@ -29,6 +30,7 @@ class GenerateScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<GenerateScreen> createState() => _GenerateScreenState();
 }
+
 class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   // LayerLinks for precision hint placement (Apple-standard pinning)
   final _categoryLink = LayerLink();
@@ -44,7 +46,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   String? _error;
   List<String> _suggestions = [];
 
-  ActivityGuideStep? _currentGuideStep; 
+  ActivityGuideStep? _currentGuideStep;
 
   @override
   void initState() {
@@ -54,12 +56,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
     if (_selectedCategory != null) {
       _suggestions = getRandomSuggestions(_selectedCategory!);
-      
+
       // If we have an initial topic, ensure it's in the suggestions so it can be 'selected'
       if (_topic.isNotEmpty && !_suggestions.contains(_topic)) {
         _suggestions.insert(0, _topic);
       }
-      
+
       // If we have both, we are already at Step 3 (Options)
       if (_topic.isNotEmpty) {
         _currentGuideStep = ActivityGuideStep.difficulty;
@@ -270,7 +272,8 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             if (isGenerating) _buildGeneratingOverlay(),
 
             // First Activity Guide Overlay
-            if (_currentGuideStep != null && !isGenerating) _buildGuideOverlay(),
+            if (_currentGuideStep != null && !isGenerating)
+              _buildGuideOverlay(),
           ],
         ),
       ),
@@ -282,17 +285,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   // ═══════════════════════════════════════════════════════════════
 
   Widget _buildHeader(ProfileState profileState) {
-    final activeProfile = profileState.profiles.cast().firstWhere(
-      (p) => p.id == profileState.activeProfileId,
-      orElse: () => null,
-    );
-
     return Container(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.xl,
         MediaQuery.of(context).padding.top + AppSpacing.lg,
         AppSpacing.xl,
-        AppSpacing.lg,
+        AppSpacing.xxl,
       ),
       decoration: const BoxDecoration(
         color: AppColors.primary,
@@ -308,199 +306,33 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: title + profile badge
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Generate an activity',
+                      'Generate',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        letterSpacing: -0.2,
+                        letterSpacing: -0.5,
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Pick a category and topic.',
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                   ],
                 ),
               ),
-              // Profile badge
-              if (activeProfile != null)
-                GestureDetector(
-                  onTap: () => _showProfilePicker(profileState),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(50),
-                      borderRadius: BorderRadius.circular(AppRadius.full),
-                      border: Border.all(color: Colors.white.withAlpha(80)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: activeProfile.avatarColorValue,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            activeProfile.name[0].toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          activeProfile.name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          LucideIcons.chevronDown,
-                          size: 14,
-                          color: Colors.white70,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                // No profile selected yet — tap to add/select
-                GestureDetector(
-                  onTap: () => _showProfilePicker(profileState),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withAlpha(60),
-                      borderRadius: BorderRadius.circular(AppRadius.full),
-                      border: Border.all(
-                        color: Colors.white.withAlpha(100),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          LucideIcons.userPlus,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'Pick Kid Profile',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ProfileSwitcherBadge(),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  void _showProfilePicker(ProfileState state) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(AppRadius.xl),
-            topRight: Radius.circular(AppRadius.xl),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Switch Profile',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (state.profiles.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Text(
-                  'No profiles found. Create one in Settings!',
-                  textAlign: TextAlign.center,
-                ),
-              )
-            else
-              ...state.profiles.map((p) {
-                final isSelected = p.id == state.activeProfileId;
-                return ListTile(
-                  onTap: () {
-                    ref.read(profileProvider.notifier).setActiveProfile(p.id);
-                    Navigator.pop(ctx);
-                  },
-                  leading: CircleAvatar(
-                    backgroundColor: p.avatarColorValue,
-                    child: Text(
-                      p.name[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    p.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text('${p.age}yo · ${p.gradeLevel}'),
-                  trailing: isSelected
-                      ? const Icon(
-                          LucideIcons.checkCircle2,
-                          color: AppColors.success,
-                        )
-                      : null,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                );
-              }),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
       ),
     );
   }
@@ -786,8 +618,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        isSelected ? _accentColor : _accentColor.withAlpha(15),
+                    color: isSelected
+                        ? _accentColor
+                        : _accentColor.withAlpha(15),
                     borderRadius: BorderRadius.circular(AppRadius.full),
                     border: Border.all(
                       color: isSelected
@@ -1037,7 +870,6 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
         return const SizedBox.shrink();
     }
 
-
     return CompositedTransformFollower(
       link: targetLink,
       followerAnchor: followerAnchor,
@@ -1076,29 +908,14 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(40),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(icon, color: Colors.white, size: 20),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Text(
-                        message,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    height: 1.3,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Row(

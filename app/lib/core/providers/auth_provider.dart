@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'supabase_provider.dart';
+import '../constants/env.dart';
 
 class AuthState {
   final User? user;
@@ -184,6 +186,36 @@ class AuthNotifier extends Notifier<AuthState> {
     } finally {
       // Listener handles clearing state and re-signing in anonymously
       state = AuthState();
+    }
+  }
+
+  Future<({String? error})> deleteAccount() async {
+    final session = _supabase.auth.currentSession;
+    if (session == null) return (error: 'Not authenticated');
+
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final response = await http.delete(
+        Uri.parse('${Env.apiUrl}/api/account'),
+        headers: {
+          'Authorization': 'Bearer ${session.accessToken}',
+        },
+      );
+
+      if (response.statusCode != 204) {
+        state = state.copyWith(isLoading: false, error: 'Failed to delete account');
+        return (error: 'Failed to delete account from server');
+      }
+
+      // If server deletion succeeded, we should sign out
+      // Supabase's auth.signOut will be called, and the session should be gone
+      await signOut();
+
+      return (error: null);
+    } catch (e) {
+      debugPrint('[auth] deleteAccount error: $e');
+      state = state.copyWith(isLoading: false, error: 'An unexpected error occurred');
+      return (error: 'An unexpected error occurred');
     }
   }
 }

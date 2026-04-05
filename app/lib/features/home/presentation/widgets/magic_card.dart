@@ -73,26 +73,19 @@ class _MagicCardState extends State<MagicCard>
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withAlpha(50),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: Stack(
             children: [
               // Decorative circle
               Positioned(
-                bottom: -60,
-                left: -40,
+                bottom: -40,
+                right: -40,
                 child: Container(
-                  width: 240,
-                  height: 240,
+                  width: 180,
+                  height: 180,
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withAlpha(38),
+                    color: Colors.white.withAlpha(25),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -101,13 +94,13 @@ class _MagicCardState extends State<MagicCard>
               // Content
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xl,
-                  vertical: AppSpacing.lg,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top Row — greeting + profile avatar
+                    // Top Row — greeting + streak
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -117,7 +110,7 @@ class _MagicCardState extends State<MagicCard>
                             vertical: AppSpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(38),
+                            color: Colors.white.withAlpha(40),
                             borderRadius: BorderRadius.circular(AppRadius.full),
                           ),
                           child: Text(
@@ -125,107 +118,68 @@ class _MagicCardState extends State<MagicCard>
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ),
-                        // Streak and Profile avatar
-                        Row(
-                          children: [
-                            if (widget.streak > 0) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
+                        if (widget.streak > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(40),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.full,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.flame,
+                                  size: 14,
+                                  color: Colors.amberAccent,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(38),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${widget.streak} streak',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.flame,
-                                      size: 14,
-                                      color: Colors.amberAccent,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${widget.streak} streak',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                            ],
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withAlpha(50),
-                              ),
-                              child: hasProfile
-                                  ? CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: profile.avatarColorValue,
-                                      child: Text(
-                                        profile.name[0].toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    )
-                                  : const CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.white,
-                                      child: Icon(
-                                        LucideIcons.user,
-                                        size: 18,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.md),
 
                     // Title
                     Text(
                       hasProfile ? profile.name : 'Add a profile to start',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
 
                     // Subtitle — shows last activity info or default
                     Text(
-                      widget.lastActivityTopic != null
-                          ? 'Last: "${widget.lastActivityTopic}"'
-                          : hasProfile
+                      hasProfile
                           ? 'Tap to generate a new printable activity.'
-                          : 'Add a profile to generate your first printable activity.',
+                          : 'Add a profile to generate activities.',
                       style: TextStyle(
-                        color: Colors.white.withAlpha(210),
+                        color: Colors.white.withAlpha(200),
                         fontSize: 14,
-                        height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.md),
 
                     // CTA button
                     Container(
@@ -240,11 +194,11 @@ class _MagicCardState extends State<MagicCard>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Generate',
+                            'Generate Activity',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
                             ),
                           ),
                           SizedBox(width: 4),

@@ -21,7 +21,7 @@ class CategoryGrid extends StatelessWidget {
             crossAxisCount: 3,
             crossAxisSpacing: AppSpacing.md,
             mainAxisSpacing: AppSpacing.md,
-            childAspectRatio: 0.82, // Made slightly taller
+            childAspectRatio: 0.92, // Shorter cards to reduce vertical empty space
           ),
           itemCount: Categories.all.length,
           itemBuilder: (context, index) {
@@ -100,7 +100,7 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
             children: [
               // Content
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 12.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -111,7 +111,7 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
                       size: 24, // slightly smaller icon
                       color: cat.accent,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     
                     // Title
                     Text(

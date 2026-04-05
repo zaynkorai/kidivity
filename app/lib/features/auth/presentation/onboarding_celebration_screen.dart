@@ -122,11 +122,9 @@ class _OnboardingCelebrationScreenState
                 child: ScaleTransition(
                   scale: _contentScale,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Spacer(flex: 2),
-
-                      const SizedBox(height: AppSpacing.xxxl),
-
+                      const Spacer(),
                       // Heading
                       Text(
                         'You\'re all set,\n${widget.childName}!',
@@ -210,6 +208,7 @@ class _OnboardingCelebrationScreenState
                           ),
                         ),
                       ),
+                      const Spacer(),
                     ],
                   ),
                 ),

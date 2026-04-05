@@ -9,6 +9,7 @@ import '../../../core/providers/activity_provider.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/models/activity.dart';
 import '../../../core/constants/categories.dart';
+import '../../../core/widgets/profile_switcher_badge.dart';
 import 'widgets/weekly_calendar.dart';
 
 class ActivitiesScreen extends ConsumerStatefulWidget {
@@ -181,18 +182,7 @@ class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
                               ],
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(40),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              LucideIcons.history,
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                          ),
+                          const ProfileSwitcherBadge(),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.lg),

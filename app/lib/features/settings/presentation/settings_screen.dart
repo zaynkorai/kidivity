@@ -14,6 +14,7 @@ import '../../../core/components/parent_gate_dialog.dart';
 import '../../../core/components/math_parent_gate_dialog.dart';
 import '../../../core/providers/review_provider.dart';
 import '../../../core/widgets/review_modal.dart';
+import '../../../core/widgets/profile_switcher_badge.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -39,11 +40,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
-  void _showUnimplemented(String feature) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$feature not yet implemented.')));
-  }
 
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -140,7 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _handleDeleteAccount(String userId) async {
+  Future<void> _handleDeleteAccount() async {
     if (_isDeletingAccount) return;
 
     final confirm = await showDialog<bool>(
@@ -172,19 +168,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _isDeletingAccount = true);
 
     try {
-      await Supabase.instance.client.functions.invoke(
-        'delete-account',
-        body: {'userId': userId},
-      );
-      await ref.read(authProvider.notifier).signOut();
-      if (mounted) {
+      final res = await ref.read(authProvider.notifier).deleteAccount();
+      if (res.error != null && mounted) {
+        _showError(res.error!);
+      } else if (mounted) {
         _showSuccess('Your account has been deleted.');
       }
     } catch (_) {
-      if (mounted)
-        _showError(
-          'Unable to delete your account right now. Please try again.',
-        );
+      if (mounted) {
+        _showError('Unable to delete your account right now. Please try again.');
+      }
     } finally {
       if (mounted) setState(() => _isDeletingAccount = false);
     }
@@ -220,6 +213,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } else {
       _showError('Unable to open browser.');
     }
+  }
+
+  Future<void> _handleSupport() async {
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'support@kidivity.pro',
+      query: _encodeQueryParameters(<String, String>{
+        'subject': 'Support Request - Kidivity App'
+      }),
+    );
+
+    if (await canLaunchUrl(emailLaunchUri)) {
+      await launchUrl(emailLaunchUri);
+    } else {
+      _showError('Could not open email client.');
+    }
+  }
+
+  String? _encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 
   @override
@@ -260,12 +276,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Settings',
                           style: TextStyle(
                             fontSize: 22,
@@ -274,19 +292,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             letterSpacing: -0.5,
                           ),
                         ),
+                        ProfileSwitcherBadge(),
                       ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(40),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        LucideIcons.settings,
-                        size: 20,
-                        color: Colors.white,
-                      ),
                     ),
                   ],
                 ),
@@ -431,15 +438,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             value: 'Guest',
                             onTap: null,
                           ),
-                          _buildDivider(56),
-                          _SettingsRow(
-                            icon: LucideIcons.userPlus,
-                            iconBackgroundColor: AppColors.success,
-                            label: 'Save your progress',
-                            onTap: () => _showUnimplemented(
-                              'Create Account / Identity Linkage',
-                            ),
-                          ),
                         ],
                         _buildDivider(56),
                         _SettingsRow(
@@ -451,7 +449,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               : () => _handleGateAction(
                                   'verify your identity',
                                   email,
-                                  () async => _handleDeleteAccount(user.id),
+                                  () async => _handleDeleteAccount(),
                                 ),
                         ),
                       ],
@@ -467,7 +465,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           icon: LucideIcons.helpCircle,
                           iconBackgroundColor: AppColors.secondary,
                           label: 'Help & Support',
-                          onTap: () => _showUnimplemented('Help & Support'),
+                          onTap: _handleSupport,
                         ),
                         _buildDivider(56),
                         _SettingsRow(
@@ -523,7 +521,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),

@@ -3,7 +3,7 @@
 We have prepared the `kidivity` Flutter app for App Store submission with a consistent brand identity and necessary iOS-specific configurations.
 
 ## 1. App Configuration Updates ✅
-- [x] **Bundle Identifier**: Migrated to `com.kidivity.pro` globally (iOS, Android, Linux).
+- [x] **Bundle Identifier**: Migrated to `com.kidivity.app` globally (iOS, Android, Linux).
 - [x] **Info.plist**: 
   - Added `LSApplicationQueriesSchemes` for `url_launcher` (https, http, itms-apps).
   - Added `NSPhotoLibraryUsageDescription` for `share_plus` file sharing support.

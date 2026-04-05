@@ -28,10 +28,9 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
   }
 
   void _syncProgress() {
-    ref.read(onboardingProvider.notifier).updateQuestionnaireProgress(
-          index: _currentStep,
-          answers: _answers,
-        );
+    ref
+        .read(onboardingProvider.notifier)
+        .updateQuestionnaireProgress(index: _currentStep, answers: _answers);
   }
 
   final List<Map<String, dynamic>> _questions = [
@@ -107,6 +106,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
     if (_showTransition) return _buildTransitionView();
 
     final question = _questions[_currentStep];
+    final hasSelected = _answers.containsKey(question['id']);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -147,18 +147,19 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 400),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.05, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.05, 0),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
                   child: Column(
                     key: ValueKey(_currentStep),
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +173,26 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxxl),
+                      const SizedBox(height: AppSpacing.sm),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: Text(
+                          hasSelected
+                              ? 'Choice saved'
+                              : 'Select an option to continue',
+                          key: ValueKey(hasSelected),
+                          style: TextStyle(
+                            color: hasSelected
+                                ? Colors.white.withAlpha(200)
+                                : Colors.white.withAlpha(160),
+                            fontSize: 15,
+                            fontWeight: hasSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
                       Expanded(
                         child: ListView(
                           children: (question['options'] as List).map((opt) {
@@ -180,7 +200,9 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                                 _answers[question['id']] == opt['id'];
                             return Padding(
                               key: ValueKey(opt['id']),
-                              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                              padding: const EdgeInsets.only(
+                                bottom: AppSpacing.md,
+                              ),
                               child: QuestionnaireOptionCard(
                                 label: opt['label'],
                                 isSelected: isSelected,
@@ -229,9 +251,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                         foregroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppRadius.full,
-                          ),
+                          borderRadius: BorderRadius.circular(AppRadius.full),
                         ),
                         elevation: 0,
                       ),
@@ -280,7 +300,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
-                'We specialize in turning mindless screen time into productive $goalLabel.',
+                'We help in turning mindless screen time into productive $goalLabel.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.white.withAlpha(220),

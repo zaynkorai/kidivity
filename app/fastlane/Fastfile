@@ -10,7 +10,7 @@ def api_key_options
   }
 end
 
-APP_IDENTIFIER = "com.kidivity.pro"
+APP_IDENTIFIER = "com.kidivity.app"
 IPA_PATH       = "build/ios/ipa/Kidivity.ipa"
 
 # ─────────────────────────────────────────────────────────────────

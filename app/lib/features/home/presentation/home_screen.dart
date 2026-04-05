@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/activity_provider.dart';
+import '../../../core/constants/categories.dart';
+import '../../../core/widgets/profile_switcher_badge.dart';
 import 'widgets/magic_card.dart';
 import 'widgets/category_grid.dart';
 import 'widgets/pick_of_the_day_card.dart';
@@ -66,28 +68,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: RefreshIndicator(
         onRefresh: _onRefresh,
         color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SafeArea(
-            top: true,
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.xl,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Magic Card — wired to real profile + last activity
-                  MagicCard(
-                    activeProfile: activeProfile,
-                    lastActivityTopic: lastActivity?.topic,
-                    streak: kidStats?.streak ?? 0,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            // ─── Primary Header ───────────────────────
+            SliverToBoxAdapter(
+              child: Container(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  MediaQuery.of(context).padding.top + AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(AppRadius.xl),
+                    bottomRight: Radius.circular(AppRadius.xl),
                   ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Dashboard',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        ProfileSwitcherBadge(),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    MagicCard(
+                      activeProfile: activeProfile,
+                      lastActivityTopic: lastActivity?.topic,
+                      streak: kidStats?.streak ?? 0,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-                  const SizedBox(height: AppSpacing.xxl),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
 
+            // ─── Body Content ────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
                   // Pick of the Day
                   const PickOfTheDayCard(),
 
@@ -95,13 +133,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   // Categories Header
                   Text(
-                    'Create by Categories',
+                    'Quick Generate',
                     style: theme.textTheme.displayLarge?.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Category Grid
                   const CategoryGrid(),
@@ -111,11 +149,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Weekly Activity Chart
                   WeeklyActivityChart(activities: visibleActivities.toList()),
 
-                  const SizedBox(height: 100),
-                ],
+                  const SizedBox(height: 120),
+                ]),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

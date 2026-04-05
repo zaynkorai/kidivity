@@ -85,7 +85,7 @@ class PickOfTheDayCard extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
-                      color: isDark ? Colors.white : AppColors.textPrimary,
+                      color: isDark ? Colors.white : AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 4), // Reduced spacing
