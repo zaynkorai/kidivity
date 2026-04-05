@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/models/activity.dart';
@@ -7,12 +8,14 @@ class JourneyMap extends StatelessWidget {
   final int streak;
   final bool hasActiveProfile;
   final List<Activity> activities;
+  final VoidCallback? onAddPressed;
 
   const JourneyMap({
     super.key,
     this.streak = 0,
     this.hasActiveProfile = false,
     this.activities = const [],
+    this.onAddPressed,
   });
 
   @override
@@ -93,22 +96,28 @@ class JourneyMap extends StatelessWidget {
                   const SizedBox(width: AppSpacing.sm),
 
                   // Add Button
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withAlpha(50),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ],
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      onAddPressed?.call();
+                    },
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(50),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(LucideIcons.plus, size: 16, color: Colors.white),
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(LucideIcons.plus, size: 16, color: Colors.white),
                   ),
                 ],
               )

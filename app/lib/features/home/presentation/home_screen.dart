@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/activity_provider.dart';
@@ -91,6 +92,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     streak: kidStats?.streak ?? 0,
                     hasActiveProfile: activeProfile != null,
                     activities: visibleActivities,
+                    onAddPressed: () => context.push('/generate'),
                   ),
 
                   const SizedBox(height: AppSpacing.xxl),
