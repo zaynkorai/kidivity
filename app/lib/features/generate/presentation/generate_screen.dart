@@ -14,7 +14,13 @@ import '../../../core/widgets/review_modal.dart';
 
 class GenerateScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
-  const GenerateScreen({super.key, this.initialCategory});
+  final bool isFirstActivity;
+
+  const GenerateScreen({
+    super.key,
+    this.initialCategory,
+    this.isFirstActivity = false,
+  });
 
   @override
   ConsumerState<GenerateScreen> createState() => _GenerateScreenState();
@@ -27,6 +33,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   String _style = 'colorful';
   String? _error;
   List<String> _suggestions = [];
+  
+  // Quick Guide State
+  int? _guideStep; // 0: Category, 1: Topic, 2: Options/Generate
 
   @override
   void initState() {
@@ -34,7 +43,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     _selectedCategory = widget.initialCategory;
     if (_selectedCategory != null) {
       _suggestions = getRandomSuggestions(_selectedCategory!);
+      if (widget.isFirstActivity) _guideStep = 1;
+    } else if (widget.isFirstActivity) {
+      _guideStep = 0;
     }
+    
     Future.microtask(() {
       ref.read(activityProvider.notifier).fetchRecent();
     });
@@ -45,6 +58,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       _selectedCategory = catId;
       _topic = '';
       _suggestions = catId != null ? getRandomSuggestions(catId) : [];
+      if (_guideStep == 0 && catId != null) {
+        _guideStep = 1;
+      }
     });
   }
 
@@ -225,6 +241,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
             // Generating overlay
             if (isGenerating) _buildGeneratingOverlay(),
+
+            // First Activity Guide Overlay
+            if (_guideStep != null && !isGenerating) _buildGuideOverlay(),
           ],
         ),
       ),
@@ -653,7 +672,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             return GestureDetector(
               onTap: () {
                 HapticFeedback.selectionClick();
-                setState(() => _topic = t);
+                setState(() {
+                  _topic = t;
+                  if (_guideStep == 1) {
+                    _guideStep = 2;
+                  }
+                });
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -708,7 +732,14 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
-                  onChanged: (val) => setState(() => _topic = val),
+                  onChanged: (val) {
+                    setState(() {
+                      _topic = val;
+                      if (_guideStep == 1 && val.length > 3) {
+                        _guideStep = 2;
+                      }
+                    });
+                  },
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -974,6 +1005,130 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
   Widget _buildGeneratingOverlay() {
     return _PolishedGeneratingOverlay();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // First Activity Guide Overlay
+  // ═══════════════════════════════════════════════════════════════
+
+  Widget _buildGuideOverlay() {
+    String message = '';
+    IconData icon = LucideIcons.info;
+    Alignment alignment = Alignment.bottomCenter;
+    double topPadding = 0;
+
+    switch (_guideStep) {
+      case 0:
+        message = 'First, choose what type of activity you want to create.';
+        icon = LucideIcons.mousePointer;
+        alignment = Alignment.topCenter;
+        topPadding = 220;
+        break;
+      case 1:
+        message = 'Great! Now pick a topic or type your own special preference.';
+        icon = LucideIcons.sparkles;
+        alignment = Alignment.topCenter;
+        topPadding = 420;
+        break;
+      case 2:
+        message = 'Perfect! Now click "Generate Activity" to create it.';
+        icon = LucideIcons.zap;
+        alignment = Alignment.bottomCenter;
+        topPadding = 0;
+        break;
+    }
+
+    return Align(
+      alignment: alignment,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: topPadding == 0 ? 0 : topPadding,
+          bottom: topPadding == 0 ? 120 : 0,
+          left: 20,
+          right: 20,
+        ),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 400),
+          builder: (context, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(245),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(80),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+              border: Border.all(
+                color: Colors.white.withAlpha(50),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(40),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => setState(() => _guideStep = null),
+                      child: Text(
+                        'Skip Guide',
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(180),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

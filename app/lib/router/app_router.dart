@@ -16,6 +16,7 @@ import '../features/auth/presentation/onboarding_celebration_screen.dart';
 import '../core/providers/supabase_provider.dart';
 import '../core/providers/onboarding_provider.dart';
 import '../core/theme/app_theme.dart';
+import '../core/providers/activity_provider.dart';
 import 'scaffold_with_nav_bar.dart';
 import 'router_refresh_stream.dart';
 
@@ -78,6 +79,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/generate',
                 builder: (context, state) => GenerateScreen(
                   initialCategory: state.uri.queryParameters['category'],
+                  isFirstActivity: state.uri.queryParameters['first_activity'] == 'true',
                 ),
               ),
             ],
@@ -212,9 +214,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/onboarding/welcome';
       }
 
-      // Handle completed onboarding — bounce out
+      // Handle completed onboarding — bounce out to the first activity generation flow
       if (isCompleted && location.startsWith('/onboarding')) {
-        return '/';
+        return '/generate?first_activity=true';
+      }
+
+      // Force first activity generation if none exist
+      final activityState = ref.read(activityProvider);
+      final hasNoActivities = activityState.recentActivities.isEmpty && !activityState.isFetchingRecent;
+      if (isCompleted && hasNoActivities && location == '/') {
+        return '/generate?first_activity=true';
       }
 
       return null;

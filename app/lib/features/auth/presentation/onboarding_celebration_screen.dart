@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/onboarding_provider.dart';
 
@@ -87,7 +86,6 @@ class _OnboardingCelebrationScreenState
   void _handleComplete() {
     HapticFeedback.mediumImpact();
     ref.read(onboardingProvider.notifier).completeOnboarding();
-    context.go('/');
   }
 
   @override
