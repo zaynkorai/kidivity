@@ -105,40 +105,6 @@ class _OnboardingWelcomeScreenState
 
                       const SizedBox(height: AppSpacing.xl),
 
-                      // Social Proof Chip
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(25),
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                          border: Border.all(
-                            color: Colors.white.withAlpha(40),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              LucideIcons.users,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Joined by 10,000+ parents',
-                              style: TextStyle(
-                                color: Colors.white.withAlpha(220),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
                       const Spacer(flex: 3),
 
                       // Join Now Button

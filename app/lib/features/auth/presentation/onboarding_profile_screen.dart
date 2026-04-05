@@ -346,34 +346,36 @@ class _OnboardingProfileScreenState extends ConsumerState<OnboardingProfileScree
                   HapticFeedback.selectionClick();
                   setState(() => _age = ageVal);
                 },
-                child: AnimatedContainer(
+                child: AnimatedScale(
+                  scale: isSelected ? 1.1 : 1.0,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOutBack,
-                  width: 56,
-                  transform: isSelected 
-                      ? Matrix4.diagonal3Values(1.1, 1.1, 1.0) 
-                      : Matrix4.identity(),
-                  margin: const EdgeInsets.only(right: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.white.withAlpha(30),
-                    shape: BoxShape.circle,
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(20),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            )
-                          ]
-                        : [],
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    ageVal,
-                    style: TextStyle(
-                      color: isSelected ? AppColors.primary : Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                    width: 56,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.white : Colors.white.withAlpha(30),
+                      shape: BoxShape.circle,
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(20),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      ageVal,
+                      style: TextStyle(
+                        color: isSelected ? AppColors.primary : Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                 ),
@@ -397,31 +399,33 @@ class _OnboardingProfileScreenState extends ConsumerState<OnboardingProfileScree
                 HapticFeedback.selectionClick();
                 setState(() => _gradeLevel = g);
               },
-              child: AnimatedContainer(
+              child: AnimatedScale(
+                scale: isSelected ? 1.05 : 1.0,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutBack,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                transform: isSelected 
-                    ? Matrix4.diagonal3Values(1.05, 1.05, 1.0) 
-                    : Matrix4.identity(),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                      : [],
-                ),
-                child: Text(
-                  g,
-                  style: TextStyle(
-                    color: isSelected ? AppColors.primary : Colors.white,
-                    fontWeight: FontWeight.bold,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.white.withAlpha(30),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            )
+                          ]
+                        : [],
+                  ),
+                  child: Text(
+                    g,
+                    style: TextStyle(
+                      color: isSelected ? AppColors.primary : Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -444,41 +448,43 @@ class _OnboardingProfileScreenState extends ConsumerState<OnboardingProfileScree
                 HapticFeedback.selectionClick();
                 setState(() => _selectedColor = c);
               },
-              child: AnimatedContainer(
+              child: AnimatedScale(
+                scale: isSelected ? 1.15 : 1.0,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOutBack,
-                width: 52,
-                height: 52,
-                transform: isSelected 
-                    ? Matrix4.diagonal3Values(1.15, 1.15, 1.0) 
-                    : Matrix4.identity(),
-                decoration: BoxDecoration(
-                  color: c,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: isSelected ? 4 : 2,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: c,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: isSelected ? 4 : 2,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: c.withAlpha(120),
+                              blurRadius: 15,
+                              spreadRadius: 4,
+                            )
+                          ]
+                        : [],
                   ),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: c.withAlpha(120),
-                            blurRadius: 15,
-                            spreadRadius: 4,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: isSelected
+                        ? const Icon(
+                            LucideIcons.check,
+                            key: ValueKey('check'),
+                            color: Colors.white,
+                            size: 22,
                           )
-                        ]
-                      : [],
-                ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: isSelected
-                      ? const Icon(
-                          LucideIcons.check,
-                          key: ValueKey('check'),
-                          color: Colors.white,
-                          size: 22,
-                        )
-                      : const SizedBox.shrink(key: ValueKey('none')),
+                        : const SizedBox.shrink(key: ValueKey('none')),
+                  ),
                 ),
               ),
             );

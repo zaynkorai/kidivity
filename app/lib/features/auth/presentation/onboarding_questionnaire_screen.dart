@@ -202,36 +202,37 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                                         _syncProgress();
                                       });
                                     },
-                                    child: AnimatedContainer(
+                                    child: AnimatedScale(
+                                      scale: isSelected ? 1.02 : 1.0,
                                       duration: const Duration(milliseconds: 300),
                                       curve: Curves.easeOutBack,
-                                      padding: const EdgeInsets.all(AppSpacing.xl),
-                                      transform: isSelected 
-                                          ? Matrix4.diagonal3Values(1.02, 1.02, 1.0) 
-                                          : Matrix4.identity(),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.white.withAlpha(60)
-                                            : Colors.white.withAlpha(30),
-                                        borderRadius: BorderRadius.circular(
-                                          AppRadius.xl,
-                                        ),
-                                        border: Border.all(
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 300),
+                                        curve: Curves.easeOut,
+                                        padding: const EdgeInsets.all(AppSpacing.xl),
+                                        decoration: BoxDecoration(
                                           color: isSelected
-                                              ? Colors.white
-                                              : Colors.white.withAlpha(20),
-                                          width: 2,
+                                              ? Colors.white.withAlpha(60)
+                                              : Colors.white.withAlpha(30),
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadius.xl,
+                                          ),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.white.withAlpha(20),
+                                            width: 2,
+                                          ),
+                                          boxShadow: isSelected
+                                              ? [
+                                                  BoxShadow(
+                                                    color: Colors.black.withAlpha(20),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 4),
+                                                  )
+                                                ]
+                                              : [],
                                         ),
-                                        boxShadow: isSelected
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.black.withAlpha(20),
-                                                  blurRadius: 10,
-                                                  offset: const Offset(0, 4),
-                                                )
-                                              ]
-                                            : [],
-                                      ),
                                       child: Row(
                                         children: [
                                           Expanded(
@@ -266,6 +267,7 @@ class _QuestionnaireScreenState extends ConsumerState<QuestionnaireScreen> {
                                                   ),
                                           ),
                                         ],
+                                      ),
                                       ),
                                     ),
                                   ),
