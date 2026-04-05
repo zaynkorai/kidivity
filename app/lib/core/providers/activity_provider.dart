@@ -59,6 +59,7 @@ class ActivityState {
   final bool isFetchingRecent;
   final bool isFetchingSaved;
   final bool isGenerating;
+  final bool isInitialized;
   final RateLimitState rateLimitState;
 
   const ActivityState({
@@ -68,6 +69,7 @@ class ActivityState {
     this.isFetchingRecent = false,
     this.isFetchingSaved = false,
     this.isGenerating = false,
+    this.isInitialized = false,
     this.rateLimitState = const RateLimitState(),
   });
 
@@ -78,6 +80,7 @@ class ActivityState {
     bool? isFetchingRecent,
     bool? isFetchingSaved,
     bool? isGenerating,
+    bool? isInitialized,
     RateLimitState? rateLimitState,
   }) {
     return ActivityState(
@@ -87,6 +90,7 @@ class ActivityState {
       isFetchingRecent: isFetchingRecent ?? this.isFetchingRecent,
       isFetchingSaved: isFetchingSaved ?? this.isFetchingSaved,
       isGenerating: isGenerating ?? this.isGenerating,
+      isInitialized: isInitialized ?? this.isInitialized,
       rateLimitState: rateLimitState ?? this.rateLimitState,
     );
   }
@@ -141,9 +145,11 @@ class ActivityNotifier extends Notifier<ActivityState> {
       state = state.copyWith(
         recentActivities: recent,
         savedActivities: saved,
+        isInitialized: true,
       );
     } catch (e) {
       debugPrint('[activity] Failed to restore cache: $e');
+      state = state.copyWith(isInitialized: true);
     }
   }
 

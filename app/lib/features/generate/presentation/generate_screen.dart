@@ -12,6 +12,8 @@ import '../../../core/constants/topics.dart';
 import '../../../core/providers/review_provider.dart';
 import '../../../core/widgets/review_modal.dart';
 
+enum ActivityGuideStep { category, topic, difficulty, style, generate }
+
 class GenerateScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
   final bool isFirstActivity;
@@ -25,17 +27,22 @@ class GenerateScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<GenerateScreen> createState() => _GenerateScreenState();
 }
-
 class _GenerateScreenState extends ConsumerState<GenerateScreen> {
+  // LayerLinks for precision hint placement (Apple-standard pinning)
+  final _categoryLink = LayerLink();
+  final _topicLink = LayerLink();
+  final _difficultyLink = LayerLink();
+  final _styleLink = LayerLink();
+  final _generateLink = LayerLink();
+
   String? _selectedCategory;
   String _topic = '';
   String _difficulty = 'medium';
   String _style = 'colorful';
   String? _error;
   List<String> _suggestions = [];
-  
-  // Quick Guide State
-  int? _guideStep; // 0: Category, 1: Topic, 2: Options/Generate
+
+  ActivityGuideStep? _currentGuideStep; 
 
   @override
   void initState() {
@@ -43,11 +50,11 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     _selectedCategory = widget.initialCategory;
     if (_selectedCategory != null) {
       _suggestions = getRandomSuggestions(_selectedCategory!);
-      if (widget.isFirstActivity) _guideStep = 1;
+      if (widget.isFirstActivity) _currentGuideStep = ActivityGuideStep.topic;
     } else if (widget.isFirstActivity) {
-      _guideStep = 0;
+      _currentGuideStep = ActivityGuideStep.category;
     }
-    
+
     Future.microtask(() {
       ref.read(activityProvider.notifier).fetchRecent();
     });
@@ -58,8 +65,8 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       _selectedCategory = catId;
       _topic = '';
       _suggestions = catId != null ? getRandomSuggestions(catId) : [];
-      if (_guideStep == 0 && catId != null) {
-        _guideStep = 1;
+      if (_currentGuideStep == ActivityGuideStep.category && catId != null) {
+        _currentGuideStep = ActivityGuideStep.topic;
       }
     });
   }
@@ -107,10 +114,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       setState(() => _error = result.error);
     } else if (result.data != null) {
       HapticFeedback.lightImpact();
-      
+
       // Navigate first
       context.push('/activity/${result.data!.id}');
-      
+
       // Delay review check for better transition
       Future.delayed(const Duration(milliseconds: 1500), () async {
         if (!mounted) return;
@@ -173,7 +180,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     children: [
                       // ─── Primary Header ───────────────────────
                       _buildHeader(profileState),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // ─── No Profile Warning ───────────────────
                       if (!hasProfile) _buildWarningCard(),
@@ -183,18 +190,20 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                         stepNumber: '1',
                         stepBadgeColor: AppColors.primary,
                         title: 'Choose a category',
+                        link: _categoryLink,
                         child: _buildCategorySelector(),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // ─── Step 2: Topic ────────────────────────
                       _buildStepCard(
                         stepNumber: '2',
                         stepBadgeColor: AppColors.primary,
                         title: 'Pick a topic',
+                        link: _topicLink,
                         child: _buildTopicSection(),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
+                      const SizedBox(height: AppSpacing.lg),
 
                       // ─── Step 3: Options ──────────────────────
                       _buildStepCard(
@@ -210,7 +219,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.xl,
                         ),
-                        child: _buildGenerateButton(isGenerating),
+                        child: CompositedTransformTarget(
+                          link: _generateLink,
+                          child: _buildGenerateButton(isGenerating),
+                        ),
                       ),
 
                       // ─── Hint text ────────────────────────────
@@ -243,7 +255,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             if (isGenerating) _buildGeneratingOverlay(),
 
             // First Activity Guide Overlay
-            if (_guideStep != null && !isGenerating) _buildGuideOverlay(),
+            if (_currentGuideStep != null && !isGenerating) _buildGuideOverlay(),
           ],
         ),
       ),
@@ -265,7 +277,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
         AppSpacing.xl,
         MediaQuery.of(context).padding.top + AppSpacing.lg,
         AppSpacing.xl,
-        AppSpacing.xl,
+        AppSpacing.lg,
       ),
       decoration: const BoxDecoration(
         color: AppColors.primary,
@@ -518,8 +530,9 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     required Color stepBadgeColor,
     required String title,
     required Widget child,
+    LayerLink? link,
   }) {
-    return Container(
+    Widget card = Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
@@ -563,11 +576,16 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           child,
         ],
       ),
     );
+
+    if (link != null) {
+      return CompositedTransformTarget(link: link, child: card);
+    }
+    return card;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -662,7 +680,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         // Suggestion chips
         Wrap(
           spacing: AppSpacing.sm,
@@ -674,8 +692,8 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                 HapticFeedback.selectionClick();
                 setState(() {
                   _topic = t;
-                  if (_guideStep == 1) {
-                    _guideStep = 2;
+                  if (_currentGuideStep == ActivityGuideStep.topic) {
+                    _currentGuideStep = ActivityGuideStep.difficulty;
                   }
                 });
               },
@@ -708,71 +726,6 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             );
           }).toList(),
         ),
-        const SizedBox(height: AppSpacing.lg),
-        // Topic Input Field (Custom)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: _topic.isNotEmpty
-                  ? _accentColor.withAlpha(120)
-                  : Theme.of(context).dividerColor,
-              width: _topic.isNotEmpty ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                LucideIcons.penTool,
-                size: 16,
-                color: AppColors.textTertiary,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: TextField(
-                  onChanged: (val) {
-                    setState(() {
-                      _topic = val;
-                      if (_guideStep == 1 && val.length > 3) {
-                        _guideStep = 2;
-                      }
-                    });
-                  },
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                  cursorColor: _accentColor,
-                  maxLength: 60,
-                  decoration: const InputDecoration(
-                    hintText: 'Or type custom: "Space dinosaurs"',
-                    hintStyle: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: AppColors.textTertiary,
-                    ),
-                    border: InputBorder.none,
-                    counterText: '',
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              if (_topic.isNotEmpty)
-                GestureDetector(
-                  onTap: () => setState(() => _topic = ''),
-                  child: const Icon(
-                    LucideIcons.xCircle,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -795,43 +748,52 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          children: ['easy', 'medium', 'hard'].map((d) {
-            final isSelected = _difficulty == d;
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() => _difficulty = d);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected ? _accentColor : _accentColor.withAlpha(15),
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                  border: Border.all(
-                    color: isSelected
-                        ? _accentColor
-                        : _accentColor.withAlpha(40),
+        CompositedTransformTarget(
+          link: _difficultyLink,
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            children: ['easy', 'medium', 'hard'].map((d) {
+              final isSelected = _difficulty == d;
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _difficulty = d;
+                    if (_currentGuideStep == ActivityGuideStep.difficulty) {
+                      _currentGuideStep = ActivityGuideStep.style;
+                    }
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected ? _accentColor : _accentColor.withAlpha(15),
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                    border: Border.all(
+                      color: isSelected
+                          ? _accentColor
+                          : _accentColor.withAlpha(40),
+                    ),
+                  ),
+                  child: Text(
+                    d[0].toUpperCase() + d.substring(1),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Colors.white
+                          : Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
                   ),
                 ),
-                child: Text(
-                  d[0].toUpperCase() + d.substring(1),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected
-                        ? Colors.white
-                        : Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
 
         const SizedBox(height: AppSpacing.lg),
@@ -846,12 +808,15 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          children: [
-            _buildStyleChip('colorful', 'Colorful', LucideIcons.palette),
-            _buildStyleChip('bw', 'Print (B&W)', LucideIcons.printer),
-          ],
+        CompositedTransformTarget(
+          link: _styleLink,
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              _buildStyleChip('colorful', 'Colorful', LucideIcons.palette),
+              _buildStyleChip('bw', 'Print (B&W)', LucideIcons.printer),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -872,7 +837,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
-        setState(() => _style = value);
+        setState(() {
+          _style = value;
+          if (_currentGuideStep == ActivityGuideStep.style) {
+            _currentGuideStep = ActivityGuideStep.generate;
+          }
+        });
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -1014,40 +984,55 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   Widget _buildGuideOverlay() {
     String message = '';
     IconData icon = LucideIcons.info;
-    Alignment alignment = Alignment.bottomCenter;
-    double topPadding = 0;
+    LayerLink? targetLink;
+    Alignment followerAnchor = Alignment.topCenter;
+    Alignment targetAnchor = Alignment.bottomCenter;
+    Offset offset = const Offset(0, 16);
 
-    switch (_guideStep) {
-      case 0:
+    switch (_currentGuideStep) {
+      case ActivityGuideStep.category:
         message = 'First, choose what type of activity you want to create.';
         icon = LucideIcons.mousePointer;
-        alignment = Alignment.topCenter;
-        topPadding = 220;
+        targetLink = _categoryLink;
         break;
-      case 1:
-        message = 'Great! Now pick a topic or type your own special preference.';
+      case ActivityGuideStep.topic:
+        message = 'Great! Now pick a topic or type your preference.';
         icon = LucideIcons.sparkles;
-        alignment = Alignment.topCenter;
-        topPadding = 420;
+        targetLink = _topicLink;
         break;
-      case 2:
-        message = 'Perfect! Now click "Generate Activity" to create it.';
+      case ActivityGuideStep.difficulty:
+        message = 'Now choose a difficulty level.';
+        icon = LucideIcons.barChart;
+        targetLink = _difficultyLink;
+        break;
+      case ActivityGuideStep.style:
+        message = 'Finally, pick a style (Colorful or Print).';
+        icon = LucideIcons.palette;
+        targetLink = _styleLink;
+        break;
+      case ActivityGuideStep.generate:
+        message = 'Perfect! Now click "Generate Activity" below.';
         icon = LucideIcons.zap;
-        alignment = Alignment.bottomCenter;
-        topPadding = 0;
+        targetLink = _generateLink;
+        followerAnchor = Alignment.bottomCenter;
+        targetAnchor = Alignment.topCenter;
+        offset = const Offset(0, -16);
         break;
+      default:
+        return const SizedBox.shrink();
     }
 
-    return Align(
-      alignment: alignment,
+
+    return CompositedTransformFollower(
+      link: targetLink,
+      followerAnchor: followerAnchor,
+      targetAnchor: targetAnchor,
+      offset: offset,
+      showWhenUnlinked: false,
       child: Padding(
-        padding: EdgeInsets.only(
-          top: topPadding == 0 ? 0 : topPadding,
-          bottom: topPadding == 0 ? 120 : 0,
-          left: 20,
-          right: 20,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: TweenAnimationBuilder<double>(
+          key: ValueKey(_currentGuideStep),
           tween: Tween(begin: 0, end: 1),
           duration: const Duration(milliseconds: 400),
           builder: (context, value, child) {
@@ -1071,10 +1056,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                   offset: const Offset(0, 10),
                 ),
               ],
-              border: Border.all(
-                color: Colors.white.withAlpha(50),
-                width: 1.5,
-              ),
+              border: Border.all(color: Colors.white.withAlpha(50), width: 1.5),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1087,11 +1069,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                         color: Colors.white.withAlpha(40),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 20),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
@@ -1112,7 +1090,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => setState(() => _guideStep = null),
+                      onPressed: () => setState(() => _currentGuideStep = null),
                       child: Text(
                         'Skip Guide',
                         style: TextStyle(

@@ -225,8 +225,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Force first activity generation if none exist
       final activityState = ref.read(activityProvider);
-      final hasNoActivities = activityState.recentActivities.isEmpty && !activityState.isFetchingRecent;
-      if (isCompleted && hasNoActivities && location == '/') {
+      final hasNoActivities = activityState.recentActivities.isEmpty && activityState.isInitialized;
+      
+      // If onboarding is complete but no activities exist, force redirection to Generate screen
+      // except when already on Generate or in the middle of onboarding logic.
+      if (isCompleted && hasNoActivities && location != '/generate' && !location.startsWith('/onboarding')) {
         return '/generate?first_activity=true';
       }
 

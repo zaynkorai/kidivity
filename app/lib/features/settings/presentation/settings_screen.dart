@@ -656,28 +656,34 @@ class _ProfileRow extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isActive ? AppColors.primary : Theme.of(context).cardColor,
+                  color: isActive ? AppColors.primary : Colors.white.withAlpha(80),
                   width: isActive ? 3 : 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isActive ? AppColors.primary : Colors.black).withAlpha(20),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: color.withAlpha(60),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
+                  if (isActive) 
+                    BoxShadow(
+                      color: AppColors.primary.withAlpha(40),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
                 ],
               ),
               alignment: Alignment.center,
               child: Text(
                 name[0].toUpperCase(),
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -710,13 +716,13 @@ class _ProfileRow extends StatelessWidget {
           // Edit Button
           InkWell(
             onTap: onEdit,
-            child: _actionButton(AppColors.accent, LucideIcons.edit3),
+            child: _actionButton(AppColors.primaryLight.withAlpha(100), LucideIcons.edit3, AppColors.primary),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           // Delete Button
           InkWell(
             onTap: onDelete,
-            child: _actionButton(AppColors.danger, LucideIcons.trash2),
+            child: _actionButton(AppColors.danger.withAlpha(30), LucideIcons.trash2, AppColors.danger),
           ),
         ],
       ),
@@ -724,13 +730,13 @@ class _ProfileRow extends StatelessWidget {
   );
 }
 
-  Widget _actionButton(Color bgColor, IconData icon) {
+  Widget _actionButton(Color bgColor, IconData icon, Color iconColor) {
     return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
       alignment: Alignment.center,
-      child: Icon(icon, size: 16, color: Colors.white),
+      child: Icon(icon, size: 18, color: iconColor),
     );
   }
 }
