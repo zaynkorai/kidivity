@@ -5,6 +5,7 @@ import { generateSchema, GenerateBody } from '../schemas/activity.schema.js';
 import { buildSystemInstruction, buildPromptUser, buildImagePrompt } from '../services/prompt.service.js';
 import { generateActivityContent } from '../services/ai.service.js';
 import { ActivityService } from '../services/activity.service.js';
+import type { ImageSpec } from '../types/image-spec.js';
 
 // ── Route ───────────────────────────────────────────────
 export default async function activityRoutes(fastify: FastifyInstance) {
@@ -86,7 +87,7 @@ export default async function activityRoutes(fastify: FastifyInstance) {
 
             const sysInstruction = buildSystemInstruction(kidProfile, feedbackStrings);
             const promptText = buildPromptUser(kidProfile, input);
-            const buildImagePromptFn = (dynOp: string) => buildImagePrompt(kidProfile, input, dynOp);
+            const buildImagePromptFn = (spec: ImageSpec) => buildImagePrompt(kidProfile, input, spec);
             
             const simpleCategories = ['tracing', 'math', 'reading'];
             const model = simpleCategories.includes(input.category) ? 'gemini-2.5-flash' : 'gemini-2.5-pro';

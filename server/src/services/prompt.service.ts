@@ -1,27 +1,40 @@
 import { GenerateBody } from '../schemas/activity.schema.js';
+import type { ImageSpec, VisualSubject } from '../types/image-spec.js';
 
-// ── System instruction ───────────────────────────────────
+// ── System instruction ────────────────────────────────────────────────────────
 export function buildSystemInstruction(profile: any, feedback?: string[]): string {
     const feedbackSection = feedback && feedback.length > 0
-        ? `\n\nUSER FEEDBACK & PREFERENCES (PERSONALIZATION):
-${feedback.map(f => `- ${f}`).join('\n')}
-Follow these preferences strictly to improve quality for this specific child.`
+        ? `\n\nUSER FEEDBACK & PREFERENCES (PERSONALIZATION):\n${feedback.map(f => `- ${f}`).join('\n')}\nFollow these preferences strictly to improve quality for this specific child.`
         : '';
 
     return `You are Kaivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
 
 OUTPUT FORMAT (STRICT):
-- Return a single JSON object that matches the provided JSON schema. No extra keys. No surrounding text. No code fences.
-- Use Markdown ONLY inside the JSON string fields "instructions" and "content".
-- Do NOT include an H1 title inside "instructions" or "content" (the app renders the H1 from the "title" field).
+- Return a single JSON object matching the provided schema. No extra keys. No surrounding text. No code fences.
+- Use Markdown ONLY inside the "instructions" and "content" string fields.
+- Do NOT include an H1 title inside "instructions" or "content".
 
 QUALITY / ACCURACY:
-- No conversational filler (do not say "Here is your activity", "Enjoy", etc.).
-- No emojis.
-- Be scientifically accurate and age/grade appropriate.
-- If you are not fully sure about a fact, do not guess; keep it general or omit the questionable detail.
-- Keep everything print-first and screen-free (no links, QR codes, apps, or "watch a video" steps).
-- Keep materials safe and common for home use. Avoid fire/heat, sharp tools, chemicals, or risky experiments.
+- No conversational filler. No emojis.
+- Scientifically accurate and age/grade appropriate.
+- If unsure about a fact, keep it general or omit it — do not guess.
+- Print-first and screen-free (no links, QR codes, apps, "watch a video" steps).
+- Materials must be safe and common for home use.
+
+IMAGE SPEC ("imageSpec" field) — CRITICAL RULES:
+- Fill in the structured imageSpec object. Do NOT write prose descriptions.
+- "subjects" must only contain concrete, visualizable nouns (no abstract concepts).
+- "count" must be a whole number from 1–10. AI models cannot reliably count above 10.
+- "background" must be ≤5 concrete words. Use "plain white" when no environment is needed.
+- "action" describes only spatial relationships, sequences, or physical actions — not feelings or ideas.
+- "topic_type": classify the topic's nature — animal/plant/object/person/place/process/concept.
+  Use "concept" only for truly abstract topics (weather, emotions, seasons, time).
+  Use "process" for sequential actions (cooking, water cycle, seed sprouting).
+- "color_palette": choose based on topic and mood, not category.
+- "group_a" / "group_b": ONLY for math_addition, math_subtraction, math_comparison. Empty arrays otherwise.
+- "tracing_target" / "tracing_has_path": ONLY for tracing activities.
+- "diagram_part_count": ONLY for science lifecycle/anatomy/diagram. 0 otherwise.
+- "panel_count": ONLY for art_drawing_steps or reading_comic. 0 otherwise.
 
 Child Profile:
 - Name: ${profile.name}
@@ -29,160 +42,167 @@ Child Profile:
 - Grade: ${profile.grade_level}${feedbackSection}`;
 }
 
-// ── Prompt builders ─────────────────────────────────────
+// ── User prompt ───────────────────────────────────────────────────────────────
 export function buildPromptUser(profile: any, input: GenerateBody): string {
-    const style = input.style === 'bw' ? 'Black and white, optimized for home printing (Ink-saver)' : 'Colorful and visually engaging';
+    const style = input.style === 'bw'
+        ? 'Black and white, optimized for home printing (Ink-saver)'
+        : 'Colorful and visually engaging';
 
     let categoryPrompt = '';
     switch (input.category) {
-        case 'puzzles':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} logic puzzle about "${input.topic}".
-            Pedagogical Focus: Suitable for a ${profile.age}-year-old (${profile.grade_level}) focusing on pattern recognition, sequencing, matching, or simple deduction.
-            
-            NON-OVERLAP CONSTRAINT: Do NOT include arithmetic or counting questions; focus purely on spatial, visual, or logical rules.
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Puzzle Type: <maze | matching | sorting | pattern | odd-one-out | logic grid>
-              2) Grid/Layout: <rows x cols or layout description; centered; generous whitespace>
-              3) Required Objects: <object(count), object(count), ...> (concrete nouns only)
-              4) Distractors: <object(count), ...> or "none"
-              5) Answer/Path: <describe the correct solution placement or path in words>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts must be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
-            
-            CONTENT REQUIREMENTS (Markdown goes in "instructions" and "content" fields only):
-            - title: A fun theme title (plain text, no #).
-            - instructions: Start with > **Parent Note:** briefly explain the logic rule. Then add ## Instructions with step-by-step guidance for the child.
-            - content: Add ## The Challenge with the full puzzle setup (solvable on paper). End with --- then **Answer Key:** with the solution.`;
+
+        case 'math': {
+            const maxObjects = 10; // AI generation is unreliable for counting > 10
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} math activity about "${input.topic}".
+Target: ${profile.age}-year-old (${profile.grade_level}).
+FOCUS: Counting, addition, subtraction, or comparison. Every question must be solvable by counting visible objects.
+NON-OVERLAP: No abstract patterns, no mazes, no symbolic-only equations.
+
+imageSpec guidance — choose the MOST SPECIFIC scene_type:
+- "math_counting" → single group of objects to count (layout: row_layout or grid_layout)
+- "math_addition" → two distinct groups being combined (layout: two_group_layout, fill group_a AND group_b)
+- "math_subtraction" → objects being removed from a group (layout: two_group_layout, group_a = full set, group_b = subset being removed)
+- "math_comparison" → two groups compared by quantity (layout: two_group_layout, fill group_a AND group_b)
+Total objects across all groups must not exceed ${maxObjects}.
+action: describe the grouping precisely, e.g. "three red apples on the left, two yellow bananas on the right".
+color_palette: "vibrant" for colorful math; "neutral" for bw.
+topic_type: classify the topic (animal/plant/object/person/place/process/concept).
+
+CONTENT REQUIREMENTS:
+- title: "Math Fun: ..." (plain text).
+- instructions: > **Parent Note:** what skill this builds. Then ## Instructions.
+- content: ## The Math Challenge (3-4 word problems or counting exercises). End with --- then **Answer Key:**.`;
             break;
-            
-        case 'tracing':
+        }
+
+        case 'science': {
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} educational fact sheet and quiz about "${input.topic}".
+Target: ${profile.age}-year-old (${profile.grade_level}).
+PEDAGOGICAL CONSTRAINT: Objective facts only. No fictional narrative.
+
+imageSpec guidance — choose the MOST SPECIFIC scene_type:
+- "science_lifecycle" → circular life stages (layout: ring_layout, diagram_part_count = number of stages)
+- "science_anatomy" → labeled body parts or cross-section (layout: centered_single or diagram, diagram_part_count = number of parts)
+- "science_comparison" → two subjects compared side-by-side (layout: two_column_table, subjects = both subjects, one each)
+- "science_diagram" → general educational illustration (layout: diagram or centered_single)
+action: for lifecycle, write the full sequence e.g. "egg → larva → pupa → adult, clockwise".
+For anatomy, list the parts e.g. "roots at bottom, stem center, leaves top, flower apex".
+color_palette: "natural" for biology; "cool" for space/water; "warm" for earth science.
+topic_type: classify the topic (animal/plant/object/person/place/process/concept).
+
+CONTENT REQUIREMENTS:
+- title: "Discovering ..." (plain text).
+- instructions: > **Parent Note:** how to use the page. Then ## Instructions (2-4 steps).
+- content: ## The Big Idea, ## Did You Know? (3-5 facts), ## Mini Quiz (3 questions), > **Parent Tip:** (1 discussion question).`;
+            break;
+        }
+
+        case 'puzzles': {
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} logic puzzle about "${input.topic}".
+Pedagogical Focus: ${profile.age}-year-old (${profile.grade_level}) — pattern recognition, sequencing, matching, or simple deduction.
+NON-OVERLAP: No arithmetic. Focus purely on spatial, visual, or logical rules.
+
+imageSpec guidance — choose the MOST SPECIFIC scene_type:
+- "puzzle_maze" → navigable path through obstacles (layout: centered_single)
+- "puzzle_matching" → two columns, draw-a-line (layout: grid_layout)
+- "puzzle_pattern" → sequence with one missing element (layout: row_layout)
+- "puzzle_odd_one_out" → one item differs from a set (layout: row_layout)
+- "puzzle_sorting" → groups to sort by a visible rule (layout: grid_layout)
+- "puzzle_spot_differences" → two nearly identical images (layout: two_panel_identical, subjects = items that differ)
+action: describe the puzzle relationship exactly, e.g. "five stars in a row, fourth position is empty".
+color_palette: "vibrant" for colorful; "neutral" for bw.
+topic_type: classify the topic.
+
+CONTENT REQUIREMENTS:
+- title: A fun theme title (plain text, no #).
+- instructions: > **Parent Note:** briefly explain the logic rule. Then ## Instructions.
+- content: ## The Challenge (full puzzle setup, solvable on paper). End with --- then **Answer Key:**.`;
+            break;
+        }
+
+        case 'art': {
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} art activity about "${input.topic}".
+Target: ${profile.age}-year-old (${profile.grade_level}). Time: 15-30 minutes.
+FOCUS: Choose the most appropriate art type for "${input.topic}".
+
+imageSpec guidance — choose the MOST SPECIFIC scene_type:
+- "art_drawing_steps" → how-to-draw sequence (layout: multi_panel, panel_count = 2, 3, or 4)
+- "art_coloring" → single scene coloring page (layout: centered_single or scene_with_bg)
+- "art_craft_template" → flat craft shape to cut/fold (layout: centered_single)
+color_palette: match the topic mood — "warm" for autumn/fire, "cool" for ocean/sky, "natural" for animals/garden, "pastel" for baby themes, "vibrant" for bold fun art.
+topic_type: classify the topic.
+
+CONTENT REQUIREMENTS:
+- title: "Art Time: ..." (plain text).
+- instructions: > **Parent Note:** what the child practices. Then ## Instructions with numbered steps.
+- content: ## Materials Needed (common household supplies only). Add ## Drawing Steps or ## Craft Steps as needed.`;
+            break;
+        }
+
+        case 'reading': {
+            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} reading exercise or short story about "${input.topic}".
+Target: ${profile.age}-year-old (${profile.grade_level}).
+PEDAGOGICAL CONSTRAINT: Fictional tale or reading comprehension. Not a fact sheet.
+
+imageSpec guidance — choose the MOST SPECIFIC scene_type:
+- "reading_comic" → if the story has distinct sequential moments (layout: multi_panel, panel_count = 3)
+- "character_story" → if the story has one central moment to capture (layout: scene_with_bg)
+subjects: named characters and key props. For comic, list the character once — compiler handles repetition.
+action: the single most important moment or emotion.
+background: the story's setting in ≤5 concrete words.
+color_palette: match the story's mood — "warm" for cozy/home stories, "cool" for adventure/ocean, "pastel" for gentle/friendship.
+topic_type: classify the topic.
+
+CONTENT REQUIREMENTS:
+- title: "Story Time: ..." (plain text).
+- instructions: > **Parent Note:** (read together vs independent). Then ## Instructions.
+- content: ## The Tale (2-3 paragraphs). ## Think About It (2 comprehension questions).`;
+            break;
+        }
+
+        case 'tracing': {
             const isCharacterTracing = /number|digit|alphabet|letter/i.test(input.topic);
-            const taskFocus = isCharacterTracing 
-                ? `character formation and tracing (large, clear, dotted-outline characters)`
-                : `pen-control and pre-writing practice (foundational warm-up)`;
+            const taskFocus = isCharacterTracing
+                ? 'character formation and tracing (large, clear, dotted-outline characters)'
+                : 'pen-control and pre-writing practice (foundational warm-up)';
 
             categoryPrompt = `Task: Create a professional-grade ${input.difficulty} ${taskFocus} activity about "${input.topic}".
-            Target: ${profile.age}-year-old (${profile.grade_level}).
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Trace Type: <${isCharacterTracing ? 'character | digit' : 'shape | path'}>
-              2) Main Subject: <${isCharacterTracing ? 'single large character or digit' : 'single concrete noun scene'}>
-              3) Trace Path: <describe the tracing path in words, single-stroke if simple>
-              4) Blank Area: <bottom 30% empty, pure white>
-              5) Line Style: <dotted or dashed, spacing noted, no double lines>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image EXCEPT for the tracing character itself.
-            
-            CONTENT REQUIREMENTS:
-            - title: "Let's Trace: ..." (plain text).
-            - instructions: Start with > **Parent Note:** Explain that this is a "${isCharacterTracing ? 'character formation practice' : 'foundational pre-writing warm-up'}" for pencil control (fine motor + posture/grip tip). Then ## Instructions with 3-5 simple steps for tracing the ${isCharacterTracing ? 'character' : 'path or outline'}.
-            - content: Include ## Story Time with exactly 2 sentences describing the illustration. Include ## Target Words with a bulleted list of 3-5 CONCRETE NOUNS related to "${input.topic}" (single words, easy to visualize/talk about).`;
-            break;
-            
-        case 'science':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} educational fact sheet and quiz about "${input.topic}".
-            Target: ${profile.age}-year-old (${profile.grade_level}).
-            
-            PEDAGOGICAL CONSTRAINT: Focus on objective facts and knowledge. Do NOT use a fictional narrative or character-driven story here (use the 'story' category for that).
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Diagram Type: <labeled diagram | lifecycle | comparison | simple scene>
-              2) Required Objects: <object(count), object(count), ...> (concrete nouns only)
-              3) Callout Points: <list of callout targets, no text>
-              4) Sequence Steps: <if lifecycle or process, list steps in words>
-              5) Visual Emphasis: <what should be central vs secondary>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
-            
-            CONTENT REQUIREMENTS:
-            - title: "Discovering ..." (plain text).
-            - instructions: Start with > **Parent Note:** (how to use the page). Then ## Instructions with 2-4 steps.
-            - content: Include ## The Big Idea (short reading passage), ## Did You Know? (3-5 fun facts), ## Mini Quiz (3 questions: multiple choice or true/false), and finish with > **Parent Tip:** (one discussion question).`;
-            break;
-            
-        case 'art':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} art and creation activity about "${input.topic}".
-            Target: ${profile.age}-year-old (${profile.grade_level}). Time: 15-30 minutes.
-            
-            FOCUS: Depending on the topic, provide either step-by-step drawing instructions, a coloring page description, or craft instructions related to "${input.topic}".
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Art Type: <drawing-steps | coloring | craft-template>
-              2) Subject: <main subject and theme>
-              3) Panels/Regions: <panel grid or coloring regions description>
-              4) Line Style: <thick outlines, closed shapes for coloring>
-              5) Craft Lines: <if craft, describe cut or fold lines in words>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
-            
-            CONTENT REQUIREMENTS:
-            - title: "Art Time: ..." (plain text).
-            - instructions: Start with > **Parent Note:** what the child practices. Then ## Instructions with clear numbered steps.
-            - content: Include ## Materials Needed (ONLY common household art supplies) and any additional sections needed (e.g., ## Drawing Steps, ## Craft Steps).`;
-            break;
-            
-        case 'math':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} math and counting activity about "${input.topic}".
-            Target: ${profile.age}-year-old (${profile.grade_level}).
-            
-            FOCUS: Counting, simple addition, or number logic. 
-            NON-OVERLAP CONSTRAINT: Do NOT use complex visual patterns or abstract mazes. Avoid number lines or symbolic-only equations. Each question must be solvable by counting visible objects in the image.
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Math Type: <counting | addition | subtraction | comparison>
-              2) Required Objects: <object(count), object(count), ...> (concrete nouns only)
-              3) Grouping/Layout: <rows x cols or grouping description; centered; generous whitespace>
-              4) Problem Mapping: <describe how each question maps to object groups, in words>
-              5) Answer Targets: <list targets in words, no numerals in the image>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts must be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
-            
-            CONTENT REQUIREMENTS:
-            - title: "Math Fun: ..." (plain text).
-            - instructions: Start with > **Parent Note:** what skill this builds. Then ## Instructions with a short how-to.
-            - content: Include ## The Math Challenge with 3-4 simple word problems or counting exercises related to "${input.topic}". End with --- then **Answer Key:** with solutions.`;
-            break;
+Target: ${profile.age}-year-old (${profile.grade_level}).
 
-        case 'reading':
-            categoryPrompt = `Task: Create a professional-grade ${input.difficulty} reading exercise or short story about "${input.topic}".
-            Target: ${profile.age}-year-old (${profile.grade_level}).
-            
-            PEDAGOGICAL CONSTRAINT: Focus on a fictional tale or reading comprehension.
-            
-            IMAGE PROMPT REQUIREMENTS:
-            - The "imagePrompt" field MUST be a structured visual spec using this exact 6-line template:
-              1) Scene: <what moment to depict>
-              2) Characters: <list characters and counts>
-              3) Props/Setting: <key objects and setting details>
-              4) Action/Emotion: <central action or mood>
-              5) Panel Layout: <single scene or multi-panel grid>
-              6) Composition Notes: <A4 portrait, 12mm margins, no borders, no text, pure white background>
-            - Counts may be explicit numerals in the prompt, but NO numerals or letters should appear inside the image.
-            
-            CONTENT REQUIREMENTS:
-            - title: "Story Time: ..." (plain text).
-            - instructions: Start with > **Parent Note:** (read together vs independent). Then ## Instructions (what to do after reading).
-            - content: Include ## The Tale (2-3 paragraphs) and ## Think About It (2 comprehension questions).`;
+imageSpec guidance:
+- scene_type: "${isCharacterTracing ? 'tracing_character' : 'tracing_scene'}"
+- layout: "top_scene_blank_bottom"
+- tracing_target: "${isCharacterTracing ? 'the exact character or digit, e.g. "uppercase letter A" or "digit 5"' : '""'}"
+- tracing_has_path: ${input.simpleTracingPaths ? 'true — a simple single-stroke dashed guide path should be overlaid on the scene' : 'false'}
+- subjects: ${isCharacterTracing ? 'the character itself as the sole subject (count: 1)' : 'one concrete noun related to the topic for the scene (count: 1)'}
+- color_palette: "pastel" for young children; "vibrant" for older.
+- topic_type: classify the topic.
+
+CONTENT REQUIREMENTS:
+- title: "Let's Trace: ..." (plain text).
+- instructions: > **Parent Note:** "${isCharacterTracing ? 'character formation practice' : 'pre-writing warm-up'}" with posture/grip tip. Then ## Instructions with 3-5 steps.
+- content: ## Story Time (2 sentences describing the illustration). ## Target Words (3-5 concrete nouns related to "${input.topic}").`;
             break;
-            
+        }
+
         default:
-            categoryPrompt = `Task: Create a professional-grade, fun, and engaging lesson about "${input.topic}" with clear Markdown headings in the "content" field.`;
+            categoryPrompt = `Task: Create a professional-grade, fun, and engaging lesson about "${input.topic}".
+
+imageSpec guidance:
+- scene_type: "character_story", layout: "centered_single"
+- subjects: the most relevant concrete object or character from the topic
+- background: "plain white"
+- topic_type: classify the topic
+- color_palette: "vibrant"`;
     }
 
-    return `Return ONLY a single JSON object with exactly these keys: "title", "instructions", "content", "imagePrompt".
-Field rules:
-- "title": plain text only (no Markdown, no quotes beyond JSON encoding).
-- "instructions": Markdown (no H1). Must begin with a single line: > **Parent Note:** ...
-- "content": Markdown sections (no H1). Use clear headings and print-friendly formatting.
-- "imagePrompt": plain text ONLY (no Markdown). Describe exactly what the illustration should show. Mention concrete objects, quantities, and characters that appear in the activity. No text/letters/numbers in the image.
+    return `Return ONLY a single JSON object matching the schema. Fields:
+- "title": plain text only.
+- "instructions": Markdown (no H1), starts with > **Parent Note:**.
+- "content": Markdown sections (no H1), print-friendly.
+- "imageSpec": structured object per schema — NOT a string. All required fields must be present.
 
-CRITICAL QUALITY STANDARD: Every activity MUST feel like a premium workbook page. Avoid generic, low-effort content.
+CRITICAL QUALITY STANDARD: Every activity MUST feel like a premium workbook page.
 Style: ${style}
 Difficulty: ${input.difficulty}
 
@@ -190,80 +210,190 @@ ${categoryPrompt}
 `;
 }
 
-export function buildImagePrompt(profile: any, input: GenerateBody, dynamicPrompt: string): string {
-    const isTracing = input.category === 'tracing';
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function subjectPhrase(subjects: VisualSubject[]): string {
+    return subjects
+        .map(s => {
+            const desc = s.descriptor ? `${s.descriptor} ` : '';
+            return s.count === 1 ? `one ${desc}${s.noun}` : `${s.count} ${desc}${s.noun}s`;
+        })
+        .join(', ');
+}
 
-    let layoutInstruction = "";
-    const mathMaxCount = profile.age <= 7 ? 10 : 20;
-    
-    switch (input.category) {
-        case 'puzzles':
-            layoutInstruction = "1. LAYOUT: Create a clean visual logic puzzle component (maze, matching, sorting, pattern, or logic grid). The image should be the PUZZLE itself, clear, uncluttered, and solvable visually. Use A4 portrait composition with a 12mm safe margin. Keep the puzzle centered, use generous whitespace, and avoid filling more than ~70% of the activity field. Do NOT draw a border or frame.";
+// Map color_palette enum → concrete color words Imagen understands
+function paletteToColors(palette: ImageSpec['color_palette'], isColor: boolean): string {
+    if (!isColor) return ''; // ignored for bw
+    const map: Record<ImageSpec['color_palette'], string> = {
+        warm:    'golden yellow, soft orange, warm coral',
+        cool:    'sky blue, aqua, soft lavender',
+        natural: 'leafy green, bark brown, earth tan, sky blue',
+        pastel:  'soft pink, baby blue, mint green, pale yellow',
+        vibrant: 'bold red, bright yellow, vivid blue, fresh green',
+        neutral: 'light grey, off-white',
+    };
+    return map[palette] ?? '';
+}
+
+// ── Deterministic Imagen prompt compiler ──────────────────────────────────────
+// Owns ALL styling, layout, print constraints, and per-scene-type visual grammar.
+// Every category × option × topic_type combination is an explicit branch.
+export function buildImagePrompt(profile: any, input: GenerateBody, spec: ImageSpec): string {
+    const isColor   = input.style === 'colorful';
+    const isOutline = input.style === 'bw' && input.coloringBookMode;
+    const mathMaxCount = 10; // Capped at 10 to ensure precise counting
+
+    // ── 1. Style ──────────────────────────────────────────────────────────────
+    const styleClause = isColor
+        ? `flat vector illustration, children's book style, colors: ${paletteToColors(spec.color_palette, true)}`
+        : isOutline
+        ? 'premium coloring-page line art, crisp bold black outlines, thick strokes, large open white areas, no shading, no color fill'
+        : 'clean black-and-white ink illustration, bold linework, no gray, no shading';
+
+    // ── 2. Age complexity ─────────────────────────────────────────────────────
+    const complexity = profile.age <= 6
+        ? 'very simple rounded shapes, minimal detail, friendly and cute'
+        : profile.age <= 9
+        ? 'moderate detail, clear recognizable objects'
+        : 'detailed but uncluttered, slightly realistic proportions';
+
+    // ── 3. Topic-type rendering hint ──────────────────────────────────────────
+    // Tells Imagen how to interpret the subject — prevents abstract hallucination
+    const topicHint: Record<ImageSpec['topic_type'], string> = {
+        animal:  'Render as a friendly, recognizable cartoon animal with clear species features.',
+        plant:   'Render as a clearly identifiable plant with distinct leaves, stem, and/or flowers.',
+        object:  'Render as a clean, solid real-world object with recognizable silhouette.',
+        person:  'Render as a friendly cartoon child, culturally neutral, simple round face.',
+        place:   'Render the environment with its most iconic elements (e.g. trees for forest, waves for ocean).',
+        process: 'Show the physical objects involved in the process — not abstract arrows or symbols.',
+        concept: 'Represent through the single most iconic concrete object associated with this concept. No abstract symbols, no text.',
+    };
+    const topicClause = topicHint[spec.topic_type] ?? '';
+
+    // ── 4. Subject phrases ────────────────────────────────────────────────────
+    const mainSubjects  = subjectPhrase(spec.subjects);
+    const groupAPhrase  = spec.group_a && spec.group_a.length > 0 ? subjectPhrase(spec.group_a) : '';
+    const groupBPhrase  = spec.group_b && spec.group_b.length > 0 ? subjectPhrase(spec.group_b) : '';
+
+    // ── 5. Scene-type directive ───────────────────────────────────────────────
+    let sceneDirective = '';
+
+    switch (spec.scene_type) {
+
+        // ── Math ──────────────────────────────────────────────────────────────
+        case 'math_counting':
+            sceneDirective = `Show ${mainSubjects}, maximum ${mathMaxCount} total. ${spec.action ? spec.action + '. ' : ''}Every object fully visible, no overlapping, individually countable. Plain white background.`;
             break;
-        case 'tracing':
-            layoutInstruction = "1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white) for writing practice. Use A4 portrait composition with a 12mm safe margin. Keep the scene centered and uncluttered. Do NOT draw a piece of paper.";
+
+        case 'math_addition':
+            sceneDirective = `Two clearly separated groups. Left group: ${groupAPhrase || mainSubjects}. Right group: ${groupBPhrase}. ${spec.action ? spec.action + '. ' : ''}Wide gap between groups. Each object individually countable, no overlapping. Total objects max ${mathMaxCount}.`;
             break;
-        case 'science':
-            layoutInstruction = "1. LAYOUT: Create a clear, focused educational illustration or diagram related to the topic. Use 'exploded view' or clear labeling points if appropriate, but with NO text. Avoid unnecessary decorative clutter. Use A4 portrait composition with a 12mm safe margin and generous whitespace. This should be an INFORMATIONAL visual, not a story scene.";
+
+        case 'math_subtraction':
+            sceneDirective = `Show ${groupAPhrase || mainSubjects} as the full set. The subset ${groupBPhrase} is visually marked as being removed (drawn with a dashed outline or X). ${spec.action ? spec.action + '. ' : ''}All objects individually visible and countable. Max ${mathMaxCount} total.`;
             break;
-        case 'math':
-            layoutInstruction = `1. LAYOUT: Create an image with clear, DISCRETE, COUNTABLE items related to the topic (e.g., 5 distinct apples in a row). The count should be between 1 and ${mathMaxCount} for clarity. The items must be easy to distinguish and count. Use A4 portrait composition with a 12mm safe margin. Keep the composition centered with generous whitespace and avoid filling more than ~70% of the activity field. Keep the background minimal. Do NOT draw a border or frame.`;
+
+        case 'math_comparison':
+            sceneDirective = `Two side-by-side groups with a clear vertical gap between them. Left group: ${groupAPhrase || mainSubjects}. Right group: ${groupBPhrase}. ${spec.action ? spec.action + '. ' : ''}Each object individually countable, no overlapping. Max ${mathMaxCount} total.`;
             break;
-        case 'art':
-            layoutInstruction = "1. LAYOUT: Create a visual suitable for art crafting. If instructed for coloring, create a full-page scene with large open white spaces inside shapes and avoid complex shading. Use A4 portrait composition with a 12mm safe margin, centered subject, and generous whitespace. Include a main subject and a simple background environment.";
+
+        // ── Reading ───────────────────────────────────────────────────────────
+        case 'character_story':
+            sceneDirective = `Children's book illustration. Show ${mainSubjects} in a ${spec.background || 'simple setting'}. ${spec.action ? spec.action + '. ' : ''}One clear central moment, expressive mood, uncluttered.`;
             break;
-        case 'reading':
-            layoutInstruction = "1. LAYOUT: Create a narrative scene that depicts a specific moment or character from a story. It should look like a professional children's book illustration plate, focused on storytelling and mood. Use A4 portrait composition with a 12mm safe margin and generous whitespace. One central action.";
+
+        case 'reading_comic': {
+            const panels = Math.min(Math.max(spec.panel_count || 3, 2), 4);
+            sceneDirective = `A ${panels}-panel comic strip arranged in a horizontal row. Each panel shows a different moment in the story with ${mainSubjects}. ${spec.action ? 'Story arc: ' + spec.action + '. ' : ''}Panels are clearly separated by thin lines. No text or speech bubbles inside panels.`;
             break;
-        default:
-            layoutInstruction = "1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene with ONE main subject. Do NOT overcrowd the image. Do NOT draw a border or frame.";
+        }
+
+        // ── Science ───────────────────────────────────────────────────────────
+        case 'science_lifecycle': {
+            const stages = spec.diagram_part_count > 0 ? spec.diagram_part_count : 4;
+            sceneDirective = `A circular lifecycle diagram with exactly ${stages} stages arranged clockwise: ${mainSubjects}. ${spec.action ? spec.action + '. ' : ''}Each stage clearly separated with generous whitespace. Arrows between stages shown as simple curved lines. No text or labels. Plain white background.`;
+            break;
+        }
+
+        case 'science_anatomy':
+            sceneDirective = `An educational anatomical illustration of ${mainSubjects}. ${spec.diagram_part_count > 0 ? `Show exactly ${spec.diagram_part_count} distinct labeled parts.` : ''} ${spec.action ? spec.action + '. ' : ''}Each component visually distinct with clear boundaries. No text labels. Diagram style, not a story scene.`;
+            break;
+
+        case 'science_comparison':
+            sceneDirective = `A two-column comparison layout. Left column: ${groupAPhrase || mainSubjects}. Right column: ${groupBPhrase || 'the contrasting subject'}. A simple vertical dividing line between columns. ${spec.action ? spec.action + '. ' : ''}Each column shows ${spec.diagram_part_count > 0 ? spec.diagram_part_count : 3} key features. No text or labels.`;
+            break;
+
+        case 'science_diagram':
+            sceneDirective = `Educational diagram of ${mainSubjects}. ${spec.diagram_part_count > 0 ? `Show ${spec.diagram_part_count} distinct parts.` : ''} ${spec.action ? spec.action + '. ' : ''}Each component visually distinct. No text or labels. Informational, not decorative.`;
+            break;
+
+        // ── Puzzles ───────────────────────────────────────────────────────────
+        case 'puzzle_maze':
+            sceneDirective = `A bold, simple decorative illustration of ${mainSubjects} to serve as background art for a maze game. ${spec.background && spec.background !== 'plain white' ? `Setting: ${spec.background}. ` : ''}Leave plenty of empty white space. Do NOT draw a maze, no walls, no paths.`;
+            break;
+
+        case 'puzzle_matching':
+            sceneDirective = `A matching activity. Left column: ${mainSubjects}. Right column: their corresponding pairs in shuffled order. Wide empty white space between columns for drawing connection lines. Each item clearly spaced. No text.`;
+            break;
+
+        case 'puzzle_pattern':
+            sceneDirective = `A pattern sequence of ${mainSubjects}. ${spec.action ? spec.action + '. ' : 'One position in the sequence is visually empty.'}Each item clearly distinct, generous even spacing in a row. No text.`;
+            break;
+
+        case 'puzzle_odd_one_out':
+            sceneDirective = `A row of ${mainSubjects} where one item is clearly visually different from the others. ${spec.action ? spec.action + '. ' : ''}All items evenly spaced. No text.`;
+            break;
+
+        case 'puzzle_sorting':
+            sceneDirective = `${mainSubjects} arranged to show a sorting activity. ${spec.action ? spec.action + '. ' : ''}Clear visual separation between categories. No text or labels.`;
+            break;
+
+        case 'puzzle_spot_differences':
+            sceneDirective = `Two side-by-side panels showing nearly identical scenes with ${mainSubjects} in a ${spec.background || 'simple setting'}. The two panels have exactly ${(spec.subjects?.length ?? 3)} subtle visual differences between them. Each panel identical size, separated by a thin vertical line. No text.`;
+            break;
+
+        // ── Art ───────────────────────────────────────────────────────────────
+        case 'art_coloring':
+            sceneDirective = `Full coloring-page scene. Show ${mainSubjects}${spec.background && spec.background !== 'plain white' ? ` in a ${spec.background}` : ''}. Bold thick closed outlines on all shapes. Large open white interior areas for coloring. No shading, no fill, no gray.`;
+            break;
+
+        case 'art_drawing_steps': {
+            const panels = Math.min(Math.max(spec.panel_count || 3, 2), 4);
+            const grid = panels === 4 ? '2×2' : `1×${panels}`;
+            sceneDirective = `A how-to-draw guide with ${panels} sequential panels in a ${grid} grid. Panel 1: one or two basic geometric shapes. Each subsequent panel adds more detail. Final panel: a complete, recognizable ${mainSubjects}. Panels clearly separated by thin lines. No text or numbers inside panels.`;
+            break;
+        }
+
+        case 'art_craft_template':
+            sceneDirective = `A flat craft template of ${mainSubjects}. Bold solid outer outline. Interior fold guides drawn as evenly-spaced dashed lines. No shading, no color fill. Pure white background.`;
+            break;
+
+        // ── Tracing ───────────────────────────────────────────────────────────
+        case 'tracing_character':
+            sceneDirective = `Draw only "${spec.tracing_target || 'the target character'}" as a single very large hollow character, centered in the upper 65% of the image. Character outline formed by large evenly-spaced dots. No solid fill. No other elements. Lower 35% of image is completely empty pure white.`;
+            break;
+
+        case 'tracing_scene':
+            sceneDirective = `Simple friendly scene in the upper 65% showing ${mainSubjects}${spec.background && spec.background !== 'plain white' ? ` in a ${spec.background}` : ''}. ${spec.tracing_has_path ? 'Add exactly one simple dashed-line guide path related to the scene — single stroke only, no double lines.' : ''}Lower 35% is completely empty pure white for writing practice. One main subject, uncluttered.`;
+            break;
     }
 
-    const tracingInstruction = isTracing
-        ? (input.simpleTracingPaths 
-            ? `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Use A4 portrait composition with a 12mm safe margin. Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice. CRITICAL: Provide a SIMPLE SINGLE-STROKE DOTTED LINE path related to the drawing. Do NOT use outlines, double lines, or 'road' shapes for the path. Just a simple dashed line.`
-            : `1. LAYOUT: Create a SINGLE, CLEAR, FOCUSED scene filling the TOP 70% of the canvas with ONE main subject. The BOTTOM 30% of the canvas MUST be left completely blank and empty (pure white). Use A4 portrait composition with a 12mm safe margin. Do NOT overcrowd the top scene. Do NOT draw a piece of paper.\n5. COMPOSITION: Leave room for tracing practice.`)
-        : "";
-
-    // Age-Tailored Visuals in Image Prompt
-    const ageInstruction = `Age/Grade target: ${profile.age}-year-old (${profile.grade_level}). Adjust visual complexity appropriately. For younger kids, use appealing, simple, and beautifully proportioned shapes. For older kids, create detailed but UNCLUTTERED art. ABSOLUTELY NO scattered floating elements. The final result MUST look carefully composed by a professional children's book illustrator.`;
-
-    const isColor = input.style === 'colorful';
-    const isOutlineOnly = input.style === 'bw' && input.coloringBookMode;
+    // ── 6. Assemble ───────────────────────────────────────────────────────────
+    const isTextAllowed = spec.scene_type === 'tracing_character';
     
-    const styleEnforcement = isColor
-        ? 'STYLE ENFORCEMENT: Output a fully colored, breathtaking, flat illustration suitable for a premium children\'s book. Use beautiful, harmonious color palettes, appealing character designs, and polished, professional composition.'
-        : (isOutlineOnly
-            ? 'STYLE ENFORCEMENT: Premium black-and-white coloring-page line art. Crisp expressive black outlines ONLY on a pure white background. Use varying line weights. No gray shading. Avoid large solid black fills.'
-            : 'STYLE ENFORCEMENT: Black-and-white ink-saver illustration. Use clean black linework on a pure white background. No color. No gray shading or gradients. Avoid large solid black areas unless essential for clarity.');
+    // Mimic the lost API `negativePrompt` parameter by explicitly appending an "AVOID" block
+    const baseNegative = 'AVOID: watermarks, logos, signatures, borders, frames, shadows, dark backgrounds, gradients, realistic photos, 3d renders, clutter.';
+    const textNegative = isTextAllowed
+        ? `${baseNegative} Pure white background only.`
+        : `${baseNegative} AVOID text, AVOID letters, AVOID numbers, AVOID words, AVOID labels. Pure white background only.`;
 
-    const imageStyleIntro = isColor
-        ? `Generate a beautiful, highly engaging, and professionally polished colored illustration for a children's ${input.category} activity about "${input.topic}".`
-        : `Generate elegantly designed, high-contrast, clean black and white line art optimized for A4 paper printing for a children's ${input.category} activity about "${input.topic}".`;
-
-
-    const isCharacterTracing = input.category === 'tracing' && /number|digit|alphabet|letter/i.test(input.topic);
-
-    const imagePrompt = `${imageStyleIntro}
-Activity Type: ${input.category}
-Topic: ${input.topic}
-
-${styleEnforcement}
-IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". DO NOT add random characters, animals, or elements that don't make sense for the topic.
-IMPORTANT THEME ENFORCEMENT: The illustrations MUST accurately reflect the specific topic: "${input.topic}". DO NOT add random characters, animals, or elements that don't make sense for the topic.
-
-Dynamic Content to Visualize:
-${dynamicPrompt}
-
-Specific Instructions:
-${layoutInstruction}
-2. Visualize the items mentioned in the content exactly.
-3. ${ageInstruction}
-${tracingInstruction}
-6. Keep lines simple, bold, and distinct.
-7. NO TEXT OR LETTERS (EXCEPT TRACING): ${isCharacterTracing ? 'You ARE allowed to draw a large, centered, single dotted-outline digit or letter if it is the target of the tracing activity. Ensure it has NO solid fill.' : 'ABSOLUTELY NO WORDS, NUMBERS, OR CURSIVE SCRIPT in the image.'} 
-8. FINAL CHECK: Ensure the background is PURE WHITE (#FFFFFF) with NO texture, gradient, or grey tint. Do not draw a physical page or frame.
-Constraints: No shading or gradients to ensure maximum clarity on printing.`;
-
-    return imagePrompt;
+    return [
+        `Children's educational ${input.category} activity. Topic: "${input.topic}".`,
+        `Style: ${styleClause}.`,
+        `Age: ${complexity}.`,
+        topicClause,
+        sceneDirective,
+        textNegative,
+    ]
+        .filter(Boolean)
+        .join(' ');
 }
