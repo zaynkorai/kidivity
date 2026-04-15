@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/activity_provider.dart';
 import '../../../core/constants/categories.dart';
 import '../../../core/widgets/profile_switcher_badge.dart';
-import 'widgets/magic_card.dart';
 import 'widgets/category_grid.dart';
 import 'widgets/pick_of_the_day_card.dart';
 import 'widgets/weekly_activity_chart.dart';
@@ -92,34 +93,118 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Dashboard',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        ProfileSwitcherBadge(),
+                        if ((kidStats?.streak ?? 0) > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(40),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.full,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.flame,
+                                  size: 14,
+                                  color: Colors.amberAccent,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${kidStats?.streak ?? 0} streak',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          const SizedBox(),
+                        const ProfileSwitcherBadge(),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.sm),
-                    MagicCard(
-                      activeProfile: activeProfile,
-                      lastActivityTopic: lastActivity?.topic,
-                      streak: kidStats?.streak ?? 0,
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      activeId != null
+                          ? (activeProfile?.name ?? 'Welcome')
+                          : 'Welcome',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      activeId != null
+                          ? 'Ready for a new adventure?'
+                          : 'Add a profile to start generating activities.',
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(200),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    GestureDetector(
+                      onTap: () {
+                        if (activeId != null) {
+                          context.go('/generate');
+                        } else {
+                          context.push('/profile-create');
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Generate Activity',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(
+                              LucideIcons.sparkles,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
 
             // ─── Body Content ────────────────────────
             SliverPadding(
@@ -129,22 +214,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Pick of the Day
                   const PickOfTheDayCard(),
 
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Categories Header
-                  Text(
-                    'Quick Generate',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Category Grid
                   const CategoryGrid(),
 
-                  const SizedBox(height: AppSpacing.xxxl),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Weekly Activity Chart
                   WeeklyActivityChart(activities: visibleActivities.toList()),

@@ -19,8 +19,8 @@ class CategoryGrid extends StatelessWidget {
           padding: EdgeInsets.zero,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            crossAxisSpacing: AppSpacing.md,
-            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.sm,
+            mainAxisSpacing: AppSpacing.sm,
             childAspectRatio: 0.92, // Shorter cards to reduce vertical empty space
           ),
           itemCount: Categories.all.length,
@@ -84,16 +84,9 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
             borderRadius: BorderRadius.circular(AppRadius.lg),
             color: isDark ? AppColors.surfaceDark : Colors.white,
             boxShadow: AppShadows.card,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark 
-                ? [AppColors.surfaceDark, cat.accent.withAlpha(40)] 
-                : [cat.accent.withAlpha(80), cat.accent.withAlpha(30)],
-            ),
             border: Border.all(
-              color: isDark ? cat.accent.withAlpha(60) : cat.accent.withAlpha(100),
-              width: 1.2,
+              color: isDark ? cat.accent.withAlpha(50) : Colors.black.withAlpha(10),
+              width: 1,
             ),
           ),
           child: Stack(
@@ -144,25 +137,7 @@ class _CategoryCardState extends State<CategoryCard> with SingleTickerProviderSt
                 ),
               ),
 
-              // Top Inner Glow Effect (Light Mode only)
-              if (!isDark)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 1,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withAlpha(0),
-                        Colors.white.withAlpha(180),
-                        Colors.white.withAlpha(0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+
             ],
           ),
         ),
