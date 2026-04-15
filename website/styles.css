@@ -152,6 +152,7 @@ body.single-window html {
     justify-content: center;
     gap: 8px;
     border: none;
+    text-decoration: none;
 }
 
 .btn-primary {
