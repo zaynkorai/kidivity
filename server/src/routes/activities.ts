@@ -23,7 +23,7 @@ export default async function activityRoutes(fastify: FastifyInstance) {
         const quota = await checkQuota(adminClient, request.userId, timezone);
         if (!quota.allowed) {
             return reply.code(429).send({
-                error: 'Daily generation limit reached',
+                error: 'Out of Magic Sparks for today',
                 used: quota.used,
                 limit: quota.limit,
                 reset_at: quota.reset_at,

@@ -15,6 +15,7 @@ import '../../../core/components/math_parent_gate_dialog.dart';
 import '../../../core/providers/review_provider.dart';
 import '../../../core/widgets/review_modal.dart';
 import '../../../core/widgets/profile_switcher_badge.dart';
+import '../../../core/providers/subscription_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -39,7 +40,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _appVersion = '${info.version}+${info.buildNumber}';
     });
   }
-
 
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -176,7 +176,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (_) {
       if (mounted) {
-        _showError('Unable to delete your account right now. Please try again.');
+        _showError(
+          'Unable to delete your account right now. Please try again.',
+        );
       }
     } finally {
       if (mounted) setState(() => _isDeletingAccount = false);
@@ -197,7 +199,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _handleRateApp() async {
-    final shouldShow = await ref.read(reviewProvider.notifier).shouldRequestReview();
+    final shouldShow = await ref
+        .read(reviewProvider.notifier)
+        .shouldRequestReview();
     if (shouldShow && mounted) {
       ReviewModal.show(context);
     } else {
@@ -220,7 +224,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       scheme: 'mailto',
       path: 'support@kidivity.pro',
       query: _encodeQueryParameters(<String, String>{
-        'subject': 'Support Request - Kidivity App'
+        'subject': 'Support Request - Kidivity App',
       }),
     );
 
@@ -233,8 +237,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   String? _encodeQueryParameters(Map<String, String> params) {
     return params.entries
-        .map((MapEntry<String, String> e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (MapEntry<String, String> e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
   }
 
@@ -244,6 +250,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final email = user?.email ?? '';
     final profileState = ref.watch(profileProvider);
     final profiles = profileState.profiles;
+    final subscriptionState = ref.watch(subscriptionProvider);
+
+    // Listen for billing errors and show them to the parent
+    ref.listen<SubscriptionState>(subscriptionProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        _showError(next.error!);
+      }
+    });
 
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -382,8 +396,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             () async => context.push('/profile-create'),
                           ),
                           child: Padding(
-                            padding:
-                                EdgeInsets.symmetric(vertical: AppSpacing.md),
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -404,6 +419,71 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               ],
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Magic Status Section
+                    const _SectionTitle(title: 'MAGIC STATUS'),
+                    _MagicStatusCard(
+                      rateLimitState: ref
+                          .watch(activityProvider)
+                          .rateLimitState,
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Subscription Section
+                    const _SectionTitle(title: 'SUBSCRIPTION'),
+                    _SettingsCard(
+                      children: [
+                        if (subscriptionState.isPro) ...[
+                          _SettingsRow(
+                            icon: LucideIcons.gem,
+                            iconBackgroundColor: Colors.amber,
+                            label: 'Manage Pro Subscription',
+                            value: 'Active',
+                            onTap: () {
+                              ref
+                                  .read(subscriptionProvider.notifier)
+                                  .presentCustomerCenter();
+                            },
+                          ),
+                        ] else ...[
+                          _SettingsRow(
+                            icon: LucideIcons.crown,
+                            iconBackgroundColor: AppColors.primary,
+                            label: 'Upgrade to Kidivity Pro',
+                            value: 'Unlock All',
+                            onTap: () {
+                              ref
+                                  .read(subscriptionProvider.notifier)
+                                  .presentPaywall();
+                            },
+                          ),
+                        ],
+                        _buildDivider(56),
+                        _SettingsRow(
+                          icon: LucideIcons.refreshCcw,
+                          iconBackgroundColor: AppColors.secondary,
+                          label: 'Restore Purchases',
+                          onTap: () async {
+                            await ref
+                                .read(subscriptionProvider.notifier)
+                                .restorePurchases();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Purchases restored successfully!',
+                                  ),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -692,7 +772,9 @@ class _ProfileRow extends StatelessWidget {
                 color: color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isActive ? AppColors.primary : Colors.white.withAlpha(80),
+                  color: isActive
+                      ? AppColors.primary
+                      : Colors.white.withAlpha(80),
                   width: isActive ? 3 : 2,
                 ),
                 boxShadow: [
@@ -701,7 +783,7 @@ class _ProfileRow extends StatelessWidget {
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
-                  if (isActive) 
+                  if (isActive)
                     BoxShadow(
                       color: AppColors.primary.withAlpha(40),
                       blurRadius: 12,
@@ -719,54 +801,233 @@ class _ProfileRow extends StatelessWidget {
                 ),
               ),
             ),
-          const SizedBox(width: AppSpacing.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+            const SizedBox(width: AppSpacing.sm),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '$age · $gradeLevel',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 2),
+                Text(
+                  '$age · $gradeLevel',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+              ],
+            ),
+            const Spacer(),
+            // Edit Button
+            InkWell(
+              onTap: onEdit,
+              child: _actionButton(
+                AppColors.primaryLight.withAlpha(100),
+                LucideIcons.edit3,
+                AppColors.primary,
               ),
-            ],
-          ),
-          const Spacer(),
-          // Edit Button
-          InkWell(
-            onTap: onEdit,
-            child: _actionButton(AppColors.primaryLight.withAlpha(100), LucideIcons.edit3, AppColors.primary),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          // Delete Button
-          InkWell(
-            onTap: onDelete,
-            child: _actionButton(AppColors.danger.withAlpha(30), LucideIcons.trash2, AppColors.danger),
-          ),
-        ],
+            ),
+            const SizedBox(width: AppSpacing.md),
+            // Delete Button
+            InkWell(
+              onTap: onDelete,
+              child: _actionButton(
+                AppColors.danger.withAlpha(30),
+                LucideIcons.trash2,
+                AppColors.danger,
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _actionButton(Color bgColor, IconData icon, Color iconColor) {
     return Container(
       width: 36,
       height: 36,
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
       alignment: Alignment.center,
       child: Icon(icon, size: 18, color: iconColor),
+    );
+  }
+}
+
+class _MagicStatusCard extends StatelessWidget {
+  final RateLimitState rateLimitState;
+
+  const _MagicStatusCard({required this.rateLimitState});
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = rateLimitState.limit - rateLimitState.used;
+    final isPro = rateLimitState.limit > 1;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppShadows.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withAlpha(20),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.zap,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Magic Remaining',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      Text(
+                        '$remaining Magic Sparks',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!isPro) const _UpgradeChip(),
+              ],
+            ),
+          ),
+          Container(height: 1, color: Theme.of(context).dividerColor),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              children: [
+                _MagicStatusRow(
+                  label: 'Current Plan',
+                  value: _getPlanName(rateLimitState.limit),
+                  icon: LucideIcons.layers,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MagicStatusRow(
+                  label: 'Refills In',
+                  value: _getRefillText(rateLimitState.limit),
+                  icon: LucideIcons.clock,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPlanName(int limit) {
+    if (limit == 1) return 'The Explorer (Free)';
+    if (limit == 10) return 'The Champion (Annual)';
+    if (limit == 100) return 'The Pro Parent (Monthly)';
+    return 'Trial';
+  }
+
+  String _getRefillText(int limit) {
+    if (limit == 1) return '48 Hours';
+    if (limit == 100) return '30 Days';
+    return '24 Hours';
+  }
+}
+
+class _MagicStatusRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _MagicStatusRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: Theme.of(context).textTheme.bodySmall?.color,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UpgradeChip extends StatelessWidget {
+  const _UpgradeChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: const Text(
+        'FREE',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
     );
   }
 }

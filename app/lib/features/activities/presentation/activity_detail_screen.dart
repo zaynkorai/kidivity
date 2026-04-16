@@ -48,8 +48,10 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
         // Check for review after a short delay so they can see the activity first
         await Future.delayed(const Duration(seconds: 5));
         if (!mounted) return;
-        
-        final shouldShow = await ref.read(reviewProvider.notifier).shouldRequestReview();
+
+        final shouldShow = await ref
+            .read(reviewProvider.notifier)
+            .shouldRequestReview();
         if (shouldShow && mounted) {
           ReviewModal.show(context);
         }
@@ -665,7 +667,7 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✨ Activity marked as completed!')),
+          const SnackBar(content: Text('Activity marked as completed!')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

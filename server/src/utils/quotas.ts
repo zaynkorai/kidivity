@@ -8,72 +8,84 @@ export interface QuotaResult {
 }
 
 /**
- * Checks the per-user daily activity generation quota.
- * Uses admin client (bypasses RLS) to count today's activities.
+ * Checks the per-user generation quota based on their tier.
+ * 
+ * DESIGN:
+ * - Free (limit 1): 1 generation every 48 hours.
+ * - Monthly Pro (limit 100): 100 generations per 30 days.
+ * - Annual Pro (limit 10): 10 generations per 24 hours.
  */
 export async function checkQuota(
     adminClient: SupabaseClient,
     userId: string,
     timezone: string = 'UTC'
 ): Promise<QuotaResult> {
-    // Determine the start of "today" in the user's timezone
     const now = new Date();
     
-    // Create a formatter for the user's timezone
-    const fmt = new Intl.DateTimeFormat('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-        hour12: false,
-    });
-
-    // Format 'now' to see what time it is for the user
-    const parts = fmt.formatToParts(now);
-    const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
-
-    // Construct a naive date string for the user's midnight
-    const userMidnightStr = `${partMap.year}-${partMap.month.padStart(2, '0')}-${partMap.day.padStart(2, '0')}T00:00:00`;
-    const userNowNaiveStr = `${partMap.year}-${partMap.month.padStart(2, '0')}-${partMap.day.padStart(2, '0')}T${partMap.hour.padStart(2, '0')}:${partMap.minute.padStart(2, '0')}:${partMap.second.padStart(2, '0')}`;
-
-    const userMidnightDate = new Date(userMidnightStr);
-    const userNowNaive = new Date(userNowNaiveStr);
-
-    const msSinceMidnight = userNowNaive.getTime() - userMidnightDate.getTime();
-    const todayStart = new Date(now.getTime() - msSinceMidnight);
-
-    // Next midnight for resetAt
-    const tomorrow = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-
-    // Fetch user's custom limit from DB
+    // 1. Fetch user's limit from DB
     const { data: userData } = await adminClient
         .from('users')
         .select('generation_limit')
         .eq('id', userId)
         .single();
 
-    const limit = userData?.generation_limit ?? 1; // Default to 1 if missing or NULL
+    const limit = userData?.generation_limit ?? 1;
 
-    // Count activities that are either completed OR currently generating
+    // 2. Determine Lookback Window
+    let windowStart: Date;
+    let periodName: string;
+
+    if (limit === 1) {
+        // Free: 48 hour window
+        windowStart = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+        periodName = '48h';
+    } else if (limit === 100) {
+        // Monthly Pro: 30 day window
+        windowStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        periodName = '30d';
+    } else {
+        // Annual Pro (10) or Fallback: 24 hour window
+        windowStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        periodName = '24h';
+    }
+
+    // 3. Count activities in this window
     const { count, error } = await adminClient
         .from('activities')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
         .in('status', ['generating', 'completed'])
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', windowStart.toISOString());
 
     const used = error ? 0 : (count ?? 0);
 
-    // Logging to help debug "not updating" issue
-    console.log(`[QuotaCheck] user=${userId} timezone=${timezone} todayStart=${todayStart.toISOString()} used=${used} limit=${limit}`);
+    // 4. Calculate "Reset At" (Estimated time when first activity in window expires)
+    let resetAt = new Date(now.getTime() + 60 * 60 * 1000); // Default to +1h if empty
+    if (used > 0) {
+        const { data: oldestInWindow } = await adminClient
+            .from('activities')
+            .select('created_at')
+            .eq('user_id', userId)
+            .in('status', ['generating', 'completed'])
+            .gte('created_at', windowStart.toISOString())
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single();
+
+        if (oldestInWindow) {
+            const oldestDate = new Date(oldestInWindow.created_at);
+            if (limit === 1) resetAt = new Date(oldestDate.getTime() + 48 * 60 * 60 * 1000);
+            else if (limit === 100) resetAt = new Date(oldestDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+            else resetAt = new Date(oldestDate.getTime() + 24 * 60 * 60 * 1000);
+        }
+    }
+
+    console.log(`[QuotaCheck] user=${userId} tier=${limit} window=${periodName} used=${used}/${limit}`);
 
     return {
         allowed: used < limit,
         used,
         limit,
-        reset_at: tomorrow.toISOString(),
+        reset_at: resetAt.toISOString(),
     };
 }

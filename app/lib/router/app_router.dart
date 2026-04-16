@@ -18,6 +18,7 @@ import '../core/providers/supabase_provider.dart';
 import '../core/providers/onboarding_provider.dart';
 import '../core/theme/app_theme.dart';
 import '../core/providers/activity_provider.dart';
+import '../core/providers/auth_provider.dart' as app_auth;
 import 'scaffold_with_nav_bar.dart';
 import 'router_refresh_stream.dart';
 
@@ -207,7 +208,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final authState = ref.read(app_auth.authProvider);
       final onboardingState = ref.read(onboardingProvider);
+      
+      // DO NOT REDIRECT until both providers are fully initialized.
+      // This prevents the "Flicker Bug" where the app briefly redirects to Welcome 
+      // because it thinks the user isn't logged in or onboarding isn't done.
+      if (!authState.isInitialized || !onboardingState.isInitialized) {
+        return null; // Stay on current screen (usually the Native Splash)
+      }
+
       final isCompleted = onboardingState.status == OnboardingStatus.completed;
       final location = state.uri.path;
 
@@ -228,8 +238,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final activityState = ref.read(activityProvider);
       final hasNoActivities = activityState.recentActivities.isEmpty && activityState.isInitialized;
       
-      // If onboarding is complete but no activities exist, force redirection to Generate screen
-      // except when already on Generate or in the middle of onboarding logic.
       if (isCompleted && hasNoActivities && location != '/generate' && !location.startsWith('/onboarding')) {
         return '/generate?first_activity=true';
       }

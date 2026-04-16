@@ -12,6 +12,7 @@ import '../../../core/constants/topics.dart';
 import '../../../core/providers/review_provider.dart';
 import '../../../core/widgets/review_modal.dart';
 import '../../../core/widgets/profile_switcher_badge.dart';
+import '../../../core/providers/subscription_provider.dart';
 
 enum ActivityGuideStep { category, topic, difficulty, style, generate }
 
@@ -148,27 +149,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
   }
 
   void _showRateLimitDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(LucideIcons.zap, color: AppColors.secondary, size: 20),
-            SizedBox(width: 8),
-            Text('Daily Limit Reached'),
-          ],
-        ),
-        content: const Text(
-          'You\'ve used all your free generations for today. Come back tomorrow for more!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    context.push('/paywall');
   }
 
   @override
@@ -197,7 +178,12 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     children: [
                       // ─── Primary Header ───────────────────────
                       _buildHeader(profileState),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // ─── Magic Remaining (Sparks) ───────────────────
+                      _buildMagicRemainingBadge(activityState.rateLimitState),
+
+                      const SizedBox(height: AppSpacing.md),
 
                       // ─── No Profile Warning ───────────────────
                       if (!hasProfile) _buildWarningCard(),
@@ -279,6 +265,141 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
       ),
     );
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // Magic Remaining (Sparks)
+  // ═══════════════════════════════════════════════════════════════
+
+  Widget _buildMagicRemainingBadge(RateLimitState quota) {
+    if (quota.limit == 0) return const SizedBox.shrink();
+
+    final remaining = quota.limit - quota.used;
+    final isLow = remaining <= 2;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isLow ? AppColors.accent.withAlpha(20) : AppColors.primary.withAlpha(10),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: isLow ? AppColors.accent.withAlpha(100) : AppColors.primary.withAlpha(40),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              LucideIcons.zap,
+              size: 16,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                    remaining <= 0 ? 'Magic Refilling...' : 'Magic Remaining',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  _MagicCountdownText(
+                    remaining: remaining,
+                    resetAt: quota.reset_at,
+                    isLow: isLow,
+                  ),
+                ],
+              ),
+            ),
+            if (isLow)
+              TextButton(
+                onPressed: () => ref.read(subscriptionProvider.notifier).presentPaywall(),
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: AppColors.primary,
+                ),
+                child: const Text('Get More'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+class _MagicCountdownText extends StatefulWidget {
+  final int remaining;
+  final String resetAt;
+  final bool isLow;
+
+  const _MagicCountdownText({
+    required this.remaining,
+    required this.resetAt,
+    required this.isLow,
+  });
+
+  @override
+  State<_MagicCountdownText> createState() => _MagicCountdownTextState();
+}
+
+class _MagicCountdownTextState extends State<_MagicCountdownText> {
+  Timer? _timer;
+  String _timeStr = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _updateTime() {
+    if (widget.remaining > 0) {
+      if (mounted) setState(() => _timeStr = '${widget.remaining} Magic Sparks available');
+      return;
+    }
+
+    try {
+      final resetAt = DateTime.parse(widget.resetAt);
+      final diff = resetAt.difference(DateTime.now());
+
+      if (diff.isNegative) {
+        if (mounted) setState(() => _timeStr = 'Refill ready! Pull to refresh.');
+        return;
+      }
+
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      final s = diff.inSeconds % 60;
+
+      final str = '${h}h ${m}m ${s}s left';
+      if (mounted) setState(() => _timeStr = str);
+    } catch (_) {
+      if (mounted) setState(() => _timeStr = 'Refilling...');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _timeStr,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
+        color: widget.isLow ? AppColors.accent : AppColors.primary,
+      ),
+    );
+  }
+}
 
   // ═══════════════════════════════════════════════════════════════
   // Header
@@ -601,8 +722,16 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
             spacing: AppSpacing.sm,
             children: ['easy', 'medium', 'hard'].map((d) {
               final isSelected = _difficulty == d;
+              final isProOption = d == 'hard';
+              final isPro = ref.watch(subscriptionProvider).isPro;
+
               return GestureDetector(
                 onTap: () {
+                  if (isProOption && !isPro) {
+                    HapticFeedback.vibrate();
+                    ref.read(subscriptionProvider.notifier).presentPaywall();
+                    return;
+                  }
                   HapticFeedback.selectionClick();
                   setState(() {
                     _difficulty = d;
@@ -628,15 +757,24 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                           : _accentColor.withAlpha(40),
                     ),
                   ),
-                  child: Text(
-                    d[0].toUpperCase() + d.substring(1),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.white
-                          : Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        d[0].toUpperCase() + d.substring(1),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      if (isProOption && !isPro) ...[
+                        const SizedBox(width: 4),
+                        const Icon(LucideIcons.lock, size: 10, color: Colors.amber),
+                      ],
+                    ],
                   ),
                 ),
               );
@@ -682,8 +820,16 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
 
   Widget _buildStyleChip(String value, String label, IconData icon) {
     final isSelected = _style == value;
+    final isProOption = value == 'colorful';
+    final isPro = ref.watch(subscriptionProvider).isPro;
+
     return GestureDetector(
       onTap: () {
+        if (isProOption && !isPro) {
+          HapticFeedback.vibrate();
+          ref.read(subscriptionProvider.notifier).presentPaywall();
+          return;
+        }
         HapticFeedback.selectionClick();
         setState(() {
           _style = value;
@@ -721,6 +867,10 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
                     : Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
+            if (isProOption && !isPro) ...[
+              const SizedBox(width: 4),
+              const Icon(LucideIcons.lock, size: 10, color: Colors.amber),
+            ],
           ],
         ),
       ),
@@ -845,7 +995,7 @@ class _GenerateScreenState extends ConsumerState<GenerateScreen> {
         break;
       case ActivityGuideStep.topic:
         message = 'Great! Now pick a topic or type your preference.';
-        icon = LucideIcons.sparkles;
+        icon = LucideIcons.zap;
         targetLink = _topicLink;
         break;
       case ActivityGuideStep.difficulty:

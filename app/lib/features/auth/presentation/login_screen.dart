@@ -67,7 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(LucideIcons.sparkles, size: 36, color: Colors.white),
+                  child: const Icon(LucideIcons.zap, size: 36, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
                 Text(

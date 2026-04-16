@@ -6,6 +6,7 @@ import 'core/constants/env.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/profile_provider.dart';
 import 'core/providers/activity_provider.dart';
+import 'core/providers/subscription_provider.dart';
 import 'router/app_router.dart';
 
 void main() async {
@@ -35,6 +36,7 @@ class MyApp extends ConsumerWidget {
     // Eagerly initialize providers so they begin listening to auth state
     ref.watch(profileProvider);
     ref.watch(activityProvider);
+    ref.watch(subscriptionProvider);
 
     return MaterialApp.router(
       title: 'Kidivity',

@@ -7,7 +7,7 @@ export function buildSystemInstruction(profile: any, feedback?: string[]): strin
         ? `\n\nUSER FEEDBACK & PREFERENCES (PERSONALIZATION):\n${feedback.map(f => `- ${f}`).join('\n')}\nFollow these preferences strictly to improve quality for this specific child.`
         : '';
 
-    return `You are Kaivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
+    return `You are Kidivity, an expert pedagogical AI specializing in creating high-quality, printable activities for children.
 
 OUTPUT FORMAT (STRICT):
 - Return a single JSON object matching the provided schema. No extra keys. No surrounding text. No code fences.

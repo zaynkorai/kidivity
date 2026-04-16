@@ -90,7 +90,7 @@ class _FirstActivityScreenState extends ConsumerState<FirstActivityScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(LucideIcons.sparkles, size: 64, color: AppColors.primary),
+              const Icon(LucideIcons.wand2, size: 64, color: AppColors.primary),
               const SizedBox(height: AppSpacing.xxl),
               Text(
                 'Building Engine...',

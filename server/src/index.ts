@@ -10,6 +10,7 @@ import onboardingRoutes from './routes/onboarding.js';
 import profileRoutes from './routes/profiles.js';
 import supportRoutes from './routes/support.js';
 import accountRoutes from './routes/account.js';
+import webhookRoutes from './routes/webhooks.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -81,6 +82,7 @@ async function main() {
     await fastify.register(journeyRoutes);
     await fastify.register(supportRoutes);
     await fastify.register(accountRoutes);
+    await fastify.register(webhookRoutes);
 
     // Health check (skips auth via plugin logic)
     fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -98,7 +100,7 @@ async function main() {
     // ── Start ────────────────────────────────────────────
     try {
         await fastify.listen({ port: PORT, host: HOST });
-        fastify.log.info(`🚀 Kaivity API running at http://${HOST}:${PORT}`);
+        fastify.log.info(`🚀 Kidivity API running at http://${HOST}:${PORT}`);
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);

@@ -14,6 +14,7 @@ class OnboardingState {
   final int step;
   final OnboardingStatus status;
   final bool isLoading;
+  final bool isInitialized;
   final Map<String, String> questionnaireAnswers;
   final int questionnaireIndex;
 
@@ -21,6 +22,7 @@ class OnboardingState {
     this.step = 1,
     this.status = OnboardingStatus.inProgress,
     this.isLoading = false,
+    this.isInitialized = false,
     this.questionnaireAnswers = const {},
     this.questionnaireIndex = 0,
   });
@@ -29,6 +31,7 @@ class OnboardingState {
     int? step,
     OnboardingStatus? status,
     bool? isLoading,
+    bool? isInitialized,
     Map<String, String>? questionnaireAnswers,
     int? questionnaireIndex,
   }) {
@@ -36,6 +39,7 @@ class OnboardingState {
       step: step ?? this.step,
       status: status ?? this.status,
       isLoading: isLoading ?? this.isLoading,
+      isInitialized: isInitialized ?? this.isInitialized,
       questionnaireAnswers: questionnaireAnswers ?? this.questionnaireAnswers,
       questionnaireIndex: questionnaireIndex ?? this.questionnaireIndex,
     );
@@ -68,6 +72,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     if (state.status != OnboardingStatus.completed) {
       await restoreFromBackend();
     }
+
+    state = state.copyWith(isInitialized: true);
   }
 
   Future<void> _restoreState() async {

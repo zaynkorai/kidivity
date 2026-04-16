@@ -191,7 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6),
                             Icon(
-                              LucideIcons.sparkles,
+                              LucideIcons.wand2,
                               size: 18,
                               color: AppColors.primary,
                             ),

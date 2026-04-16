@@ -27,30 +27,38 @@ class AppColors {
   static const Color textPrimaryDark = Color(0xFFFDFDFD);
   static const Color textSecondaryDark = Color(0xFFA0A0A0);
   static const Color textTertiaryDark = Color(0xFF636366);
-  
+
   static const List<Color> avatarPalette = [
-    Color(0xFFFF8A00), Color(0xFFFECAC3), Color(0xFFA2DDC2), Color(0xFFFFE3C1), 
-    Color(0xFF8AE3FF), Color(0xFFE7E1FF), Color(0xFF4834D4), Color(0xFF00CEC9), 
-    Color(0xFFE17055), Color(0xFF0984E3), Color(0xFF2B3A8C)
+    Color(0xFFFF8A00),
+    Color(0xFFFECAC3),
+    Color(0xFFA2DDC2),
+    Color(0xFFFFE3C1),
+    Color(0xFF8AE3FF),
+    Color(0xFFE7E1FF),
+    Color(0xFF4834D4),
+    Color(0xFF00CEC9),
+    Color(0xFFE17055),
+    Color(0xFF0984E3),
+    Color(0xFF2B3A8C),
   ];
 }
 
 class AppCategoryColors {
   static const puzzlesAccent = Color(0xFFFF9F1C);
   static const puzzlesPastel = Color(0xFFFFF4E6);
-  
+
   static const tracingAccent = Color(0xFF4ECDC4);
   static const tracingPastel = Color(0xFFE6F7F6);
-  
+
   static const scienceAccent = Color(0xFFA06CD5);
   static const sciencePastel = Color(0xFFF3EBF9);
-  
+
   static const artAccent = Color(0xFFF9CA24); // Vibrant Golden Yellow for Art
   static const artPastel = Color(0xFFFFF9E1);
-  
+
   static const mathAccent = Color(0xFF4361EE);
   static const mathPastel = Color(0xFFE8EDFF);
-  
+
   static const readingAccent = Color(0xFF6AB04C);
   static const readingPastel = Color(0xFFF0F7ED);
 }
@@ -70,7 +78,7 @@ class AppRadius {
   static const double md = 16;
   static const double lg = 24;
   static const double xl = 32;
-  static const double full = 9999;
+  static const double full = 299;
 }
 
 class AppShadows {
@@ -101,61 +109,78 @@ class AppShadows {
 
 class AppTheme {
   static ThemeData get light => ThemeData(
-        brightness: Brightness.light,
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
-        textTheme: GoogleFonts.poppinsTextTheme(
-          const TextTheme(
-            displayLarge: TextStyle(color: AppColors.textPrimary, letterSpacing: -0.8, fontWeight: FontWeight.w800),
-            bodyLarge: TextStyle(color: AppColors.textPrimary, letterSpacing: -0.2),
-            bodyMedium: TextStyle(color: AppColors.textSecondary),
-          ),
+    brightness: Brightness.light,
+    primaryColor: AppColors.primary,
+    scaffoldBackgroundColor: AppColors.background,
+    textTheme: GoogleFonts.poppinsTextTheme(
+      const TextTheme(
+        displayLarge: TextStyle(
+          color: AppColors.textPrimary,
+          letterSpacing: -0.8,
+          fontWeight: FontWeight.w800,
         ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          surface: AppColors.surface,
-          error: AppColors.danger,
-        ),
-        cardTheme: CardThemeData(
-          color: AppColors.surface,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            side: const BorderSide(color: Color(0x0F000000), width: 0.5), // Subtle tactile edge
-          ),
-        ),
-        dividerColor: AppColors.border,
-      );
+        bodyLarge: TextStyle(color: AppColors.textPrimary, letterSpacing: -0.2),
+        bodyMedium: TextStyle(color: AppColors.textSecondary),
+      ),
+    ),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: AppColors.surface,
+      error: AppColors.danger,
+    ),
+    cardTheme: CardThemeData(
+      color: AppColors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: const BorderSide(
+          color: Color(0x0F000000),
+          width: 0.5,
+        ), // Subtle tactile edge
+      ),
+    ),
+    dividerColor: AppColors.border,
+  );
 
   static ThemeData get dark => ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.backgroundDark,
-        textTheme: GoogleFonts.poppinsTextTheme(
-          const TextTheme(
-            displayLarge: TextStyle(color: AppColors.textPrimaryDark, letterSpacing: -0.8, fontWeight: FontWeight.w800),
-            bodyLarge: TextStyle(color: AppColors.textPrimaryDark, letterSpacing: -0.2),
-            bodyMedium: TextStyle(color: AppColors.textSecondaryDark),
-          ),
+    brightness: Brightness.dark,
+    primaryColor: AppColors.primary,
+    scaffoldBackgroundColor: AppColors.backgroundDark,
+    textTheme: GoogleFonts.poppinsTextTheme(
+      const TextTheme(
+        displayLarge: TextStyle(
+          color: AppColors.textPrimaryDark,
+          letterSpacing: -0.8,
+          fontWeight: FontWeight.w800,
         ),
-        colorScheme: ColorScheme.fromSeed(
-          brightness: Brightness.dark,
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          secondary: AppColors.secondary,
-          surface: AppColors.surfaceDark,
-          error: AppColors.danger,
+        bodyLarge: TextStyle(
+          color: AppColors.textPrimaryDark,
+          letterSpacing: -0.2,
         ),
-        cardTheme: CardThemeData(
-          color: AppColors.surfaceDark,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            side: const BorderSide(color: Color(0x1FDDDDDD), width: 0.5), // Subtle tactile edge for dark mode
-          ),
-        ),
-        dividerColor: AppColors.borderDark,
-      );
+        bodyMedium: TextStyle(color: AppColors.textSecondaryDark),
+      ),
+    ),
+    colorScheme: ColorScheme.fromSeed(
+      brightness: Brightness.dark,
+      seedColor: AppColors.primary,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: AppColors.surfaceDark,
+      error: AppColors.danger,
+    ),
+    cardTheme: CardThemeData(
+      color: AppColors.surfaceDark,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: const BorderSide(
+          color: Color(0x1FDDDDDD),
+          width: 0.5,
+        ), // Subtle tactile edge for dark mode
+      ),
+    ),
+    dividerColor: AppColors.borderDark,
+  );
 }
